@@ -46,6 +46,10 @@
 
   resetBtn.addEventListener("click", () => {
     form.reset();
+    // form.reset() does not dispatch "input" events on the fields it
+    // resets, so listeners that only react to "input" (like the age
+    // sanity-check below) would otherwise keep showing stale state.
+    checkAlderRange();
     update();
   });
 
@@ -63,10 +67,11 @@
     }
   });
 
-  alderInput.addEventListener("input", () => {
+  function checkAlderRange() {
     const v = parseInt(alderInput.value, 10);
     alderWarning.textContent = (!v || v < 18 || v > 100) ? "Alder virker usædvanlig — tjek indtastningen." : "";
-  });
+  }
+  alderInput.addEventListener("input", checkAlderRange);
 
   function getState() {
     const alder = parseInt(alderInput.value, 10) || 0;
