@@ -20,6 +20,12 @@
   --color-blue-border: #a9c9e6;
   --color-blue-text: #1c4a72;
   font-size: 16px;
+  /* Prevent iOS Safari/WebKit from auto-boosting the font size of wrapped
+     paragraph text (like .field-hint) relative to short label text — a
+     WebKit-only behavior that made hint text render larger than the
+     labels around it despite an explicitly smaller font-size. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 * { box-sizing: border-box; }
