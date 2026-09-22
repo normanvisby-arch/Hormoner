@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hormonbehandling ved klimakteriet — beslutningsstøtte</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">♀</span>
+      <div>
+        <h1>Hormonbehandling ved klimakteriet</h1>
+        <p class="subtitle">Beslutningsstøtte for praktiserende læge — baseret på danske retningslinjer</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Værktøjet er en hurtig klinisk huskeseddel til brug ved konsultationen — det erstatter ikke den kliniske vurdering, Sundhedsstyrelsens Nationale Rekommandationsliste (NRL), DSOG's guideline for menopausal hormonterapi eller opslag på
+  <a href="https://pro.medicin.dk" target="_blank" rel="noopener">pro.medicin.dk</a> for aktuelle præparatnavne, styrker, tilskudsstatus og interaktioner. Præparateksemplerne skal altid verificeres før ordination, da udbud og navne ændres løbende.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se anbefaling ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patientens data</h2>
+
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="18" max="100" value="52">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+
+    <div class="field">
+      <label for="bmiInput">BMI (valgfrit, kg/m²)</label>
+      <input type="number" id="bmiInput" min="12" max="70" step="0.1" placeholder="fx 27,5">
+      <p class="field-hint">Udfyldes kun hvis kendt — bruges til at vurdere behov for transdermal behandling frem for oral (BMI ≥ 30).</p>
+    </div>
+
+    <fieldset class="field">
+      <legend>Symptomer (vælg alle relevante)</legend>
+      <label class="checkbox"><input type="checkbox" name="symptom" value="vasomotor" checked> Hedeture / svedeture (vasomotoriske symptomer)</label>
+      <label class="checkbox"><input type="checkbox" name="symptom" value="sovn"> Søvnbesvær</label>
+      <label class="checkbox"><input type="checkbox" name="symptom" value="humor"> Humørsvingninger / irritabilitet / lav stemningsleje</label>
+      <label class="checkbox"><input type="checkbox" name="symptom" value="led"> Ledsmerter / muskelsmerter (mindre stærk evidens for effekt af MHT isoleret)</label>
+      <label class="checkbox"><input type="checkbox" name="symptom" value="libido"> Nedsat libido</label>
+      <label class="checkbox"><input type="checkbox" name="symptom" value="gsm"> Vaginal tørhed / svie / dyspareuni / vandladningsgener (urogenitale symptomer, GSM)</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Uterus til stede?</legend>
+      <label class="radio"><input type="radio" name="uterus" value="ja" checked> Ja — uterus er bevaret</label>
+      <label class="radio"><input type="radio" name="uterus" value="nej"> Nej — hysterektomeret</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Reproduktiv/ovariel status</legend>
+      <label class="radio"><input type="radio" name="status" value="peri" checked> Perimenopausal — fortsat eller uregelmæssig menstruation, evt. &lt; 12 mdr. amenoré</label>
+      <label class="radio"><input type="radio" name="status" value="post"> Postmenopausal — &gt; 12 mdr. siden sidste menstruation (eller &gt; 12 mdr. efter hysterektomi uden kendt cyklus)</label>
+      <label class="radio"><input type="radio" name="status" value="poi"> Prænatur ovarieinsufficiens (POI) — ovariesvigt før 40 år, evt. kirurgisk/kemo-induceret</label>
+    </fieldset>
+    <p class="field-hint">Uterus-status og reproduktiv/ovariel status er uafhængige af hinanden — de påvirker ikke automatisk hinanden, så en hysterektomeret patient med bevarede ovarier kan fortsat markeres som perimenopausal, og en POI-patient kan markeres uden uterus, hvis relevant.</p>
+
+    <fieldset class="field">
+      <legend>Absolutte kontraindikationer (screening)</legend>
+      <label class="checkbox"><input type="checkbox" name="absolut" value="cancer"> Tidligere/aktiv brystkræft eller anden østrogenfølsom cancer</label>
+      <label class="checkbox"><input type="checkbox" name="absolut" value="blodning"> Uafklaret vaginalblødning</label>
+      <label class="checkbox"><input type="checkbox" name="absolut" value="vte"> Aktiv eller nylig venøs tromboemboli uden antikoagulation</label>
+      <label class="checkbox"><input type="checkbox" name="absolut" value="arteriel"> Aktiv arteriel tromboembolisk sygdom (nylig AMI/apopleksi)</label>
+      <label class="checkbox"><input type="checkbox" name="absolut" value="lever"> Aktiv leversygdom med påvirket leverfunktion</label>
+      <label class="checkbox"><input type="checkbox" name="absolut" value="grav"> Graviditet / mistanke om graviditet</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Relative risikofaktorer / forsigtighed (påvirker valg af administrationsvej)</legend>
+      <label class="checkbox"><input type="checkbox" name="relativ" value="ryger"> Ryger</label>
+      <label class="checkbox"><input type="checkbox" name="relativ" value="migraene"> Migræne med aura</label>
+      <label class="checkbox"><input type="checkbox" name="relativ" value="trombofili"> Familiær VTE-disposition / kendt trombofili</label>
+      <label class="checkbox"><input type="checkbox" name="relativ" value="htn"> Ukontrolleret hypertension</label>
+      <label class="checkbox"><input type="checkbox" name="relativ" value="galde"> Galdeblæresygdom</label>
+      <label class="checkbox"><input type="checkbox" name="relativ" value="trigly"> Forhøjede triglycerider</label>
+      <label class="checkbox"><input type="checkbox" name="relativ" value="alder60"> Opstart &gt; 60 år eller &gt; 10 år siden menopause</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Patientens præference (valgfrit)</legend>
+      <label class="radio"><input type="radio" name="praeferens" value="ingen" checked> Ingen særlig præference</label>
+      <label class="radio"><input type="radio" name="praeferens" value="tablet"> Foretrækker tabletter</label>
+      <label class="radio"><input type="radio" name="praeferens" value="transdermal"> Foretrækker plaster/gel</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Anbefaling" id="resultPanel">
+    <h2>2. Anbefaling</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér resumé til journal</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Sundhedsstyrelsen — National Rekommandationsliste (NRL): <em>Hormonbehandling i klimakterie og menopause</em> (2022), inkl. anbefaling om transdermal som generelt førstevalg ved systemisk østrogenbehandling</li>
+    <li>Dansk Selskab for Obstetrik og Gynækologi (DSOG) — revideret guideline for menopausal hormonterapi (februar 2026)</li>
+    <li><a href="https://pro.medicin.dk" target="_blank" rel="noopener">pro.medicin.dk</a> — altid opslag før ordination (aktuelle præparater, styrker, tilskud, interaktioner, pakningsstørrelser, og bekræftelse af at det enkelte præparat fortsat er markedsført)</li>
+    <li>International evidensgrundlag som supplement: NICE NG23, IMS/EMAS og The Endocrine Society's kliniske retningslinjer for menopausal hormonbehandling</li>
+  </ul>
+  <p class="fineprint">Dette er et lokalt, uafhængigt hjælpeværktøj — ikke en officiel publikation fra Sundhedsstyrelsen, DSOG eller andre af de nævnte kilder. Erstatter ikke opslag i de originale vejledninger eller den lægefaglige vurdering af den enkelte patient. Indholdet er opdateret 22. september 2026 efter en ekstern gennemgang af algoritme og kildehenvisninger; retningslinjer og præparatudbud ændres løbende og bør verificeres direkte.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
