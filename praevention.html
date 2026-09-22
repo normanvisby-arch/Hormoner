@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prævention — beslutningsstøtte</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">⌬</span>
+      <div>
+        <h1>Prævention</h1>
+        <p class="subtitle">Beslutningsstøtte for praktiserende læge — baseret på danske retningslinjer</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Hormonbehandling ved klimakteriet</a>
+  <span aria-current="page">Prævention</span>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Værktøjet er en hurtig klinisk huskeseddel til brug ved konsultationen — det erstatter ikke den kliniske vurdering, Sundhedsstyrelsens Nationale Rekommandationsliste (NRL) for hormonal kontraception, Lægemiddelstyrelsens tjekliste for ordinerende læger eller opslag på
+  <a href="https://pro.medicin.dk" target="_blank" rel="noopener">pro.medicin.dk</a>. Præparateksemplerne skal altid verificeres før ordination, da udbud og navne ændres løbende.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se anbefaling ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patientens data</h2>
+
+    <fieldset class="field field-callout">
+      <legend>Akut behov</legend>
+      <label class="checkbox"><input type="checkbox" id="nodPraevention"> Akut nødprævention — ubeskyttet samleje for nylig</label>
+      <div class="field" id="nodTimingWrap" hidden>
+        <label>Tid siden ubeskyttet samleje</label>
+        <label class="radio"><input type="radio" name="nodtiming" value="under24" checked> Under 24 timer</label>
+        <label class="radio"><input type="radio" name="nodtiming" value="24to72"> 24–72 timer (indtil 3 døgn)</label>
+        <label class="radio"><input type="radio" name="nodtiming" value="72to120"> 72–120 timer (3–5 døgn)</label>
+        <label class="radio"><input type="radio" name="nodtiming" value="over120"> Over 120 timer (5+ døgn)</label>
+      </div>
+      <p class="field-hint">Ved flueben herved springes den øvrige formular over, og der vises kun en nødprævention-anbefaling.</p>
+    </fieldset>
+
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="12" max="60" value="25">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+
+    <div class="field">
+      <label for="bmiInput">BMI (valgfrit, kg/m²)</label>
+      <input type="number" id="bmiInput" min="12" max="70" step="0.1" placeholder="fx 27,5">
+      <p class="field-hint">Bruges til at vurdere kombineret hormonel prævention (BMI ≥ 35) og — ved akut nødprævention — reduceret pilleeffekt ved højere BMI.</p>
+    </div>
+
+    <fieldset class="field">
+      <legend>Øvrige forhold</legend>
+      <label class="checkbox"><input type="checkbox" id="ryger"> Ryger</label>
+      <label class="checkbox"><input type="checkbox" id="postpartum"> Har født inden for de seneste 6 uger</label>
+      <label class="checkbox"><input type="checkbox" id="amning"> Ammer i øjeblikket</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Migræne</legend>
+      <label class="radio"><input type="radio" name="migraene" value="ingen" checked> Ingen migræne</label>
+      <label class="radio"><input type="radio" name="migraene" value="uden_aura"> Migræne uden aura</label>
+      <label class="radio"><input type="radio" name="migraene" value="med_aura"> Migræne med aura</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Kontraindikationer mod al hormonel prævention</legend>
+      <label class="checkbox"><input type="checkbox" name="abs_alle" value="cancer"> Aktiv eller tidligere brystkræft</label>
+      <label class="checkbox"><input type="checkbox" name="abs_alle" value="blodning"> Uafklaret vaginalblødning</label>
+      <label class="checkbox"><input type="checkbox" name="abs_alle" value="grav"> Graviditet / mistanke om graviditet</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Kontraindikationer mod kombineret (østrogenholdig) prævention</legend>
+      <label class="checkbox"><input type="checkbox" name="abs_chc" value="vte"> Aktiv/tidligere venøs tromboemboli (VTE) eller kendt trombofili</label>
+      <label class="checkbox"><input type="checkbox" name="abs_chc" value="htn"> Ukontrolleret hypertension eller BT ≥ 160/100</label>
+      <label class="checkbox"><input type="checkbox" name="abs_chc" value="hjertekar"> Aktiv/tidligere iskæmisk hjertesygdom eller apopleksi</label>
+      <label class="checkbox"><input type="checkbox" name="abs_chc" value="diabetes"> Kompliceret diabetes (med karskade) eller diabetesvarighed &gt; 20 år</label>
+      <label class="checkbox"><input type="checkbox" name="abs_chc" value="lever"> Aktiv leversygdom eller levertumor</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Kontraindikationer specifikt mod spiral (hormon- og kobberspiral)</legend>
+      <label class="checkbox"><input type="checkbox" name="spiral_kontra" value="pid"> Aktiv underlivsinfektion (PID) eller ubehandlet høj STI-risiko</label>
+      <label class="checkbox"><input type="checkbox" name="spiral_kontra" value="uterus"> Uterusanomali/myomer der deformerer cavum uteri</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Patientens præference</legend>
+      <label class="radio"><input type="radio" name="praeferens" value="ingen" checked> Ingen særlig præference</label>
+      <label class="radio"><input type="radio" name="praeferens" value="larc"> Ønsker langtidsvirkende (spiral/implantat)</label>
+      <label class="radio"><input type="radio" name="praeferens" value="pille"> Ønsker daglig pille</label>
+      <label class="radio"><input type="radio" name="praeferens" value="hormonfri"> Ønsker hormonfri metode</label>
+      <label class="radio"><input type="radio" name="praeferens" value="sterilisation"> Familieplanlægning afsluttet — overvejer sterilisation</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Anbefaling" id="resultPanel">
+    <h2>2. Anbefaling</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér resumé til journal</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Sundhedsstyrelsen — National Rekommandationsliste (NRL): <em>Hormonal kontraception</em> (2022), inkl. anbefaling om 2. generations p-piller med lavest østrogenindhold som førstevalg</li>
+    <li>Lægemiddelstyrelsen — tjekliste for læger der ordinerer kombinerede hormonelle kontraceptiva</li>
+    <li>DSAM — vejledning om blødningsforstyrrelser hos kvinder i almen praksis (blødningsmønstre under kontraception)</li>
+    <li><a href="https://pro.medicin.dk" target="_blank" rel="noopener">pro.medicin.dk</a> — altid opslag før ordination (aktuelle præparater, styrker, tilskud, interaktioner, pakningsstørrelser)</li>
+  </ul>
+  <p class="fineprint">Dette er et lokalt, uafhængigt hjælpeværktøj — ikke en officiel publikation fra Sundhedsstyrelsen, Lægemiddelstyrelsen eller DSAM. Erstatter ikke opslag i de originale vejledninger eller den lægefaglige vurdering af den enkelte patient. Tilskudsregler for langtidsvirkende prævention til unge nævnes bevidst uden konkrete aldersgrænser, da disse varierer mellem regioner og ændres løbende — verificér lokalt. Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.</p>
+</footer>
+
+<script src="praevention.js"></script>
+</body>
+</html>

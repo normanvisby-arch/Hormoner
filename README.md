@@ -1,10 +1,13 @@
-# Hormoner — beslutningsstøtte ved klimakteriet
+# Hormoner — beslutningsstøtte for praktiserende læge
 
-En let, statisk webapp der giver den praktiserende læge en hurtig, struktureret anbefaling om
-hormonbehandling (MHT) ved klimakterielle symptomer — med konkrete eksempler på præparater der
-er tilgængelige i Danmark.
+To lette, statiske webapps der giver den praktiserende læge en hurtig, struktureret anbefaling
+til brug ved konsultationen — med konkrete eksempler på præparater der er tilgængelige i Danmark:
 
-Appen kører udelukkende i browseren (ingen server, ingen data sendes nogen steder). Udfyld
+- **`index.html`** — hormonbehandling (MHT) ved klimakterielle symptomer.
+- **`praevention.html`** — prævention/kontraception, inkl. en separat, hurtig gren for akut
+  nødprævention. De to værktøjer krydshenviser til hinanden i en lille navigationslinje øverst.
+
+Begge apps kører udelukkende i browseren (ingen server, ingen data sendes nogen steder). Udfyld
 patientens data i venstre panel, og anbefalingen opdateres øjeblikkeligt i højre panel. Brug
 "Kopiér resumé til journal" for at indsætte anbefalingen i journalnotatet, eller "Udskriv" for en
 printvenlig version med tidsstempel.
@@ -13,7 +16,8 @@ printvenlig version med tidsstempel.
 
 Ingen build-trin eller afhængigheder er nødvendige.
 
-- **Lokalt:** åbn `index.html` direkte i en browser, eller kør en simpel lokal server, fx:
+- **Lokalt:** åbn `index.html` eller `praevention.html` direkte i en browser, eller kør en simpel
+  lokal server, fx:
   ```
   python3 -m http.server 8000
   ```
@@ -21,10 +25,10 @@ Ingen build-trin eller afhængigheder er nødvendige.
   server), vil "Kopiér resumé til journal" sandsynligvis fejle stille, da browserens
   clipboard-API kræver en sikker kontekst (https eller en lokal server) — kør en lokal server som
   ovenfor, eller markér og kopiér teksten manuelt.
-- **Hosting:** filerne (`index.html`, `style.css`, `app.js`) kan deployes som statisk site til
-  fx GitHub Pages, Netlify eller en intern klinikserver.
+- **Hosting:** filerne (`index.html`, `praevention.html`, `style.css`, `app.js`, `praevention.js`)
+  kan deployes som statisk site til fx GitHub Pages, Netlify eller en intern klinikserver.
 
-## Klinisk logik (kort opsummeret)
+## Hormonbehandling — klinisk logik (kort opsummeret)
 
 1. **Absolutte kontraindikationer** (brystkræft/østrogenfølsom cancer, uafklaret
    vaginalblødning, aktiv VTE, aktiv arteriel tromboembolisk sygdom, aktiv leversygdom,
@@ -60,7 +64,7 @@ Ingen build-trin eller afhængigheder er nødvendige.
 5. **Opfølgning:** kontrol efter 2–3 måneder, årlig revurdering, ingen fast øvre grænse for
    behandlingsvarighed, uændret mammografiscreening.
 
-## Kilder og grundlag
+## Hormonbehandling — kilder og grundlag
 
 - Sundhedsstyrelsen — National Rekommandationsliste (NRL): *Hormonbehandling i klimakterie og
   menopause* (2022)
@@ -78,10 +82,54 @@ DSOG's guideline, som synes at være de aktuelle primære danske referencer på 
 bredere vejledninger, der berører kvinder i og efter overgangsalderen, men ingen der er
 identificeret som en selvstændig, dedikeret vejledning om hormonbehandling ved klimakteriet.
 
+## Prævention — klinisk logik (kort opsummeret)
+
+1. **Akut nødprævention** er en fuldstændig separat gren, som springer resten af formularen over
+   når den markeres — svarende til hvordan absolutte kontraindikationer har højeste prioritet i
+   hormonbehandlings-værktøjet. Anbefalingen afhænger af tid siden ubeskyttet samleje
+   (under 24 t / 24–72 t / 72–120 t / over 120 t) og af indtastet BMI (levonorgestrel og, i
+   mindre grad, ulipristalacetat har nedsat effekt ved højere BMI — kobberspiral er upåvirket).
+2. **Graviditet** håndteres adskilt fra de øvrige kontraindikationer, med sin egen besked
+   (prævention er ikke relevant nu), i stedet for at blive blandet sammen med budskabet om at
+   hormonel prævention frarådes.
+3. **Kontraindikationer mod al hormonel prævention** (aktiv/tidligere brystkræft, uafklaret
+   vaginalblødning) → kobberspiral eller kondom anbefales, med henvisning ved samtidig
+   spiral-specifik kontraindikation.
+4. **Kombineret (østrogenholdig) prævention** udelukkes ved rygning + alder ≥ 35 år, migræne med
+   aura, VTE/trombofili, ukontrolleret hypertension, iskæmisk hjertesygdom/apopleksi, kompliceret
+   diabetes, leversygdom, < 6 uger postpartum, eller svær overvægt (her operationaliseret som
+   BMI ≥ 35 — se forbehold nedenfor). Er intet af dette til stede, anbefales en 2. generations
+   p-pille med lavest østrogenindhold (20 mikrogram) som førstevalg, jf. Sundhedsstyrelsens NRL.
+5. **Præference** (langtidsvirkende/LARC, daglig pille, hormonfri, sterilisation) styrer hvilken
+   anbefaling der fremhæves først. Under 20 år og ingen særlig præference fremhæves LARC som
+   førstevalg pga. lavere fejlrate end pille.
+6. **Amning og spiral-specifikke kontraindikationer** vises som selvstændige noter uafhængigt af
+   hvilken hovedanbefaling der i øvrigt gives.
+7. **Kondom** nævnes altid som supplement ved behov for beskyttelse mod sexsygdomme.
+
+## Prævention — kilder og grundlag
+
+- Sundhedsstyrelsen — National Rekommandationsliste (NRL): *Hormonal kontraception* (2022)
+- Lægemiddelstyrelsen — tjekliste for læger der ordinerer kombinerede hormonelle kontraceptiva
+- DSAM — vejledning om blødningsforstyrrelser hos kvinder i almen praksis (afsnit om
+  blødningsmønstre under kontraception og hormonbehandling — dette er en bekræftet, eksisterende
+  DSAM-vejledning, i modsætning til den tidligere fejlciterede DSAM-kilde i
+  hormonbehandlings-værktøjet)
+- [pro.medicin.dk](https://pro.medicin.dk) — opslag før enhver ordination
+
+**Kendte usikkerheder i denne version**, markeret her i stedet for fremstillet som fastslåede
+fakta:
+- BMI-tærsklen på 35 for at udelukke kombineret hormonel prævention er en operationalisering af
+  kildernes formulering "svær overvægt" — den præcise tærskel bør bekræftes i NRL-dokumentet.
+- Tilskuds-/gratis-ordninger for langtidsvirkende prævention til unge er bevidst beskrevet uden
+  konkrete aldersgrænser, da dette ikke kunne bekræftes present og varierer mellem regioner.
+- Kilderne blev tilgået via websøgning i en sandboxed session uden direkte adgang til
+  sst.dk/dsam.dk's primærdokumenter (netværksrestriktion) — verificér mod PDF'erne direkte.
+
 ## Vigtige forbehold
 
-- Dette er et **uafhængigt hjælpeværktøj**, ikke en officiel publikation fra Sundhedsstyrelsen,
-  DSOG eller andre af de nævnte kilder.
+- Dette er **uafhængige hjælpeværktøjer**, ikke officielle publikationer fra Sundhedsstyrelsen,
+  DSOG, Lægemiddelstyrelsen, DSAM eller andre af de nævnte kilder.
 - Præparatnavne, styrker, pakninger og tilskudsstatus ændres løbende i Danmark — **verificér
   altid på pro.medicin.dk før ordination**, herunder at det enkelte præparat fortsat er
   markedsført (fx er status for Kliogest og periodevis leveringssikkerhed for Oestring/Estring
@@ -94,6 +142,14 @@ identificeret som en selvstændig, dedikeret vejledning om hormonbehandling ved 
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**22. september 2026 — tilføjet præventionsværktøj (`praevention.html`):**
+- Nyt værktøj til valg af præventionsmetode, inkl. en separat, tidligt afsluttet gren for akut
+  nødprævention (svarende i struktur til absolutte kontraindikationer i hormonbehandlings-værktøjet).
+- Bygger fra start på lektionerne fra den eksterne audit af hormonbehandlings-værktøjet: rigtigt
+  `<form>`-element, uafhængige (ikke sammenkoblede) formfelter, `text-size-adjust`-fix, og en
+  DOM-baseret ren-tekst journal-eksport. Se afsnittet "Kendte usikkerheder i denne version"
+  ovenfor for åbne punkter.
 
 **22. september 2026 — rettelser efter ekstern audit af algoritme og UX:**
 - Rettet: en prænatur ovarieinsufficiens (POI)-patient med kun urogenitale symptomer eller ingen
