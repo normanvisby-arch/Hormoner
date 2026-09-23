@@ -1,6 +1,6 @@
 # Hormoner — beslutningsstøtte for praktiserende læge
 
-Tre lette, statiske webapps der giver den praktiserende læge en hurtig, struktureret anbefaling
+Fire lette, statiske webapps der giver den praktiserende læge en hurtig, struktureret anbefaling
 til brug ved konsultationen — med konkrete eksempler på præparater der er tilgængelige i Danmark:
 
 - **`index.html`** — hormonbehandling (MHT) ved klimakterielle symptomer.
@@ -9,20 +9,27 @@ til brug ved konsultationen — med konkrete eksempler på præparater der er ti
 - **`mrs.html`** — Menopause Rating Scale (MRS): et internationalt valideret, 11-punkts
   symptomscoringsskema til at kvantificere sværhedsgraden af klimakterielle symptomer, og til at
   følge effekten af behandling ved gentagen udfyldelse.
+- **`bloedningskalender.html`** — årsoverblik til registrering af blødning ved mistanke om
+  blødningsforstyrrelser, i stil med en klassisk papirvægkalender: hele året i ét skærmbillede i
+  stedet for én måned ad gangen, så uregelmæssige mønstre bliver synlige med det samme.
 
-Alle tre værktøjer krydshenviser til hinanden i en lille navigationslinje øverst.
+Alle fire værktøjer krydshenviser til hinanden i en lille navigationslinje øverst.
 
-Alle apps kører udelukkende i browseren (ingen server, ingen data sendes nogen steder). Udfyld
-patientens data i venstre panel, og anbefalingen/scoren opdateres øjeblikkeligt i højre panel.
-Brug "Kopiér resumé til journal" for at indsætte resultatet i journalnotatet, eller "Udskriv" for
-en printvenlig version med tidsstempel.
+De tre første apps kører udelukkende i browseren og gemmer intet (ingen server, ingen data sendes
+nogen steder). Udfyld patientens data i venstre panel, og anbefalingen/scoren opdateres
+øjeblikkeligt i højre panel. Brug "Kopiér resumé til journal" for at indsætte resultatet i
+journalnotatet, eller "Udskriv" for en printvenlig version med tidsstempel.
+
+Blødningskalenderen er anderledes: den er lavet til at bruges over uger/måneder, og gemmer derfor
+data lokalt i browserens `localStorage` mellem besøg (se afsnittet "Blødningskalender" nedenfor
+for hvad det betyder i praksis).
 
 ## Sådan køres appen
 
 Ingen build-trin eller afhængigheder er nødvendige.
 
-- **Lokalt:** åbn `index.html`, `praevention.html` eller `mrs.html` direkte i en browser, eller
-  kør en simpel lokal server, fx:
+- **Lokalt:** åbn `index.html`, `praevention.html`, `mrs.html` eller `bloedningskalender.html`
+  direkte i en browser, eller kør en simpel lokal server, fx:
   ```
   python3 -m http.server 8000
   ```
@@ -30,9 +37,11 @@ Ingen build-trin eller afhængigheder er nødvendige.
   server), vil "Kopiér resumé til journal" sandsynligvis fejle stille, da browserens
   clipboard-API kræver en sikker kontekst (https eller en lokal server) — kør en lokal server som
   ovenfor, eller markér og kopiér teksten manuelt.
-- **Hosting:** filerne (`index.html`, `praevention.html`, `mrs.html`, `style.css`, `app.js`,
-  `praevention.js`, `mrs.js`) kan deployes som statisk site til fx GitHub Pages, Netlify eller en
-  intern klinikserver.
+- **Hosting:** filerne (`index.html`, `praevention.html`, `mrs.html`, `bloedningskalender.html`,
+  `style.css`, `app.js`, `praevention.js`, `mrs.js`, `bloedningskalender.js`) kan deployes som
+  statisk site til fx GitHub Pages, Netlify eller en intern klinikserver. Bemærk at
+  Blødningskalenderens `localStorage`-data er knyttet til den konkrete URL/domæne den køres på —
+  flyttes appen til en anden adresse, følger tidligere registreringer ikke med.
 
 ## Hormonbehandling — klinisk logik (kort opsummeret)
 
@@ -165,10 +174,41 @@ overensstemmelse tilstrækkelig, men dette er ikke det samme som en valideret ov
 Totalscore-fortolkningen (0–4/5–8/9–15/16+) er ligeledes en forenkling — det oprindelige
 valideringsarbejde bruger aldersjusterede normtabeller pr. delskala, som ikke er gengivet her.
 
+## Blødningskalender — funktion og datahåndtering
+
+`bloedningskalender.html` er bygget efter ønske fra en underviser (speciallæge i gynækologi):
+mange periode-/cyklus-apps viser kun én måned ad gangen og er svære at overskue. Et helt
+kalenderår i ét skærmbillede — som en klassisk papirvægkalender — gør uregelmæssige mønstre
+(kort/langt mellemrum mellem blødninger, forlænget blødning, spotting mellem menstruationer)
+synlige med det samme.
+
+**Funktion:**
+- Klik på en dag for at registrere blødningsstyrke (ingen/pletblødning/let/moderat/kraftig),
+  smerter, og en kort note. Fem-trins-styrken vises som farveintensitet direkte i kalenderen.
+- Årsnavigation (‹ / ›) og en "I dag"-genvej.
+- "Ryd denne dag" fjerner én registrering; "Ryd alle data" kræver to bevidste klik inden for få
+  sekunder (siden Artifact-visningen ikke kan vise browserens native bekræftelsesdialoger).
+- "Eksportér" gemmer alle registreringer som en tekstfil — brug den jævnligt som sikkerhedskopi,
+  og især før en konsultation.
+- "Udskriv" giver en printvenlig version af årsoverblikket med tidsstempel.
+
+**Datahåndtering — en bevidst beslutning:** i modsætning til de tre andre værktøjer (som er
+enkeltstående vurderinger uden behov for hukommelse mellem besøg) skal blødningskalenderen bruges
+over uger og måneder. Data gemmes derfor lokalt i browserens `localStorage` mellem besøg — men
+**udelukkende** lokalt. Der findes bevidst ingen konto, ingen server, og ingen central database:
+menstruations-/blødningsdata er følsomme helbredsoplysninger, og dette projekt har ingen
+databehandleraftale eller anden infrastruktur der gør det forsvarligt at sende den slags data til
+en server. Konsekvenser af det valg:
+- Data følger browseren/enheden, ikke personen — samme kalender kan ikke ses fra en anden enhed.
+- Data kan gå tabt hvis browserdata ryddes, i privat/inkognito-vinduer, eller hvis appen flyttes
+  til en anden URL. Brug "Eksportér" som løbende sikkerhedskopi.
+- Ingen af de øvrige tre værktøjer i dette repo gemmer noget som helst — det er specifikt for
+  blødningskalenderen, fordi den er den eneste, der reelt skal huske noget over tid.
+
 ## Vigtige forbehold
 
 - Dette er **uafhængige hjælpeværktøjer**, ikke officielle publikationer fra Sundhedsstyrelsen,
-  DSOG, Lægemiddelstyrelsen, DSAM, ZEG Berlin eller andre af de nævnte kilder.
+  DSOG, Lægemiddelstyrelsen, DSAM, ZEG Berlin, FIGO eller andre af de nævnte kilder.
 - Præparatnavne, styrker, pakninger og tilskudsstatus ændres løbende i Danmark — **verificér
   altid på pro.medicin.dk før ordination**, herunder at det enkelte præparat fortsat er
   markedsført (fx er status for Kliogest og periodevis leveringssikkerhed for Oestring/Estring
@@ -181,6 +221,21 @@ valideringsarbejde bruger aldersjusterede normtabeller pr. delskala, som ikke er
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**23. september 2026 — tilføjet blødningskalender (`bloedningskalender.html`):**
+- Nyt værktøj efter ønske fra en underviser (speciallæge i gynækologi): et helt kalenderårs
+  overblik (12 måneders mini-kalendere i ét skærmbillede) til registrering af blødningsstyrke,
+  smerter og noter ved mistanke om blødningsforstyrrelser — i modsætning til typiske
+  cyklus-apps, der kun viser én måned ad gangen.
+- Første værktøj i repoet der gemmer data mellem besøg (lokalt i browserens `localStorage`,
+  bevidst uden server eller konto af hensyn til datafølsomhed — se afsnittet "Blødningskalender —
+  funktion og datahåndtering" ovenfor).
+- Fundet og rettet under egen gennemgang før udgivelse: flere knapper (årsnavigation, "Ryd denne
+  dag", "Ryd alle data") brugte `.btn-ghost`-stilen, som er designet til den mørke topbar — på de
+  lyse paneler nedenunder blev knapperne næsten usynlige (hvid tekst på næsten-hvid baggrund).
+  Tilføjet en ny `.btn-outline`-stil til brug uden for topbaren, og rettet alle berørte knapper.
+- Terminologi og normalområder fra DSAM's vejledning om blødningsforstyrrelser og FIGO's moderne
+  definition af normal cyklus/blødningsvarighed — se kildehenvisning i selve appen.
 
 **23. september 2026 — tilføjet MRS-scoringsværktøj (`mrs.html`):**
 - Nyt værktøj der implementerer Menopause Rating Scale (MRS), et internationalt valideret
