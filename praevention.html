@@ -52,7 +52,7 @@
         <label class="radio"><input type="radio" name="nodtiming" value="72to120"> 72–120 timer (3–5 døgn)</label>
         <label class="radio"><input type="radio" name="nodtiming" value="over120"> Over 120 timer (5+ døgn)</label>
       </div>
-      <p class="field-hint">Ved flueben herved springes den øvrige formular over, og der vises kun en nødprævention-anbefaling.</p>
+      <p class="field-hint">Ved flueben vises kun en nødpræventionsanbefaling. BMI, amning og enzyminducerende medicin indgår fortsat.</p>
     </fieldset>
 
     <div class="field">
@@ -64,7 +64,7 @@
     <div class="field">
       <label for="bmiInput">BMI (valgfrit, kg/m²)</label>
       <input type="number" id="bmiInput" min="12" max="70" step="0.1" placeholder="fx 27,5">
-      <p class="field-hint">Bruges til at vurdere kombineret hormonel prævention (BMI ≥ 35) og — ved akut nødprævention — reduceret pilleeffekt ved højere BMI.</p>
+      <p class="field-hint">Bruges til at vurdere kombineret hormonel prævention (BMI ≥ 35) og — ved akut nødprævention — nedsat pilleeffekt ved BMI &gt; 26.</p>
     </div>
 
     <fieldset class="field">
@@ -72,6 +72,9 @@
       <label class="checkbox"><input type="checkbox" id="ryger"> Ryger</label>
       <label class="checkbox"><input type="checkbox" id="postpartum"> Har født inden for de seneste 6 uger</label>
       <label class="checkbox"><input type="checkbox" id="amning"> Ammer i øjeblikket</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="kraftig"> Kraftige eller smertefulde menstruationer</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="enzym"> Enzyminducerende medicin (fx carbamazepin, fenytoin, topiramat, rifampicin, perikon)</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="lamotrigin"> Lamotrigin</label>
     </fieldset>
 
     <fieldset class="field">
@@ -90,8 +93,10 @@
 
     <fieldset class="field">
       <legend>Kontraindikationer mod kombineret (østrogenholdig) prævention</legend>
-      <label class="checkbox"><input type="checkbox" name="abs_chc" value="vte"> Aktiv/tidligere venøs tromboemboli (VTE) eller kendt trombofili</label>
-      <label class="checkbox"><input type="checkbox" name="abs_chc" value="htn"> Ukontrolleret hypertension eller BT ≥ 160/100</label>
+      <label class="checkbox"><input type="checkbox" name="abs_chc" value="vte"> Aktiv/tidligere venøs tromboemboli (VTE) eller kendt trombofili (inkl. antifosfolipid-antistoffer)</label>
+      <label class="checkbox"><input type="checkbox" name="abs_chc" value="famvte"> VTE hos forælder/søskende før 45 år</label>
+      <label class="checkbox"><input type="checkbox" name="abs_chc" value="operation"> Planlagt større operation med længerevarende immobilisering</label>
+      <label class="checkbox"><input type="checkbox" name="abs_chc" value="htn"> Hypertension (også velreguleret) eller BT ≥ 140/90</label>
       <label class="checkbox"><input type="checkbox" name="abs_chc" value="hjertekar"> Aktiv/tidligere iskæmisk hjertesygdom eller apopleksi</label>
       <label class="checkbox"><input type="checkbox" name="abs_chc" value="diabetes"> Kompliceret diabetes (med karskade) eller diabetesvarighed &gt; 20 år</label>
       <label class="checkbox"><input type="checkbox" name="abs_chc" value="lever"> Aktiv leversygdom eller levertumor</label>
@@ -118,7 +123,8 @@
     <p class="print-only-meta" id="printMeta"></p>
     <div id="output"></div>
     <div class="output-actions">
-      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér resumé til journal</button>
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld anbefaling</button>
       <span id="copyStatus" class="copy-status" aria-live="polite"></span>
     </div>
   </section>
@@ -130,9 +136,12 @@
     <li>Sundhedsstyrelsen — National Rekommandationsliste (NRL): <em>Hormonal kontraception</em> (2022), inkl. anbefaling om 2. generations p-piller med lavest østrogenindhold som førstevalg</li>
     <li>Lægemiddelstyrelsen — tjekliste for læger der ordinerer kombinerede hormonelle kontraceptiva</li>
     <li>DSAM — vejledning om blødningsforstyrrelser hos kvinder i almen praksis (blødningsmønstre under kontraception)</li>
+    <li>EMA (2013) — VTE-risiko for kombinerede hormonelle kontraceptiva efter gestagentype</li>
+    <li>FSRH (UK) — UKMEC, nødprævention (inkl. vægt og enzyminduktion), glemte piller, opstart ("quick start") og lægemiddelinteraktioner</li>
+    <li>Sundhedsloven § 17 — samtykke fra 15 år</li>
     <li><a href="https://pro.medicin.dk" target="_blank" rel="noopener">pro.medicin.dk</a> — altid opslag før ordination (aktuelle præparater, styrker, tilskud, interaktioner, pakningsstørrelser)</li>
   </ul>
-  <p class="fineprint">Dette er et lokalt, uafhængigt hjælpeværktøj — ikke en officiel publikation fra Sundhedsstyrelsen, Lægemiddelstyrelsen eller DSAM. Erstatter ikke opslag i de originale vejledninger eller den lægefaglige vurdering af den enkelte patient. Tilskudsregler for langtidsvirkende prævention til unge nævnes bevidst uden konkrete aldersgrænser, da disse varierer mellem regioner og ændres løbende — verificér lokalt. Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.</p>
+  <p class="fineprint">Dette er et lokalt, uafhængigt hjælpeværktøj — ikke en officiel publikation fra Sundhedsstyrelsen, Lægemiddelstyrelsen eller DSAM. Erstatter ikke opslag i de originale vejledninger eller den lægefaglige vurdering af den enkelte patient. Tilskudsregler for langtidsvirkende prævention til unge nævnes bevidst uden konkrete aldersgrænser, da disse varierer mellem regioner og ændres løbende — verificér lokalt. Opdateret 23. september 2026 efter klinisk gennemgang af algoritme og præparatnavne. Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.</p>
 </footer>
 
 <script src="praevention.js"></script>
