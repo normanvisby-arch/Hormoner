@@ -21,7 +21,7 @@
   --color-blue-text: #1c4a72;
   --bleed-1: #fbdfe2;
   --bleed-2: #f0a3ac;
-  --bleed-3: #d9536a;
+  --bleed-3: #c44359;
   --bleed-4: #9c1f3a;
   --bleed-pain-dot: #2f6fa3;
   font-size: 16px;
@@ -592,6 +592,10 @@ body {
   height: 5px;
   border-radius: 50%;
   background: var(--bleed-pain-dot);
+  /* Double ring (white then dark) so the dot stays visible against every
+     intensity background, from pale pink to dark red — a single flat
+     color could not contrast reliably across that whole range. */
+  box-shadow: 0 0 0 1.5px #fff, 0 0 0 3px #1c2624;
 }
 .day-cell.has-note { text-decoration: underline; text-decoration-style: dotted; }
 
