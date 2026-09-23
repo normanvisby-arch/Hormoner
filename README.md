@@ -222,6 +222,24 @@ en server. Konsekvenser af det valg:
 
 ## Ændringslog
 
+**23. september 2026 — ekstern audit af blødningskalenderen (klinisk indhold, UI, UX):**
+- **Kontrastfejl på "Smerter"-markøren:** den blå prik, der markerer smerter på en given dag,
+  havde utilstrækkelig kontrast (kontrastforhold ≈ 1,5:1, langt under WCAG AA's krav på 4,5:1) mod
+  den mørkerøde "Kraftig"-baggrund — netop den kombination (kraftig blødning + smerter) en læge
+  oftest vil ville få øje på med det samme. Rettet ved at give markøren en dobbelt ring (hvid,
+  derefter mørk), så den er synlig uanset baggrundsfarve, fremfor kun at stole på én farves
+  kontrast mod en baggrund der varierer fra lyserosa til mørkerød.
+- **Kontrastfejl på dagstal:** hvid tekst på "Moderat"-intensitetens baggrundsfarve gav kun ≈
+  3,9:1 kontrast (under WCAG AA's 4,5:1 for normal tekststørrelse). Baggrundsfarven er gjort en
+  anelse mørkere (til ≈ 4,9:1), fortsat tydeligt adskilt fra nabofarverne "Let" og "Kraftig".
+- **Uverificeret detalje i klinisk tekst:** "Normalområder"-afsnittet angav menorrhagi som
+  knyttet til et specifikt cyklusinterval ("21–35 dage") — denne detalje kunne ikke genfindes i
+  DSAM's egen definition (som blot beskriver menorrhagi som kraftig, forlænget menstruation, uden
+  cyklusinterval) og var formentlig en selvopfundet præcisering. Fjernet og omformuleret til at
+  følge DSAM's ordlyd tættere.
+- Begge kontrastrettelser er verificeret ved beregning af WCAG-kontrastforhold og ved
+  Playwright-skærmbilleder af de berørte kalenderceller, i både lys og mørk visning.
+
 **23. september 2026 — tilføjet blødningskalender (`bloedningskalender.html`):**
 - Nyt værktøj efter ønske fra en underviser (speciallæge i gynækologi): et helt kalenderårs
   overblik (12 måneders mini-kalendere i ét skærmbillede) til registrering af blødningsstyrke,
