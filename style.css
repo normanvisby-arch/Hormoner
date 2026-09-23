@@ -194,12 +194,17 @@ body {
 }
 
 .mrs-item {
+  margin: 0;
   padding: 0.75rem 0;
+  border: none;
   border-bottom: 1px solid var(--color-border);
 }
 .mrs-item:last-child { border-bottom: none; }
 .mrs-item-title {
+  display: block;
+  width: 100%;
   margin: 0 0 0.5rem;
+  padding: 0;
   font-weight: 600;
   font-size: 0.92rem;
   color: var(--color-text);
