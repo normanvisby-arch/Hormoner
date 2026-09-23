@@ -1,23 +1,28 @@
 # Hormoner — beslutningsstøtte for praktiserende læge
 
-To lette, statiske webapps der giver den praktiserende læge en hurtig, struktureret anbefaling
+Tre lette, statiske webapps der giver den praktiserende læge en hurtig, struktureret anbefaling
 til brug ved konsultationen — med konkrete eksempler på præparater der er tilgængelige i Danmark:
 
 - **`index.html`** — hormonbehandling (MHT) ved klimakterielle symptomer.
 - **`praevention.html`** — prævention/kontraception, inkl. en separat, hurtig gren for akut
-  nødprævention. De to værktøjer krydshenviser til hinanden i en lille navigationslinje øverst.
+  nødprævention.
+- **`mrs.html`** — Menopause Rating Scale (MRS): et internationalt valideret, 11-punkts
+  symptomscoringsskema til at kvantificere sværhedsgraden af klimakterielle symptomer, og til at
+  følge effekten af behandling ved gentagen udfyldelse.
 
-Begge apps kører udelukkende i browseren (ingen server, ingen data sendes nogen steder). Udfyld
-patientens data i venstre panel, og anbefalingen opdateres øjeblikkeligt i højre panel. Brug
-"Kopiér resumé til journal" for at indsætte anbefalingen i journalnotatet, eller "Udskriv" for en
-printvenlig version med tidsstempel.
+Alle tre værktøjer krydshenviser til hinanden i en lille navigationslinje øverst.
+
+Alle apps kører udelukkende i browseren (ingen server, ingen data sendes nogen steder). Udfyld
+patientens data i venstre panel, og anbefalingen/scoren opdateres øjeblikkeligt i højre panel.
+Brug "Kopiér resumé til journal" for at indsætte resultatet i journalnotatet, eller "Udskriv" for
+en printvenlig version med tidsstempel.
 
 ## Sådan køres appen
 
 Ingen build-trin eller afhængigheder er nødvendige.
 
-- **Lokalt:** åbn `index.html` eller `praevention.html` direkte i en browser, eller kør en simpel
-  lokal server, fx:
+- **Lokalt:** åbn `index.html`, `praevention.html` eller `mrs.html` direkte i en browser, eller
+  kør en simpel lokal server, fx:
   ```
   python3 -m http.server 8000
   ```
@@ -25,8 +30,9 @@ Ingen build-trin eller afhængigheder er nødvendige.
   server), vil "Kopiér resumé til journal" sandsynligvis fejle stille, da browserens
   clipboard-API kræver en sikker kontekst (https eller en lokal server) — kør en lokal server som
   ovenfor, eller markér og kopiér teksten manuelt.
-- **Hosting:** filerne (`index.html`, `praevention.html`, `style.css`, `app.js`, `praevention.js`)
-  kan deployes som statisk site til fx GitHub Pages, Netlify eller en intern klinikserver.
+- **Hosting:** filerne (`index.html`, `praevention.html`, `mrs.html`, `style.css`, `app.js`,
+  `praevention.js`, `mrs.js`) kan deployes som statisk site til fx GitHub Pages, Netlify eller en
+  intern klinikserver.
 
 ## Hormonbehandling — klinisk logik (kort opsummeret)
 
@@ -130,10 +136,39 @@ fakta:
   hentet fra en specifik dansk kilde med den præcise grænse — bør verificeres/justeres efter
   lokal praksis.
 
+## MRS — klinisk logik og grundlag
+
+`mrs.html` implementerer Menopause Rating Scale (MRS), udviklet af Schneider/Heinemann et al.
+(Berlin, tidligt 1990'erne) og administreret af rettighedshaveren ZEG Berlin GmbH. Skalaen består
+af 11 spørgsmål i tre delskalaer:
+
+- **Somato-vegetativ** (4 spørgsmål: hedeture, hjertegener, søvnproblemer, led-/muskelgener) — 0–16
+- **Psykologisk** (4 spørgsmål: nedtrykthed, irritabilitet, angst, udmattelse) — 0–16
+- **Urogenital** (3 spørgsmål: seksuelle problemer, vandladningsgener, vaginal tørhed) — 0–12
+
+Hvert spørgsmål besvares 0 (ingen) til 4 (meget svære), og totalscoren (0–44) fortolkes efter en
+almindeligt citeret forenklet inddeling: 0–4 ingen/få, 5–8 lette, 9–15 moderate, 16+ svære gener.
+Alle 11 spørgsmål skal besvares, før værktøjet viser en score — et ubesvaret spørgsmål tælles
+bevidst ikke som 0, for ikke at give en kunstigt lav score.
+
+**Vigtigt forbehold om oversættelsen:** item-teksterne er min egen, omhyggelige oversættelse af
+det internationalt standardiserede engelske MRS-indhold — krydstjekket mod flere uafhængige
+kilder for indhold, struktur og scoring, men **ikke** en verificeret gengivelse af ZEG Berlins
+officielle danske oversættelse. Den officielle danske PDF
+([MRS_Danish.pdf](https://zeg-berlin.de/wp-content/uploads/2024/03/MRS_Danish.pdf)) kunne ikke
+tilgås direkte i denne udviklingssession (netværksrestriktion, samme type begrænsning som ramte
+kildeverifikation for de øvrige værktøjer). Brug den officielle PDF til formel eller dokumenteret
+brug, fx forskning eller hvor ordret overensstemmelse med den validerede oversættelse er
+nødvendig. Til hurtig klinisk symptomvurdering i konsultationen vurderes indholdsmæssig
+overensstemmelse tilstrækkelig, men dette er ikke det samme som en valideret oversættelse.
+
+Totalscore-fortolkningen (0–4/5–8/9–15/16+) er ligeledes en forenkling — det oprindelige
+valideringsarbejde bruger aldersjusterede normtabeller pr. delskala, som ikke er gengivet her.
+
 ## Vigtige forbehold
 
 - Dette er **uafhængige hjælpeværktøjer**, ikke officielle publikationer fra Sundhedsstyrelsen,
-  DSOG, Lægemiddelstyrelsen, DSAM eller andre af de nævnte kilder.
+  DSOG, Lægemiddelstyrelsen, DSAM, ZEG Berlin eller andre af de nævnte kilder.
 - Præparatnavne, styrker, pakninger og tilskudsstatus ændres løbende i Danmark — **verificér
   altid på pro.medicin.dk før ordination**, herunder at det enkelte præparat fortsat er
   markedsført (fx er status for Kliogest og periodevis leveringssikkerhed for Oestring/Estring
@@ -146,6 +181,19 @@ fakta:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**23. september 2026 — tilføjet MRS-scoringsværktøj (`mrs.html`):**
+- Nyt værktøj der implementerer Menopause Rating Scale (MRS), et internationalt valideret
+  11-punkts symptomscoringsskema, til hurtig kvantificering af symptombyrde og til at følge
+  behandlingseffekt over tid.
+- Struktur, pointskala og score-intervaller er krydstjekket mod flere uafhængige kilder. Den
+  officielle danske PDF fra rettighedshaveren ZEG Berlin kunne ikke tilgås direkte i denne
+  udviklingssession (netværksrestriktion) — item-teksterne er derfor min egen oversættelse, ikke
+  en verificeret gengivelse af den officielle oversættelse. Se afsnittet "MRS — klinisk logik og
+  grundlag" ovenfor for detaljer og link til den officielle kilde.
+- Værktøjet kræver alle 11 spørgsmål besvaret før det viser en score (et ubesvaret spørgsmål
+  tælles bevidst ikke som 0), og foreslår `index.html` som næste skridt ved forhøjet score.
+- Alle tre værktøjer krydshenviser nu til hinanden i navigationslinjen.
 
 **23. september 2026 — rettelser efter ekstern audit af præventionsværktøjet:**
 - Rettet: en patient der markerede "Ammer i øjeblikket" uden samtidig "Har født inden for de
