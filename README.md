@@ -113,28 +113,37 @@ identificeret som en selvstændig, dedikeret vejledning om hormonbehandling ved 
 
 ## Prævention — klinisk logik (kort opsummeret)
 
-1. **Akut nødprævention** er en fuldstændig separat gren, som springer resten af formularen over
-   når den markeres — svarende til hvordan absolutte kontraindikationer har højeste prioritet i
-   hormonbehandlings-værktøjet. Anbefalingen afhænger af tid siden ubeskyttet samleje
-   (under 24 t / 24–72 t / 72–120 t / over 120 t) og af indtastet BMI (levonorgestrel og, i
-   mindre grad, ulipristalacetat har nedsat effekt ved højere BMI — kobberspiral er upåvirket).
-2. **Graviditet** håndteres adskilt fra de øvrige kontraindikationer, med sin egen besked
-   (prævention er ikke relevant nu), i stedet for at blive blandet sammen med budskabet om at
-   hormonel prævention frarådes.
-3. **Kontraindikationer mod al hormonel prævention** (aktiv/tidligere brystkræft, uafklaret
-   vaginalblødning) → kobberspiral eller kondom anbefales, med henvisning ved samtidig
-   spiral-specifik kontraindikation.
-4. **Kombineret (østrogenholdig) prævention** udelukkes ved rygning + alder ≥ 35 år, migræne med
-   aura, VTE/trombofili, ukontrolleret hypertension, iskæmisk hjertesygdom/apopleksi, kompliceret
-   diabetes, leversygdom, < 6 uger postpartum, eller svær overvægt (her operationaliseret som
-   BMI ≥ 35 — se forbehold nedenfor). Er intet af dette til stede, anbefales en 2. generations
-   p-pille med lavest østrogenindhold (20 mikrogram) som førstevalg, jf. Sundhedsstyrelsens NRL.
-5. **Præference** (langtidsvirkende/LARC, daglig pille, hormonfri, sterilisation) styrer hvilken
-   anbefaling der fremhæves først. Under 20 år og ingen særlig præference fremhæves LARC som
-   førstevalg pga. lavere fejlrate end pille.
-6. **Amning og spiral-specifikke kontraindikationer** vises som selvstændige noter uafhængigt af
-   hvilken hovedanbefaling der i øvrigt gives.
-7. **Kondom** nævnes altid som supplement ved behov for beskyttelse mod sexsygdomme.
+1. **Akut nødprævention** er en separat gren. Anbefalingen afhænger af tid siden ubeskyttet
+   samleje (under 24 t / 24–72 t / 72–120 t / over 120 t), BMI, amning og enzyminducerende
+   medicin: kobberspiral er mest effektiv; ellaOne foretrækkes frem for levonorgestrel ved
+   BMI > 26; levonorgestrel gives i dobbeltdosis (3 mg) ved BMI > 26 eller enzyminducerende
+   medicin (FSRH, off-label); ellaOne frarådes ved enzyminducerende medicin. Forbehold om
+   ventetid før hormonel prævention efter ellaOne, amning og graviditetstest efter 3 uger.
+2. **Graviditet** → u-hCG; prævention ikke relevant nu.
+3. **Alder:** under 15 år vises en note om samtykke (sundhedsloven § 17); fra 40 år en note om,
+   hvor længe prævention er nødvendig (til 55 år), og skift fra kombineret prævention ved 50 år.
+4. **Kontraindikationer mod al hormonel prævention** (brystkræft, uafklaret blødning) →
+   kobberspiral eller barrieremetode.
+5. **Kombineret (østrogenholdig) prævention** frarådes ved: rygning ≥ 35 år, alder ≥ 50,
+   migræne med aura, VTE/trombofili (inkl. antifosfolipid-antistoffer), VTE hos forælder/søskende
+   før 45 år, planlagt større operation med immobilisering, hypertension (også velreguleret) eller
+   BT ≥ 140/90, iskæmisk hjertesygdom/apopleksi, kompliceret diabetes, leversygdom, < 6 uger
+   postpartum, amning, BMI ≥ 35, enzyminducerende medicin og lamotrigin.
+   Ellers anbefales **Mirabella** (levonorgestrel 100 + ethinylestradiol 20 mikrog.) som
+   førstevalg (NRL 2022), med 30 mikrog.-piller, Cilest og NuvaRing/Evra som alternativer — de to
+   sidstnævnte med deres højere VTE-risiko angivet. Forlænget/kontinuerligt regime nævnes.
+6. **Østrogenfri prævention** (når kombineret frarådes): Cerazette (desogestrel), Slinda
+   (drospirenon), Depo-Provera og langtidsvirkende metoder. Ved enzyminducerende medicin fjernes
+   minipiller, og implantatet markeres "frarådes"; Depo-Provera og spiraler anbefales.
+7. **Præference** (LARC, pille, hormonfri, sterilisation) styrer hvad der vises først. Under 20
+   år uden præference fremhæves LARC.
+8. **Supplerende noter:** kraftige/smertefulde menstruationer (Mirena foretrækkes, kobberspiral
+   kan forværre; link til Blødningskalenderen), amning, spiral-specifikke kontraindikationer,
+   migræne uden aura, kondom og klamydiatest.
+9. **Sammenklappelige opslag:** opstart ("quick start") med dage med ekstra beskyttelse pr.
+   metode, glemte piller (FSRH), og effektivitet/risiko til samtalen (typisk-brug-effektivitet,
+   VTE-tal pr. gestagentype fra EMA 2013, brystkræftrisiko fra dansk kohorte).
+10. **Journal:** "Kopiér journalnotat" (kort, redigerbart) og "Kopiér fuld anbefaling".
 
 ## Prævention — kilder og grundlag
 
@@ -144,6 +153,10 @@ identificeret som en selvstændig, dedikeret vejledning om hormonbehandling ved 
   blødningsmønstre under kontraception og hormonbehandling — dette er en bekræftet, eksisterende
   DSAM-vejledning, i modsætning til den tidligere fejlciterede DSAM-kilde i
   hormonbehandlings-værktøjet)
+- EMA (2013) — VTE-risiko for kombinerede hormonelle kontraceptiva efter gestagentype
+- FSRH (UK) — UKMEC, nødprævention (vægt, enzyminduktion, amning), glemte piller, "quick start"
+  og lægemiddelinteraktioner (fx lamotrigin)
+- Sundhedsloven § 17 — samtykke fra 15 år
 - [pro.medicin.dk](https://pro.medicin.dk) — opslag før enhver ordination
 
 **Kendte usikkerheder i denne version**, markeret her i stedet for fremstillet som fastslåede
@@ -235,6 +248,28 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**23. september 2026 — klinisk gennemgang og udvidelse af præventionsværktøjet (`praevention.html`/`praevention.js`):**
+- **Rettede fejl:**
+  - Præparater der ikke kunne bekræftes på det danske marked (Triquilar, Solia, Zelleta) er
+    fjernet; Cilest (norgestimat) er ikke "2. generation" og indeholder 35 mikrog. østrogen —
+    rettet og markeret "bekræft udbud". Microgyn suppleret med Rigevidon/Femicept.
+  - Kobberspiralens effektivitet stod som "~98 %" — den er > 99 %.
+  - Plaster/ring stod med "samme kontraindikationsprofil" uden at nævne den højere VTE-risiko
+    (6–12 mod 5–7 pr. 10.000 pr. år, EMA).
+  - Ved ønske om langtidsvirkende prævention henviste teksten til kombineret prævention "nedenfor",
+    men boksen blev aldrig vist. Og ved LARC-ønske + kontraindikation mod østrogen blev
+    LARC-tabellen vist to gange.
+  - Hypertension: kun "ukontrolleret eller ≥ 160/100" udelukkede kombineret prævention; også
+    velreguleret hypertension og BT ≥ 140/90 frarådes (UKMEC 3).
+  - Nødprævention: BMI-grænsen var ≥ 26 (FSRH: > 26), og der manglede dobbeltdosis
+    levonorgestrel samt håndtering af enzyminducerende medicin.
+- **Nyt:** alder ≥ 50, VTE hos nær familie, planlagt operation, enzyminducerende medicin,
+  lamotrigin og kraftige menstruationer som felter; Slinda og Depo-Provera; forlænget p-pille-regime;
+  samtykke under 15 år; prævention fra 40 år; opstart ("quick start"); glemte piller;
+  effektivitet og risikotal; link til Blødningskalenderen; kort journalnotat.
+- Præparatnavne er tjekket via websøgning mod pro.medicin.dk-opslag (siden kunne ikke tilgås
+  direkte).
 
 **23. september 2026 — klinisk gennemgang og udvidelse af hormonværktøjet (`index.html`/`app.js`):**
 - **Rettede fejl:**
