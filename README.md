@@ -125,6 +125,10 @@ fakta:
   konkrete aldersgrænser, da dette ikke kunne bekræftes present og varierer mellem regioner.
 - Kilderne blev tilgået via websøgning i en sandboxed session uden direkte adgang til
   sst.dk/dsam.dk's primærdokumenter (netværksrestriktion) — verificér mod PDF'erne direkte.
+- Aldersgrænsen på 20 år, hvorunder LARC fremhæves som førstevalg ved "ingen særlig præference",
+  er et eget skøn (baseret på almindelig klinisk praksis og lavere fejlrate end pille) og ikke
+  hentet fra en specifik dansk kilde med den præcise grænse — bør verificeres/justeres efter
+  lokal praksis.
 
 ## Vigtige forbehold
 
@@ -142,6 +146,24 @@ fakta:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**23. september 2026 — rettelser efter ekstern audit af præventionsværktøjet:**
+- Rettet: en patient der markerede "Ammer i øjeblikket" uden samtidig "Har født inden for de
+  seneste 6 uger" kunne få anbefalet en kombineret p-pille, samtidig med at værktøjets egen
+  amning-note advarede mod netop den slags pille. Amning indgår nu som en udelukkelsesgrund for
+  kombineret prævention, ikke kun som en efterfølgende informationsboks.
+- Rettet: "Migræne uden aura" havde ingen effekt på anbefalingen overhovedet. Valget udløser nu en
+  forsigtighedsnote (monitorér for forværring/udvikling af aura), uden at udelukke kombineret
+  prævention, som "migræne med aura" gør.
+- Rettet: BMI-advarslen ved akut nødprævention blev vist for tidsvinduerne under 24 og 24–72
+  timer, men ikke for 72–120 timer, selvom ellaOne (som er vægtafhængig) også anbefales i det
+  vindue. Advarslen vises nu i alle tre tidsvinduer hvor en pille anbefales.
+- Tilføjet: en note om at Nexplanon-implantatets sikkerhed og virkning kun er fastslået for
+  kvinder mellem 18 og 40 år, vist når indtastet alder ligger uden for dette interval.
+- Tilføjet: aldersgrænsen på 20 år for LARC-first-anbefalingen er nu eksplicit markeret som et
+  eget, ikke-kildesourcet skøn i afsnittet om kendte usikkerheder.
+- Mindre ændring: boksen om at kombineret prævention frarådes vises ikke længere når patienten
+  allerede har valgt "hormonfri" eller "sterilisation" som præference, hvor den er irrelevant støj.
 
 **22. september 2026 — tilføjet præventionsværktøj (`praevention.html`):**
 - Nyt værktøj til valg af præventionsmetode, inkl. en separat, tidligt afsluttet gren for akut
