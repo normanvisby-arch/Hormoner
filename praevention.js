@@ -155,11 +155,23 @@
     if (s.migraene === "med_aura") reasons.push("Migræne med aura");
     s.absoluteCHC.forEach((k) => reasons.push(ABS_CHC_LABELS[k]));
     if (s.postpartum) reasons.push("Under 6 uger siden fødsel");
+    if (s.amning) reasons.push("Ammer i øjeblikket (kombineret prævention bør generelt undgås, så længe amning er primær ernæringskilde)");
     if (s.bmi !== null && !isNaN(s.bmi) && s.bmi >= 35) reasons.push(`Svær overvægt (indtastet BMI: ${s.bmi})`);
     return reasons;
   }
 
-  function larcRows(spiralOk) {
+  function migraineCautionBox() {
+    return box(
+      "box-amber",
+      "Migræne uden aura — øget opmærksomhed ved kombineret prævention",
+      `<p>Migræne uden aura udelukker ikke i sig selv kombineret hormonel prævention, men bør følges: seponér eller skift til østrogenfri metode hvis migrænen forværres, hyppigheden øges, eller der udvikles aura under behandlingen (tegn på mulig øget risiko for cerebral trombose).</p>`
+    );
+  }
+
+  function larcRows(spiralOk, alder) {
+    const implantAldersNote = (alder < 18 || alder > 40)
+      ? " Bemærk: sikkerhed og virkning er kun fastslået for kvinder mellem 18 og 40 år — brug uden for dette interval er off-label."
+      : "";
     const rows = [];
     if (spiralOk) {
       rows.push({ navn: "Hormonspiral (Mirena)", indhold: "Levonorgestrel 20 mikrogram/døgn", dosering: "Op til 8 år. Reducerer menstruationsblødning ~97% efter 1 år — god ved samtidig menoragi.", tag: "Anbefalet (LARC)", tagClass: "tag-recommend" });
@@ -169,7 +181,7 @@
     } else {
       rows.push({ navn: "Kobberspiral", indhold: "Hormonfri (kobber)", dosering: "Ca. 98% effektiv. Eneste spiral-mulighed markeret som relevant her pga. spiral-specifik kontraindikation for hormonspiral, eller vælges ved ønske om hormonfri metode.", tag: "Vurdér", tagClass: "tag-alt" });
     }
-    rows.push({ navn: "Implantat (Nexplanon)", indhold: "Etonogestrel 68 mg, subdermal p-stav i overarmen", dosering: "Op til 3 år. Uafhængig af daglig compliance. Indsættes/fjernes af oplært læge." , tag: "Alternativ (LARC)", tagClass: "tag-alt" });
+    rows.push({ navn: "Implantat (Nexplanon)", indhold: "Etonogestrel 68 mg, subdermal p-stav i overarmen", dosering: "Op til 3 år. Uafhængig af daglig compliance. Indsættes/fjernes af oplært læge." + implantAldersNote, tag: "Alternativ (LARC)", tagClass: "tag-alt" });
     return rows;
   }
 
@@ -210,7 +222,7 @@
       }
       html += timingBox;
 
-      if (bmiHigh && (s.nodTiming === "under24" || s.nodTiming === "24to72")) {
+      if (bmiHigh && s.nodTiming !== "over120") {
         html += box(
           "box-amber",
           "Bemærk: forhøjet BMI/vægt",
@@ -272,7 +284,9 @@
     const chcOk = chcReasons.length === 0;
     const spiralOk = s.spiralKontra.length === 0;
 
-    if (chcReasons.length > 0) {
+    // Vises ikke når patienten allerede har fravalgt kombineret prævention
+    // via sin præference (hormonfri/sterilisation) — irrelevant støj der.
+    if (chcReasons.length > 0 && s.praeferens !== "hormonfri" && s.praeferens !== "sterilisation") {
       html += box(
         "box-amber",
         "Kombineret hormonel prævention (p-piller/plaster/ring) frarådes",
@@ -280,12 +294,14 @@
       );
     }
 
+    if (s.migraene === "uden_aura") html += migraineCautionBox();
+
     if (s.praeferens === "sterilisation") {
       html += box(
         "box-green",
         "Ønske om permanent løsning: sterilisation",
         `<p>Sterilisation (tubalisation hos kvinden, eller vasektomi hos partneren) er en permanent løsning og bør kun tilbydes efter grundig rådgivning om irreversibilitet — henvis til gynækologisk afdeling. Tilbyd en effektiv midlertidig metode i ventetiden.</p>
-        ${drugTable(larcRows(spiralOk))}`
+        ${drugTable(larcRows(spiralOk, s.alder))}`
       );
     } else if (s.praeferens === "hormonfri") {
       html += box(
@@ -302,7 +318,7 @@
         "box-green",
         s.alder < 20 && s.praeferens === "ingen" ? "Anbefaling: langtidsvirkende prævention (LARC) — foretrukket ved ung alder" : "Ønske om langtidsvirkende prævention (LARC)",
         `<p>${s.alder < 20 && s.praeferens === "ingen" ? "LARC (spiral/implantat) har markant lavere fejlrate end pille pga. uafhængighed af daglig compliance, og fremhæves ofte som førstevalg til unge kvinder. " : ""}Tjek aktuelle tilskudsregler for langtidsvirkende prævention til unge i din region — flere regioner har haft tilskuds-/gratis ordninger, men reglerne og aldersgrænserne ændres løbende og bør verificeres lokalt.</p>
-        ${drugTable(larcRows(spiralOk))}
+        ${drugTable(larcRows(spiralOk, s.alder))}
         ${chcOk ? `<p>Kombineret hormonel prævention er også en mulighed for denne patient, hvis LARC fravælges — se nedenfor.</p>` : ""}`
       );
     }
@@ -330,7 +346,7 @@
           `<p>Da kombineret hormonel prævention er frarådet (se ovenfor), anbefales en østrogenfri metode.</p>
           ${drugTable([
             { navn: "Minipiller (Cerazette / Solia / Zelleta)", indhold: "Desogestrel 75 mikrogram", dosering: "1 tablet dgl., samme tidspunkt — 12-timers vindue. Kan bruges af rygere, over 35 år og ammende uden forbehold.", tag: "Anbefalet (daglig)", tagClass: "tag-recommend" },
-          ].concat(larcRows(spiralOk)))}`
+          ].concat(larcRows(spiralOk, s.alder)))}`
         );
       }
     }
