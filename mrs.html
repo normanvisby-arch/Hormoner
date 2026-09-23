@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menopause Rating Scale (MRS) — symptomscoring</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">☰</span>
+      <div>
+        <h1>Menopause Rating Scale (MRS)</h1>
+        <p class="subtitle">Symptomscoring til hurtig klinisk brug — dansk praksis</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Hormonbehandling ved klimakteriet</a>
+  <a href="praevention.html">Prævention</a>
+  <span aria-current="page">MRS-scoring</span>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Item-teksterne herunder er en egen oversættelse af det internationalt standardiserede MRS-indhold, ikke en direkte gengivelse af ZEG Berlins officielle danske oversættelse (kunne ikke tilgås direkte i denne session — se kildeafsnittet for link og forbehold). Brug den officielle PDF til formel/dokumenteret brug. Skalaen stiller ikke i sig selv en diagnose og erstatter ikke den kliniske vurdering.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se score ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="MRS-spørgeskema" onsubmit="return false;">
+    <h2>1. Spørgeskema (besvar alle 11)</h2>
+    <p class="field-hint">For hvert symptom: angiv hvor generet patienten har været af det, inden for de seneste uger, på en skala fra 0 (ingen gener) til 4 (meget svære gener).</p>
+
+    <fieldset class="field">
+      <legend>Somato-vegetative symptomer</legend>
+
+      <div class="mrs-item">
+        <p class="mrs-item-title">1. Hedeture, svedeture <span class="mrs-item-sub">(anfald af svedeture, evt. ledsaget af hjertebanken)</span></p>
+        <div class="mrs-scale">
+          <label class="radio"><input type="radio" name="item1" value="0"> 0 – Ingen</label>
+          <label class="radio"><input type="radio" name="item1" value="1"> 1 – Lette</label>
+          <label class="radio"><input type="radio" name="item1" value="2"> 2 – Moderate</label>
+          <label class="radio"><input type="radio" name="item1" value="3"> 3 – Svære</label>
+          <label class="radio"><input type="radio" name="item1" value="4"> 4 – Meget svære</label>
+        </div>
+      </div>
+
+      <div class="mrs-item">
+        <p class="mrs-item-title">2. Hjertegener <span class="mrs-item-sub">(usædvanlig opmærksomhed på hjerteslag, hjertebanken, hjertet der "hopper over", trykken for brystet)</span></p>
+        <div class="mrs-scale">
+          <label class="radio"><input type="radio" name="item2" value="0"> 0 – Ingen</label>
+          <label class="radio"><input type="radio" name="item2" value="1"> 1 – Lette</label>
+          <label class="radio"><input type="radio" name="item2" value="2"> 2 – Moderate</label>
+          <label class="radio"><input type="radio" name="item2" value="3"> 3 – Svære</label>
+          <label class="radio"><input type="radio" name="item2" value="4"> 4 – Meget svære</label>
+        </div>
+      </div>
+
+      <div class="mrs-item">
+        <p class="mrs-item-title">3. Søvnproblemer <span class="mrs-item-sub">(besvær med at falde i søvn, med at sove igennem, tidlig opvågnen)</span></p>
+        <div class="mrs-scale">
+          <label class="radio"><input type="radio" name="item3" value="0"> 0 – Ingen</label>
+          <label class="radio"><input type="radio" name="item3" value="1"> 1 – Lette</label>
+          <label class="radio"><input type="radio" name="item3" value="2"> 2 – Moderate</label>
+          <label class="radio"><input type="radio" name="item3" value="3"> 3 – Svære</label>
+          <label class="radio"><input type="radio" name="item3" value="4"> 4 – Meget svære</label>
+        </div>
+      </div>
+
+      <div class="mrs-item">
+        <p class="mrs-item-title">4. Led- og muskelgener <span class="mrs-item-sub">(smerter i led, gigtlignende gener)</span></p>
+        <div class="mrs-scale">
+          <label class="radio"><input type="radio" name="item4" value="0"> 0 – Ingen</label>
+          <label class="radio"><input type="radio" name="item4" value="1"> 1 – Lette</label>
+          <label class="radio"><input type="radio" name="item4" value="2"> 2 – Moderate</label>
+          <label class="radio"><input type="radio" name="item4" value="3"> 3 – Svære</label>
+          <label class="radio"><input type="radio" name="item4" value="4"> 4 – Meget svære</label>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Psykologiske symptomer</legend>
+
+      <div class="mrs-item">
+        <p class="mrs-item-title">5. Nedtrykthed <span class="mrs-item-sub">(følelse af nedtrykthed, tristhed, på grædende grænse, manglende initiativ, humørsvingninger)</span></p>
+        <div class="mrs-scale">
+          <label class="radio"><input type="radio" name="item5" value="0"> 0 – Ingen</label>
+          <label class="radio"><input type="radio" name="item5" value="1"> 1 – Lette</label>
+          <label class="radio"><input type="radio" name="item5" value="2"> 2 – Moderate</label>
+          <label class="radio"><input type="radio" name="item5" value="3"> 3 – Svære</label>
+          <label class="radio"><input type="radio" name="item5" value="4"> 4 – Meget svære</label>
+        </div>
+      </div>
+
+      <div class="mrs-item">
+        <p class="mrs-item-title">6. Irritabilitet <span class="mrs-item-sub">(følelse af nervøsitet, indre spænding, følelse af aggression)</span></p>
+        <div class="mrs-scale">
+          <label class="radio"><input type="radio" name="item6" value="0"> 0 – Ingen</label>
+          <label class="radio"><input type="radio" name="item6" value="1"> 1 – Lette</label>
+          <label class="radio"><input type="radio" name="item6" value="2"> 2 – Moderate</label>
+          <label class="radio"><input type="radio" name="item6" value="3"> 3 – Svære</label>
+          <label class="radio"><input type="radio" name="item6" value="4"> 4 – Meget svære</label>
+        </div>
+      </div>
+
+      <div class="mrs-item">
+        <p class="mrs-item-title">7. Angst, indre uro <span class="mrs-item-sub">(indre uro, panikfølelse)</span></p>
+        <div class="mrs-scale">
+          <label class="radio"><input type="radio" name="item7" value="0"> 0 – Ingen</label>
+          <label class="radio"><input type="radio" name="item7" value="1"> 1 – Lette</label>
+          <label class="radio"><input type="radio" name="item7" value="2"> 2 – Moderate</label>
+          <label class="radio"><input type="radio" name="item7" value="3"> 3 – Svære</label>
+          <label class="radio"><input type="radio" name="item7" value="4"> 4 – Meget svære</label>
+        </div>
+      </div>
+
+      <div class="mrs-item">
+        <p class="mrs-item-title">8. Fysisk og psykisk udmattelse <span class="mrs-item-sub">(generelt nedsat præstationsevne, hukommelses- og koncentrationsbesvær, glemsomhed)</span></p>
+        <div class="mrs-scale">
+          <label class="radio"><input type="radio" name="item8" value="0"> 0 – Ingen</label>
+          <label class="radio"><input type="radio" name="item8" value="1"> 1 – Lette</label>
+          <label class="radio"><input type="radio" name="item8" value="2"> 2 – Moderate</label>
+          <label class="radio"><input type="radio" name="item8" value="3"> 3 – Svære</label>
+          <label class="radio"><input type="radio" name="item8" value="4"> 4 – Meget svære</label>
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Urogenitale symptomer</legend>
+
+      <div class="mrs-item">
+        <p class="mrs-item-title">9. Seksuelle problemer <span class="mrs-item-sub">(ændring i seksuel lyst, seksuel aktivitet og tilfredsstillelse)</span></p>
+        <div class="mrs-scale">
+          <label class="radio"><input type="radio" name="item9" value="0"> 0 – Ingen</label>
+          <label class="radio"><input type="radio" name="item9" value="1"> 1 – Lette</label>
+          <label class="radio"><input type="radio" name="item9" value="2"> 2 – Moderate</label>
+          <label class="radio"><input type="radio" name="item9" value="3"> 3 – Svære</label>
+          <label class="radio"><input type="radio" name="item9" value="4"> 4 – Meget svære</label>
+        </div>
+      </div>
+
+      <div class="mrs-item">
+        <p class="mrs-item-title">10. Vandladningsgener <span class="mrs-item-sub">(besvær med vandladning, hyppig vandladningstrang, urininkontinens)</span></p>
+        <div class="mrs-scale">
+          <label class="radio"><input type="radio" name="item10" value="0"> 0 – Ingen</label>
+          <label class="radio"><input type="radio" name="item10" value="1"> 1 – Lette</label>
+          <label class="radio"><input type="radio" name="item10" value="2"> 2 – Moderate</label>
+          <label class="radio"><input type="radio" name="item10" value="3"> 3 – Svære</label>
+          <label class="radio"><input type="radio" name="item10" value="4"> 4 – Meget svære</label>
+        </div>
+      </div>
+
+      <div class="mrs-item">
+        <p class="mrs-item-title">11. Vaginal tørhed <span class="mrs-item-sub">(følelse af tørhed eller svie i skeden, besvær ved samleje)</span></p>
+        <div class="mrs-scale">
+          <label class="radio"><input type="radio" name="item11" value="0"> 0 – Ingen</label>
+          <label class="radio"><input type="radio" name="item11" value="1"> 1 – Lette</label>
+          <label class="radio"><input type="radio" name="item11" value="2"> 2 – Moderate</label>
+          <label class="radio"><input type="radio" name="item11" value="3"> 3 – Svære</label>
+          <label class="radio"><input type="radio" name="item11" value="4"> 4 – Meget svære</label>
+        </div>
+      </div>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Score" id="resultPanel">
+    <h2>2. Score og fortolkning</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér resumé til journal</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Schneider H.P.G., Heinemann L.A.J. et al. — oprindelig udvikling og validering af Menopause Rating Scale (Berlin, tidligt 1990'erne)</li>
+    <li>ZEG Berlin GmbH — rettighedshaver og vedligeholder af MRS, inkl. den officielle danske oversættelse: <a href="https://zeg-berlin.de/wp-content/uploads/2024/03/MRS_Danish.pdf" target="_blank" rel="noopener">MRS_Danish.pdf</a> (kunne ikke tilgås direkte i denne session — brug linket til at verificere item-ordlyden)</li>
+    <li>Heinemann K. et al., "The Menopause Rating Scale (MRS) as outcome measure for hormone treatment" — validering af MRS som effektmål ved hormonbehandling</li>
+  </ul>
+  <p class="fineprint">Dette er et lokalt, uafhængigt hjælpeværktøj — ikke en officiel publikation fra ZEG Berlin. Item-teksterne er en egen oversættelse, ikke verificeret ordret mod den officielle danske PDF (netværksrestriktion i udviklingsmiljøet forhindrede direkte adgang). Struktur, pointskala (0–4 pr. item) og scoreintervaller (0–44 total; delskalaer 0–16/0–16/0–12) er krydstjekket mod flere uafhængige kilder. Totalscore-fortolkningen (0–4/5–8/9–15/16+) er en almindeligt citeret forenkling, ikke den formelle aldersjusterede norm. Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.</p>
+</footer>
+
+<script src="mrs.js"></script>
+</body>
+</html>
