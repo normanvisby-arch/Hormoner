@@ -11,7 +11,7 @@
  *  - Uterus-status og reproduktiv/ovariel status er nu to uafhængige felter
  *    (tidligere ét kombineret radioknap-sæt, som kunne nulstille et manuelt
  *    korrekt uterus-valg tavst ved skift af status).
- *  - Prænatur ovarieinsufficiens (POI) tjekkes nu umiddelbart efter absolutte
+ *  - Præmatur ovarieinsufficiens (POI) tjekkes nu umiddelbart efter absolutte
  *    kontraindikationer, FØR "kun GSM"- og "ingen symptomer"-grenene, så en
  *    POI-patient med kun lokale symptomer (eller ingen rapporterede symptomer)
  *    ikke længere mister den systemiske, tilstands-betingede anbefaling.
@@ -171,7 +171,7 @@
     return box(
       "box-amber",
       "Vigtigt: hormonbehandling er ikke prævention",
-      `<p>Kombineret eller cyklisk hormonbehandling virker <strong>ikke</strong> som prævention. Ved fortsat risiko for graviditet anbefales fortsat prævention indtil 2 år efter sidste menstruation, hvis patienten er under 50 år, og 1 år, hvis hun er 50 år eller derover. Ved prænatur ovarieinsufficiens kan spontan ægløsning forekomme uregelmæssigt — samme princip gælder, hvis graviditet ikke er ønsket.</p>`
+      `<p>Kombineret eller cyklisk hormonbehandling virker <strong>ikke</strong> som prævention. Ved fortsat risiko for graviditet anbefales fortsat prævention indtil 2 år efter sidste menstruation, hvis patienten er under 50 år, og 1 år, hvis hun er 50 år eller derover. Ved præmatur ovarieinsufficiens kan spontan ægløsning forekomme uregelmæssigt — samme princip gælder, hvis graviditet ikke er ønsket.</p>`
     );
   }
 
@@ -219,20 +219,20 @@
       return;
     }
 
-    // --- 2. Prænatur ovarieinsufficiens — tjekkes FØR symptom-grenene, da
+    // --- 2. Præmatur ovarieinsufficiens — tjekkes FØR symptom-grenene, da
     //        indikationen er tilstands-betinget og ikke afhænger af hvilke
     //        symptomer patienten aktuelt rapporterer. ---------------------
     if (s.status === "poi") {
       let poiWarning = "";
       if (s.alder >= 40) {
-        poiWarning = `<p><strong>Bemærk:</strong> indtastet alder er ≥ 40 år. Prænatur ovarieinsufficiens defineres typisk som ovariesvigt før 40-årsalderen — bekræft diagnosen og tidspunktet for ovariesvigt.</p>`;
+        poiWarning = `<p><strong>Bemærk:</strong> indtastet alder er ≥ 40 år. Præmatur ovarieinsufficiens defineres typisk som ovariesvigt før 40-årsalderen — bekræft diagnosen og tidspunktet for ovariesvigt.</p>`;
       }
       const gsmNote = s.symptomer.includes("gsm")
         ? `<p>Patienten har også markeret urogenitale symptomer (GSM). Systemisk behandling som nedenfor er fortsat indiceret for knogle-/kardiovaskulær beskyttelse; supplér evt. med lokal vaginal østrogen (fx Vagifem/Vagirux) hvis de lokale symptomer ikke er tilstrækkeligt dækket af den systemiske behandling.</p>`
         : "";
       html += box(
         "box-green",
-        "Prænatur ovarieinsufficiens (POI) — systemisk hormonbehandling anbefales",
+        "Præmatur ovarieinsufficiens (POI) — systemisk hormonbehandling anbefales",
         `${poiWarning}
         <p>Ved POI anbefales systemisk hormonbehandling indtil den naturlige menopausealder (ca. 51 år), <strong>uafhængigt af symptomintensitet og -type</strong>, for at reducere risiko for osteoporose, kardiovaskulær sygdom og tidlig kognitiv påvirkning. Der anvendes typisk lidt højere østrogendoser end ved almindelig substitution for at efterligne fysiologiske niveauer.</p>
         ${gsmNote}
