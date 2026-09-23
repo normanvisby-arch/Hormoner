@@ -50,7 +50,7 @@ Ingen build-trin eller afhængigheder er nødvendige.
    graviditet) → systemisk hormonbehandling frarådes, ikke-hormonelle alternativer foreslås
    (SSRI/SNRI, gabapentin, clonidin), og lokal vaginal østrogen nævnes som mulighed ved isolerede
    urogenitale symptomer efter aftale med specialist. Denne gren har altid højeste prioritet.
-2. **Prænatur ovarieinsufficiens (POI)** → systemisk hormonbehandling anbefales til ca.
+2. **Præmatur ovarieinsufficiens (POI)** → systemisk hormonbehandling anbefales til ca.
    51-årsalderen, **uafhængigt af hvilke symptomer patienten aktuelt har markeret** — inklusive
    hvis kun urogenitale symptomer eller ingen symptomer er markeret, da indikationen er
    tilstands-betinget (knogle-/kardiovaskulær beskyttelse), ikke symptombetinget. Tjekkes derfor
@@ -295,7 +295,7 @@ en server. Konsekvenser af det valg:
   ovenfor for åbne punkter.
 
 **22. september 2026 — rettelser efter ekstern audit af algoritme og UX:**
-- Rettet: en prænatur ovarieinsufficiens (POI)-patient med kun urogenitale symptomer eller ingen
+- Rettet: en præmatur ovarieinsufficiens (POI)-patient med kun urogenitale symptomer eller ingen
   markerede symptomer fik tidligere fejlagtigt *ikke* den systemiske POI-anbefaling, fordi
   symptomgrenene blev tjekket før POI-status i koden.
 - Rettet: uterus-status og reproduktiv status var tidligere ét kombineret radioknap-sæt, hvor et
