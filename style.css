@@ -183,7 +183,9 @@ body {
 }
 
 @media (max-width: 900px) {
-  .layout { grid-template-columns: 1fr; }
+  /* minmax(0, …) — plain 1fr lets a wide table set the column's minimum
+     width and push the whole page wider than the phone screen. */
+  .layout { grid-template-columns: minmax(0, 1fr); }
 }
 
 .panel {
@@ -365,6 +367,8 @@ body {
 
 .box p { margin: 0.3rem 0; }
 
+.drug-table-wrap { overflow-x: auto; }
+
 .drug-table {
   width: 100%;
   border-collapse: collapse;
@@ -407,8 +411,44 @@ body {
 .output-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-top: 0.5rem;
+}
+
+.box-collapsible summary {
+  cursor: pointer;
+}
+.box-collapsible summary h3 {
+  display: inline;
+  margin: 0;
+}
+.box-collapsible details[open] summary {
+  margin-bottom: 0.4rem;
+}
+.drug-table tr.row-highlight td {
+  background: var(--color-green-bg);
+  font-weight: 600;
+}
+
+/* On phones, stack each table row so the dosing column stays visible
+   instead of hiding behind a horizontal scroll. */
+@media (max-width: 600px) {
+  .drug-table.stack-mobile thead { display: none; }
+  .drug-table.stack-mobile,
+  .drug-table.stack-mobile tbody,
+  .drug-table.stack-mobile tr,
+  .drug-table.stack-mobile td { display: block; width: 100%; }
+  .drug-table.stack-mobile tr { border-bottom: 1px solid var(--color-border); padding: 0.4rem 0; }
+  .drug-table.stack-mobile td { border: none; padding: 0.1rem 0.5rem; }
+  .drug-table.stack-mobile td:first-child { font-weight: 600; }
+  .drug-table.stack-mobile td[data-label]::before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--color-muted);
+  }
 }
 
 .copy-status {

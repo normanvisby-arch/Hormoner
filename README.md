@@ -18,7 +18,8 @@ Alle fire værktøjer krydshenviser til hinanden i en lille navigationslinje øv
 De tre første apps kører udelukkende i browseren og gemmer intet (ingen server, ingen data sendes
 nogen steder). Udfyld patientens data i venstre panel, og anbefalingen/scoren opdateres
 øjeblikkeligt i højre panel. Brug "Kopiér resumé til journal" for at indsætte resultatet i
-journalnotatet, eller "Udskriv" for en printvenlig version med tidsstempel.
+journalnotatet (hormonværktøjet har desuden et kort "journalnotat"), eller "Udskriv" for en
+printvenlig version med tidsstempel.
 
 Blødningskalenderen er anderledes: den er lavet til at bruges over uger/måneder, og gemmer derfor
 data lokalt i browserens `localStorage` mellem besøg (se afsnittet "Blødningskalender" nedenfor
@@ -45,39 +46,47 @@ Ingen build-trin eller afhængigheder er nødvendige.
 
 ## Hormonbehandling — klinisk logik (kort opsummeret)
 
+Grenene tjekkes i denne rækkefølge; den første der passer, bestemmer anbefalingen.
+
 1. **Absolutte kontraindikationer** (brystkræft/østrogenfølsom cancer, uafklaret
    vaginalblødning, aktiv VTE, aktiv arteriel tromboembolisk sygdom, aktiv leversygdom,
-   graviditet) → systemisk hormonbehandling frarådes, ikke-hormonelle alternativer foreslås
-   (SSRI/SNRI, gabapentin, clonidin), og lokal vaginal østrogen nævnes som mulighed ved isolerede
-   urogenitale symptomer efter aftale med specialist. Denne gren har altid højeste prioritet.
-2. **Præmatur ovarieinsufficiens (POI)** → systemisk hormonbehandling anbefales til ca.
-   51-årsalderen, **uafhængigt af hvilke symptomer patienten aktuelt har markeret** — inklusive
-   hvis kun urogenitale symptomer eller ingen symptomer er markeret, da indikationen er
-   tilstands-betinget (knogle-/kardiovaskulær beskyttelse), ikke symptombetinget. Tjekkes derfor
-   umiddelbart efter kontraindikationer, før de øvrige symptomgrene.
-3. **Isolerede urogenitale symptomer (GSM)** hos ikke-POI-patienter, uden vasomotoriske/andre
-   symptomer → lokal vaginal østrogen alene, uafhængigt af uterusstatus.
-4. **Systemisk kombinationsbehandling** vælges ud fra to *uafhængige* felter:
-   - Uterus til stede (ja/nej) — østrogen-alene hvis nej, ellers østrogen + progestogen.
-   - Reproduktiv/ovariel status (perimenopausal/postmenopausal) — cyklisk/sekventiel behandling
-     ved perimenopause, kontinuerlig kombination ved > 12 måneders amenoré.
-   - Disse to felter påvirker ikke automatisk hinanden, så fx en hysterektomeret patient med
-     bevarede ovarier kan fortsat markeres som perimenopausal.
-   - Administrationsvej: **transdermal (plaster/gel/spray) er det generelle førstevalg** for
-     systemisk østrogen, uafhængigt af yderligere risikofaktorer, i tråd med Sundhedsstyrelsens
-     Nationale Rekommandationsliste (NRL). Oral behandling vises som alternativ ved
-     patientpræference. Ved yderligere risikofaktorer (rygning, BMI ≥ 30, migræne med aura,
-     trombofili, hypertension, høj triglycerid, galdeblæresygdom, opstart ≥ 60 år eller > 10 år
-     postmenopausal) skærpes anbefalingen yderligere.
-   - Progestogenvalg: mikroniseret progesteron (Utrogestan) eller dydrogesteron (Femoston)
-     fremhæves som muligt gunstigere alternativ til syntetiske progestiner ved øget bekymring
-     for bryst-/VTE-risiko.
-   - Ved nedsat libido nævnes testosterontilskud (off-label) som mulighed hvis symptomet
-     fortsætter efter optimeret østrogen-/progestogenbehandling.
-   - Ved perimenopausal eller POI-status vises en påmindelse om, at hormonbehandling ikke er
-     prævention.
-5. **Opfølgning:** kontrol efter 2–3 måneder, årlig revurdering, ingen fast øvre grænse for
-   behandlingsvarighed, uændret mammografiscreening.
+   graviditet) → systemisk MHT frarådes, med en konkret handling pr. kontraindikation (fx
+   henvisning ved postmenopausal blødning, u-hCG ved mulig graviditet, undgå paroxetin/fluoxetin
+   ved tamoxifen). Ikke-hormonelle alternativer vises ved hedeture — fezolinetant (Veoza, ikke ved
+   leversygdom), venlafaxin, escitalopram, gabapentin, clonidin og kognitiv adfærdsterapi.
+2. **Patienten ønsker ikke hormonbehandling** → ikke-hormonel behandling, lokal vaginal østrogen
+   ved urogenitale gener, og en tydelig advarsel ved POI/tidlig menopause.
+3. **Præmatur ovarieinsufficiens (POI)** → MHT til ca. 51 år uanset symptomer, i **høj dosis**
+   (Vivelle Dot 75–100 mikrog.) med tilsvarende **øget progesterondosis** (Utrogestan 300 mg
+   cyklisk eller 200 mg kontinuerligt, jf. BMS). Diagnosekriterier og udredning efter ESHRE 2024.
+4. **Isolerede urogenitale symptomer (GSM)** → lokal vaginal østrogen (Vagifem/Vagirux, Ovestin,
+   Estring), uanset uterusstatus. Gælder ikke ved tidlig menopause.
+5. **Ingen symptomer** → ingen indikation, undtagen ved POI eller **tidlig menopause (40–44 år)**,
+   hvor MHT anbefales til ca. 51 år uanset symptomer.
+6. **Systemisk MHT** vælges ud fra to *uafhængige* felter:
+   - Uterus (ja/nej) — østrogen alene hvis nej (evt. + gestagen ved tidligere endometriose),
+     ellers østrogen + progestogen.
+   - Status — sekventiel behandling ved perimenopause, kontinuerlig ved > 12 måneders amenoré.
+   - **Dosisniveau**: standard (Vivelle Dot 50 / Divigel 1 mg), lav ved opstart ≥ 60 år eller
+     > 10 år efter menopausen (Vivelle Dot 25 / Divigel 0,5 mg), høj ved POI. En sammenklappelig
+     tabel viser omtrentlige dosisækvivalenser mellem plaster, gel, spray og tablet (BMS).
+   - **Transdermal er førstevalg** (NRL). Risikofaktorer (rygning, BMI ≥ 30, migræne med aura,
+     trombofili, tidligere VTE, hypertension, triglycerider, galdeblæresygdom, alder ≥ 60 / sen
+     opstart) listes hver med et konkret råd; ved tidligere VTE/trombofili frarådes oral MHT.
+   - **Endometriebeskyttelse**: Utrogestan (kun 100 mg kapsler i DK, tages til natten) eller
+     Mirena — den eneste hormonspiral godkendt hertil (op til 5 år).
+   - Hvis hedeture ikke er markeret, vises en note om svagere evidens og differentialdiagnoser.
+   - Prævention: vises kun hvis uterus er bevaret og patienten er perimenopausal, har POI eller
+     er postmenopausal under 50 år.
+   - Supplerende noter ved nedsat libido, urogenitale gener, brystkræft i familien/BRCA og
+     osteoporose.
+7. **Før opstart og opfølgning:** diagnose stilles klinisk over 45 år (FSH under 45 år); BT og
+   BMI før opstart; kontrol efter ca. 3 måneder og derefter årligt; konkrete regler for, hvornår
+   blødning på MHT skal udredes. En sammenklappelig boks giver **absolutte risikotal** til
+   samtalen (MHRA 2019), med det aktuelle regime fremhævet.
+
+**Journal:** "Kopiér journalnotat" giver et kort, redigerbart notat (patientdata, vurdering,
+førstevalg, plan). "Kopiér fuld anbefaling" kopierer hele teksten, inkl. sammenklappede afsnit.
 
 ## Hormonbehandling — kilder og grundlag
 
@@ -87,8 +96,13 @@ Ingen build-trin eller afhængigheder er nødvendige.
   hormonterapi (februar 2026)
 - [pro.medicin.dk](https://pro.medicin.dk) — opslag før enhver ordination (aktuelle
   præparatnavne, styrker, pakninger, tilskud og interaktioner)
-- Supplerende internationalt evidensgrundlag: NICE NG23, IMS/EMAS og The Endocrine Society's
-  kliniske retningslinjer for menopausal hormonbehandling
+- Supplerende internationalt evidensgrundlag: NICE NG23 (opdateret 2024), IMS/EMAS og The
+  Endocrine Society's kliniske retningslinjer for menopausal hormonbehandling
+- British Menopause Society (BMS) Tools for Clinicians — dosisækvivalenser og progestogendoser
+  til endometriebeskyttelse
+- MHRA (2019) — absolutte tal for brystkræftrisiko ved MHT
+- ESHRE (2024) — guideline for præmatur ovarieinsufficiens
+- EMA (2024) — sikkerhedsmeddelelse om levermonitorering ved fezolinetant (Veoza)
 
 Tidligere versioner af dette værktøj citerede en selvstændig DSAM-vejledning ved navn
 "Overgangsalderen" som primær kilde. Det kunne ikke bekræftes at en sådan selvstændig,
@@ -221,6 +235,31 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**23. september 2026 — klinisk gennemgang og udvidelse af hormonværktøjet (`index.html`/`app.js`):**
+- **Rettede fejl:**
+  - Depotplastret hed "Estradot", som ikke markedsføres i Danmark — rettet til **Vivelle Dot**.
+    "Ovesterin" rettet til **Ovestin**, "Oestring" til **Estring**, og Utrogestan-doser er nu
+    angivet i 100 mg kapsler (den eneste styrke i Danmark).
+  - **For lav endometriebeskyttelse ved POI:** et 100 mikrog.-plaster blev foreslået sammen med
+    kun 100 mg kontinuerlig Utrogestan. BMS anbefaler 200 mg kontinuerligt eller 300 mg cyklisk
+    ved høj østrogendosis — rettet.
+  - "Mirena/Levosert" som endometriebeskyttelse: kun Mirena er godkendt hertil (op til 5 år).
+  - Præventionspåmindelsen blev vist til hysterektomerede kvinder, men ikke til
+    postmenopausale kvinder under 50 år — rettet.
+  - Ved alder ≥ 60 uden afkrydsede risikofaktorer blev risikolisten vist tom ("…risikofaktor(er): .").
+  - Aldersadvarslen blev vist ved tomt aldersfelt efter "Nulstil" — og i præventionsværktøjet
+    allerede ved sideindlæsning (følgevirkning af fjernelsen af den forudindtastede alder).
+  - På mobil var siden bredere end skærmen (hormon-, præventions- og MRS-værktøjet), og
+    doseringskolonnen var skjult; tabellerne vises nu stablet på smalle skærme.
+- **Nyt:** konkrete doser (lav/standard/høj) med dosisækvivalenstabel; ikke-hormonel behandling
+  inkl. fezolinetant og KAT; præference "ønsker ikke hormonbehandling"; tidlig menopause (40–44 år);
+  tidligere VTE som risikofaktor; noter om brystkræft i familien/BRCA, osteoporose og tidligere
+  endometriose; POI-diagnostik (ESHRE 2024); "Før opstart"-tjekliste; regler for udredning af
+  blødning på MHT; absolutte risikotal (MHRA 2019); kort journalnotat.
+- Præparatnavne er tjekket mod danske kilder via websøgning (pro.medicin.dk kunne ikke tilgås
+  direkte). Femostons danske markedsføringsstatus kunne ikke bekræftes og er markeret
+  "bekræft udbud i DK".
 
 **23. september 2026 — ekstern audit af blødningskalenderen (klinisk indhold, UI, UX):**
 - **Kontrastfejl på "Smerter"-markøren:** den blå prik, der markerer smerter på en given dag,
