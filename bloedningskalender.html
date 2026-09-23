@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blødningskalender — årsoverblik</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">▦</span>
+      <div>
+        <h1>Blødningskalender</h1>
+        <p class="subtitle">Årsoverblik til registrering ved blødningsforstyrrelser</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="exportBtn" class="btn btn-ghost" type="button">Eksportér</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Hormonbehandling ved klimakteriet</a>
+  <a href="praevention.html">Prævention</a>
+  <a href="mrs.html">MRS-scoring</a>
+  <span aria-current="page">Blødningskalender</span>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Data gemmes udelukkende lokalt i denne browser (localStorage) — intet sendes nogen steder. Det betyder også at data kan gå tabt hvis browserdata ryddes, eller ikke følger med til en anden enhed. Brug "Eksportér" jævnligt for at gemme en sikkerhedskopi som fil, især før en konsultation. Kalenderen stiller ikke selv en diagnose — den viser mønsteret, så det kan vurderes klinisk.
+</div>
+
+<main class="calendar-layout">
+  <section class="panel controls-panel">
+    <div class="year-nav">
+      <button id="prevYear" class="btn btn-outline" type="button" aria-label="Forrige år">‹</button>
+      <span id="yearLabel" class="year-label">2026</span>
+      <button id="nextYear" class="btn btn-outline" type="button" aria-label="Næste år">›</button>
+      <button id="todayBtn" class="btn btn-outline" type="button">I dag</button>
+    </div>
+    <p id="statsLine" class="field-hint" aria-live="polite"></p>
+
+    <div class="legend">
+      <span class="legend-item"><span class="legend-swatch" data-intensity="1"></span> Pletblødning</span>
+      <span class="legend-item"><span class="legend-swatch" data-intensity="2"></span> Let</span>
+      <span class="legend-item"><span class="legend-swatch" data-intensity="3"></span> Moderat</span>
+      <span class="legend-item"><span class="legend-swatch" data-intensity="4"></span> Kraftig</span>
+      <span class="legend-item"><span class="legend-dot"></span> Smerter registreret</span>
+    </div>
+
+    <details class="normalrange">
+      <summary>Normalområder (til reference)</summary>
+      <p>Normal cykluslængde: 24–38 dage mellem blødningsstart (FIGO). Normal blødningsvarighed: ≤ 8 dage. <strong>Menorrhagi</strong>: regelmæssig, kraftig blødning (cyklus 21–35 dage, ofte med klumper). <strong>Metrorragi</strong>: uregelmæssig, evt. kraftig blødning uden fast mønster. <strong>Polymenorré</strong>: cyklus under 21 dage. Se DSAM's vejledning om blødningsforstyrrelser for fuld udredningsgang.</p>
+    </details>
+  </section>
+
+  <section class="panel editor-panel" id="editorPanel" aria-label="Registrér dag">
+    <p id="editorHint" class="field-hint">Klik på en dag i kalenderen nedenfor for at registrere blødning, smerter eller en note.</p>
+    <div id="editorFields" hidden>
+      <p class="editor-date" id="editorDate"></p>
+      <fieldset class="field">
+        <legend>Blødningsstyrke</legend>
+        <div class="intensity-options">
+          <label class="radio"><input type="radio" name="intensity" value="0" checked> Ingen</label>
+          <label class="radio"><input type="radio" name="intensity" value="1"> Pletblødning</label>
+          <label class="radio"><input type="radio" name="intensity" value="2"> Let</label>
+          <label class="radio"><input type="radio" name="intensity" value="3"> Moderat</label>
+          <label class="radio"><input type="radio" name="intensity" value="4"> Kraftig</label>
+        </div>
+      </fieldset>
+      <label class="checkbox"><input type="checkbox" id="painCheckbox"> Smerter denne dag</label>
+      <div class="field">
+        <label for="noteInput">Note (valgfrit)</label>
+        <input type="text" id="noteInput" placeholder="fx “skiftede bind hver time”" maxlength="120">
+      </div>
+      <button id="clearDayBtn" class="btn btn-outline" type="button">Ryd denne dag</button>
+    </div>
+  </section>
+
+  <section class="panel calendar-panel">
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="yearGrid" class="year-grid"></div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>DSAM — vejledning om blødningsforstyrrelser hos kvinder i almen praksis (terminologi: menorrhagi, metrorragi, polymenorré)</li>
+    <li>FIGO — moderne definition af normal menstruationscyklus (frekvens 24–38 dage) og normal blødningsvarighed (≤ 8 dage)</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra DSAM eller FIGO. Erstatter ikke den lægefaglige vurdering. Ingen data forlader denne browser — der er ingen server, ingen konto, og ingen synkronisering mellem enheder. Ryd altid browserens data med omtanke, da det sletter kalenderen permanent (brug "Ryd alle data" i appen, ikke browserens generelle "ryd data", hvis kun denne kalender skal nulstilles).</p>
+  <div class="danger-zone">
+    <button id="clearAllBtn" class="btn btn-outline" type="button">Ryd alle data</button>
+  </div>
+</footer>
+
+<script src="bloedningskalender.js"></script>
+</body>
+</html>
