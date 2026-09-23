@@ -44,8 +44,9 @@
   });
 
   function checkAlderRange() {
-    const v = parseInt(alderInput.value, 10);
-    alderWarning.textContent = (!v || v < 12 || v > 60) ? "Alder virker usædvanlig — tjek indtastningen." : "";
+    const raw = alderInput.value.trim();
+    const v = parseInt(raw, 10);
+    alderWarning.textContent = raw !== "" && (isNaN(v) || v < 12 || v > 60) ? "Alder virker usædvanlig — tjek indtastningen." : "";
   }
   alderInput.addEventListener("input", checkAlderRange);
 

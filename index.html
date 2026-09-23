@@ -93,6 +93,7 @@
       <label class="checkbox"><input type="checkbox" name="relativ" value="ryger"> Ryger</label>
       <label class="checkbox"><input type="checkbox" name="relativ" value="migraene"> Migræne med aura</label>
       <label class="checkbox"><input type="checkbox" name="relativ" value="trombofili"> Familiær VTE-disposition / kendt trombofili</label>
+      <label class="checkbox"><input type="checkbox" name="relativ" value="tidlVTE"> Tidligere venøs tromboemboli (ikke aktiv, afsluttet behandling)</label>
       <label class="checkbox"><input type="checkbox" name="relativ" value="htn"> Ukontrolleret hypertension</label>
       <label class="checkbox"><input type="checkbox" name="relativ" value="galde"> Galdeblæresygdom</label>
       <label class="checkbox"><input type="checkbox" name="relativ" value="trigly"> Forhøjede triglycerider</label>
@@ -100,10 +101,18 @@
     </fieldset>
 
     <fieldset class="field">
+      <legend>Øvrige forhold (valgfrit)</legend>
+      <label class="checkbox"><input type="checkbox" name="andet" value="brca"> Brystkræft hos nær slægtning eller kendt BRCA-bærer (uden egen brystkræft)</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="osteo"> Osteopeni/osteoporose eller øget frakturrisiko</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="endometriose"> Tidligere endometriose</label>
+    </fieldset>
+
+    <fieldset class="field">
       <legend>Patientens præference (valgfrit)</legend>
       <label class="radio"><input type="radio" name="praeferens" value="ingen" checked> Ingen særlig præference</label>
       <label class="radio"><input type="radio" name="praeferens" value="tablet"> Foretrækker tabletter</label>
       <label class="radio"><input type="radio" name="praeferens" value="transdermal"> Foretrækker plaster/gel</label>
+      <label class="radio"><input type="radio" name="praeferens" value="nonhormonal"> Ønsker ikke hormonbehandling</label>
     </fieldset>
   </form>
 
@@ -112,7 +121,8 @@
     <p class="print-only-meta" id="printMeta"></p>
     <div id="output"></div>
     <div class="output-actions">
-      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér resumé til journal</button>
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld anbefaling</button>
       <span id="copyStatus" class="copy-status" aria-live="polite"></span>
     </div>
   </section>
@@ -124,9 +134,12 @@
     <li>Sundhedsstyrelsen — National Rekommandationsliste (NRL): <em>Hormonbehandling i klimakterie og menopause</em> (2022), inkl. anbefaling om transdermal som generelt førstevalg ved systemisk østrogenbehandling</li>
     <li>Dansk Selskab for Obstetrik og Gynækologi (DSOG) — revideret guideline for menopausal hormonterapi (februar 2026)</li>
     <li><a href="https://pro.medicin.dk" target="_blank" rel="noopener">pro.medicin.dk</a> — altid opslag før ordination (aktuelle præparater, styrker, tilskud, interaktioner, pakningsstørrelser, og bekræftelse af at det enkelte præparat fortsat er markedsført)</li>
-    <li>International evidensgrundlag som supplement: NICE NG23, IMS/EMAS og The Endocrine Society's kliniske retningslinjer for menopausal hormonbehandling</li>
+    <li>British Menopause Society (BMS) — Tools for Clinicians: dosisækvivalenser og progestogendoser til endometriebeskyttelse (inkl. ved høj østrogendosis)</li>
+    <li>MHRA (2019) — absolutte tal for brystkræftrisiko ved MHT; NICE NG23 (opdateret 2024), inkl. kognitiv adfærdsterapi</li>
+    <li>ESHRE (2024) — guideline for præmatur ovarieinsufficiens (diagnostik og behandling)</li>
+    <li>EMA (2024) — sikkerhedsmeddelelse om leverpåvirkning og levertalsmonitorering ved fezolinetant (Veoza)</li>
   </ul>
-  <p class="fineprint">Dette er et lokalt, uafhængigt hjælpeværktøj — ikke en officiel publikation fra Sundhedsstyrelsen, DSOG eller andre af de nævnte kilder. Erstatter ikke opslag i de originale vejledninger eller den lægefaglige vurdering af den enkelte patient. Indholdet er opdateret 22. september 2026 efter en ekstern gennemgang af algoritme og kildehenvisninger; retningslinjer og præparatudbud ændres løbende og bør verificeres direkte.</p>
+  <p class="fineprint">Dette er et lokalt, uafhængigt hjælpeværktøj — ikke en officiel publikation fra Sundhedsstyrelsen, DSOG eller andre af de nævnte kilder. Erstatter ikke opslag i de originale vejledninger eller den lægefaglige vurdering af den enkelte patient. Indholdet er opdateret 23. september 2026 efter en klinisk gennemgang af algoritme, doser og præparatnavne; retningslinjer og præparatudbud ændres løbende og bør verificeres direkte.</p>
 </footer>
 
 <script src="app.js"></script>
