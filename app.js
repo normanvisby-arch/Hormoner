@@ -74,7 +74,10 @@
   alderInput.addEventListener("input", checkAlderRange);
 
   function getState() {
-    const alder = parseInt(alderInput.value, 10) || 0;
+    // No || 0 fallback: an empty field should stay "unknown" (NaN), not
+    // silently become age 0, since 0 satisfies age-threshold comparisons
+    // in unintended ways (e.g. would look like "very young").
+    const alder = parseInt(alderInput.value, 10);
     const bmiRaw = document.getElementById("bmiInput").value;
     const bmi = bmiRaw === "" ? null : parseFloat(bmiRaw);
     const symptomer = Array.from(document.querySelectorAll('input[name="symptom"]:checked')).map((el) => el.value);

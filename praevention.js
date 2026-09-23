@@ -75,7 +75,10 @@
   });
 
   function getState() {
-    const alder = parseInt(alderInput.value, 10) || 0;
+    // No || 0 fallback: an empty field should stay "unknown" (NaN), not
+    // silently become age 0 — 0 < 20 would otherwise wrongly trigger the
+    // "young age, LARC first" branch before the field is filled in.
+    const alder = parseInt(alderInput.value, 10);
     const bmiRaw = document.getElementById("bmiInput").value;
     const bmi = bmiRaw === "" ? null : parseFloat(bmiRaw);
     const nodPraevention = nodCheckbox.checked;
