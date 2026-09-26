@@ -82,7 +82,10 @@
       alder,
       bmi,
       symptomer: checkedValues("symptom"),
-      uterus: document.querySelector('input[name="uterus"]:checked').value === "ja",
+      // Subtotal hysterectomy and endometrial ablation can leave endometrium
+      // behind, so both are treated as "uterus present" for progestogen purposes.
+      uterusType: document.querySelector('input[name="uterus"]:checked').value,
+      uterus: document.querySelector('input[name="uterus"]:checked').value !== "nej",
       status: document.querySelector('input[name="status"]:checked').value,
       absolutte: checkedValues("absolut"),
       relative: checkedValues("relativ"),
@@ -108,6 +111,7 @@
 
   const ABSOLUT_LABELS = {
     cancer: "Tidligere/aktiv brystkræft eller anden østrogenfølsom cancer",
+    hyperplasi: "Ubehandlet endometriehyperplasi",
     blodning: "Uafklaret vaginalblødning",
     vte: "Aktiv/nylig venøs tromboemboli uden antikoagulation",
     arteriel: "Aktiv arteriel tromboembolisk sygdom (nylig AMI/apopleksi)",
@@ -116,7 +120,8 @@
   };
 
   const ABSOLUT_ACTION = {
-    cancer: "Systemisk MHT frarådes. Ved tamoxifenbehandling: undgå paroxetin og fluoxetin (hæmmer CYP2D6 og dermed aktiveringen af tamoxifen) — venlafaxin eller gabapentin foretrækkes. Lokal vaginal østrogen mod urogenitale gener kun efter konference med onkolog, særligt ved aromatasehæmmer.",
+    cancer: "Systemisk MHT frarådes. Ved tamoxifenbehandling: undgå paroxetin og fluoxetin (hæmmer CYP2D6 og dermed aktiveringen af tamoxifen) — venlafaxin eller gabapentin foretrækkes. Tamoxifen øger selv risikoen for endometriecancer, så blødning under tamoxifen skal altid udredes. Lokal vaginal østrogen mod urogenitale gener kun efter konference med onkolog, særligt ved aromatasehæmmer. Efter tidligere endometriecancer kan MHT i udvalgte tilfælde overvejes efter konference med gynækologisk onkologi.",
+    hyperplasi: "Systemisk MHT frarådes, indtil hyperplasien er behandlet og kontrolleret — henvis til gynækolog. Hyperplasi med atypi er et forstadie til endometriecancer.",
     blodning: "Udred før stillingtagen til MHT. Postmenopausal blødning er et alarmsymptom → henvis til gynækologisk udredning (jf. pakkeforløb for kræft i livmoderen). Perimenopausal kraftig/uregelmæssig blødning udredes efter DSAM's vejledning. MHT kan genovervejes, når årsagen er afklaret.",
     vte: "MHT frarådes under aktiv VTE. Efter afsluttet behandling kan transdermal MHT overvejes efter konference med trombosecenter/gynækolog (markér da i stedet \"Tidligere VTE\" under relative risikofaktorer).",
     arteriel: "Systemisk MHT frarådes. Brug ikke-hormonel behandling.",
@@ -276,7 +281,9 @@
       "box-blue",
       "Endometriebeskyttelse (patienter med uterus)",
       `<ul>
-        <li><strong>Utrogestan</strong> (mikroniseret progesteron, kun 100 mg kapsler i DK) tages til natten pga. træthed/svimmelhed. Mikroniseret progesteron og dydrogesteron har formentlig en gunstigere bryst- og VTE-profil end syntetiske gestagener (noretisteron, levonorgestrel).</li>
+        <li><strong>Gestagen skal gives i fuld dosis og varighed:</strong> ved sekventiel behandling mindst 12 dage pr. cyklus — kortere perioder giver utilstrækkelig beskyttelse.</li>
+        <li><strong>Kontinuerlig kombineret behandling beskytter bedst:</strong> i en dansk kohorte var risikoen for endometriecancer ikke øget ved kontinuerlig kombineret behandling, men ca. fordoblet ved sekventiel. Skift til kontinuerlig, når patienten er postmenopausal (se opfølgning).</li>
+        <li><strong>Utrogestan</strong> (mikroniseret progesteron, kun 100 mg kapsler i DK) tages til natten pga. træthed/svimmelhed. Den har formentlig en gunstigere bryst- og VTE-profil end syntetiske gestagener, men endometriebeskyttelsen er kun dokumenteret i ca. 5 år, og i en fransk kohorte (E3N) var brug i over 5 år forbundet med øget risiko for endometriecancer (også dydrogesteron, i mindre grad). Ved langvarig brug: overvej Mirena, og hav lav tærskel for udredning af blødning.</li>
         <li><strong>Mirena</strong> er den hormonspiral, der er godkendt til endometriebeskyttelse (op til 5 år). Kyleena og Jaydess har lavere dosis og er ikke godkendt hertil.</li>
         <li><strong>Høj østrogendosis</strong> (fx plaster 75–100 mikrog., Estrogel ≥ 3 tryk${D === DOSIS.hoej ? " — som anbefalet her" : ""}): øg progesteron til 300 mg cyklisk eller 200 mg kontinuerligt (BMS).</li>
         <li>Minipiller (desogestrel) kan give prævention sammen med MHT, men erstatter <em>ikke</em> gestagen-delen.</li>
@@ -293,7 +300,8 @@
   }
 
   function contraceptionBox(s) {
-    if (!s.uterus) return "";
+    // A subtotal hysterectomy removes the uterine body, so pregnancy is not possible.
+    if (s.uterusType !== "ja" && s.uterusType !== "ablation") return "";
     const relevant = s.status === "peri" || s.status === "poi" || (s.status === "post" && alderKendt(s) && s.alder < 50);
     if (!relevant) return "";
     const poiNote = s.status === "poi" ? " Ved POI kan ægløsning forekomme uforudsigeligt, og en mindre andel bliver spontant gravide." : "";
@@ -323,8 +331,27 @@
     return html;
   }
 
+  function endometrieBox(s) {
+    const items = [];
+    if (s.uterusType === "ablation") {
+      items.push("<strong>Endometrieablation:</strong> der kan sidde rester af endometrium, og blødning — det vigtigste advarselstegn — kan udeblive. Giv altid kombineret behandling (østrogen + gestagen), aldrig østrogen alene.");
+    }
+    if (s.uterusType === "delvis") {
+      items.push("<strong>Subtotal hysterektomi:</strong> der kan være endometrium i livmoderhalsstumpen. Giv sekventiel gestagen i 3 måneder som test: ingen blødning → østrogen alene kan herefter anvendes; blødning → fortsæt kombineret behandling (BMS).");
+    }
+    if (s.uterus && (s.andet.includes("endorisiko") || bmiHigh(s))) {
+      const hvorfor = [];
+      if (bmiHigh(s)) hvorfor.push(`BMI ≥ 30 (indtastet: ${fmtNum(s.bmi)})`);
+      if (s.andet.includes("endorisiko")) hvorfor.push("markeret risikofaktor");
+      items.push(`<strong>Øget risiko for endometriecancer</strong> (${hvorfor.join(", ")}): sikr fuld gestagendosis og -varighed, foretræk kontinuerlig kombineret behandling eller Mirena, og hav lav tærskel for udredning af blødning. Ved Lynch syndrom: konferér med gynækolog om risikoreducerende kirurgi.`);
+    }
+    if (items.length === 0) return "";
+    const warn = s.uterusType === "ablation" || s.uterusType === "delvis";
+    return box(warn ? "box-amber" : "box-blue", "Endometriet", `<ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>`);
+  }
+
   function endometrioseNote(s) {
-    if (s.uterus || !s.andet.includes("endometriose")) return "";
+    if (s.uterusType !== "nej" || !s.andet.includes("endometriose")) return "";
     return `<p><strong>Tidligere endometriose:</strong> østrogen alene kan reaktivere rester af endometriose. Overvej kontinuerlig kombineret behandling (østrogen + gestagen, fx Utrogestan 100 mg dgl.) eller tibolon frem for østrogen alene — især de første år efter hysterektomi.</p>`;
   }
 
@@ -371,7 +398,7 @@
     const b = (key, text) => (key === regime ? `<strong>${text} ← aktuelt regime</strong>` : text);
     return collapsibleBox(
       "box-blue",
-      "Risikoinformation til samtalen (absolutte tal)",
+      "Risikoinformation til samtalen",
       `<p><strong>Brystkræft</strong> — ekstra tilfælde pr. 1.000 kvinder frem til 69 år ved start omkring 50 år og 5 års brug (MHRA 2019; baggrundsrisiko ca. 63 pr. 1.000):</p>
       <ul>
         <li>${b("alene", "Østrogen alene: ca. 5 ekstra")}</li>
@@ -383,16 +410,23 @@
         <li><strong>Blodpropper (VTE):</strong> oral østrogen øger risikoen (ca. 2 gange); transdermal i standarddosis ses ikke at øge den.</li>
         <li><strong>Apopleksi:</strong> lille overrisiko ved oral behandling; ikke påvist ved transdermal i standarddosis.</li>
         <li><strong>Hjertesygdom:</strong> ingen overrisiko ved opstart før 60 år / inden for 10 år efter menopausen.</li>
-        <li><strong>Livmoderkræft:</strong> forebygges af tilstrækkelig gestagen, hvis uterus er bevaret.</li>
         <li><strong>Knogler:</strong> færre frakturer under behandling.</li>
-        <li><strong>Lokal vaginal østrogen:</strong> ingen kendt øget risiko for brystkræft, VTE eller livmoderkræft.</li>
+        <li><strong>Lokal vaginal østrogen:</strong> ingen påvist øget risiko for brystkræft eller VTE. Metaanalyser viser ikke øget risiko for endometriecancer; en dansk registerundersøgelse fandt en let øget forekomst, som formentlig skyldes øget udredning — blødning skal altid udredes.</li>
+      </ul>
+      <p><strong>Endometriecancer</strong> (kun ved bevaret uterus) — relativ risiko i forhold til ingen MHT, dansk kohorte af 915.000 kvinder (Mørch 2016):</p>
+      <ul>
+        <li>${b("kontinuerlig", "Kontinuerlig kombineret: ingen øget risiko (RR 1,0)")}</li>
+        <li>${b("sekventiel", "Sekventiel (cyklisk) kombineret: ca. fordoblet (RR 2,1)")}</li>
+        <li>Østrogen alene med bevaret uterus: 2–4 gange øget — gives aldrig</li>
+        <li>Tibolon: ca. 3,6 gange øget</li>
       </ul>`
     );
   }
 
   function followUpBox(s) {
     const bleeding = s.uterus
-      ? `<li><strong>Blødning:</strong> på kontinuerlig kombineret behandling er uregelmæssig blødning almindelig de første 3–6 måneder. Udred (transvaginal UL / henvisning til gynækolog), hvis blødningen fortsætter efter 6 måneder, opstår efter en blødningsfri periode, eller — på sekventiel behandling — hvis bortfaldsblødningen ændrer karakter (kraftig, forlænget, mellemblødninger).</li>`
+      ? `<li><strong>Blødning:</strong> på kontinuerlig kombineret behandling er uregelmæssig blødning almindelig de første 3–6 måneder. Udred (transvaginal UL / henvisning til gynækolog), hvis blødningen fortsætter efter 6 måneder, opstår efter en blødningsfri periode, eller — på sekventiel behandling — hvis bortfaldsblødningen ændrer karakter (kraftig, forlænget, mellemblødninger). Blødning efter ophør af MHT udredes som postmenopausal blødning. Lav tærskel ved risikofaktorer for endometriecancer.</li>
+        <li><strong>Skift fra sekventiel til kontinuerlig:</strong> når patienten har fået sekventiel behandling i mindst 1 år og er postmenopausal (fx ≥ 54 år eller ≥ 1 år siden sidste spontane menstruation) — og helst inden 5 års sekventiel behandling, da langvarig sekventiel behandling øger risikoen for endometriecancer.</li>`
       : "";
     return box(
       "box-blue",
@@ -493,6 +527,7 @@
         ${endometrioseNote(s)}
         <p><strong>Diagnose (ESHRE 2024):</strong> oligo-/amenoré i ≥ 4 måneder før 40 år + FSH &gt; 25 IU/L (én måling er tilstrækkelig; gentag efter 4–6 uger ved tvivl). Henvis til gynækolog/endokrinolog mhp. årsagsudredning (bl.a. karyotype, FMR1-præmutation, binyrebarkantistoffer), fertilitetsrådgivning og DXA-skanning.</p>`
       );
+      html += endometrieBox(s);
       html += relBox(s);
       if (s.uterus) html += progestogenBox(D);
       if (s.symptomer.includes("libido")) html += libidoBox();
@@ -572,7 +607,7 @@
       html += box(
         "box-green",
         "Anbefaling: sekventiel (cyklisk) kombinationsbehandling",
-        `<p>Ved fortsat eller uregelmæssig menstruation gives sekventiel behandling med månedlig bortfaldsblødning. Kontinuerlig kombination undgås før ca. 12 måneders amenoré pga. uregelmæssig blødning.</p>
+        `<p>Ved fortsat eller uregelmæssig menstruation gives sekventiel behandling med månedlig bortfaldsblødning. Kontinuerlig kombination undgås før ca. 12 måneders amenoré pga. uregelmæssig blødning. <strong>Planlæg skift til kontinuerlig kombineret behandling</strong>, når patienten er postmenopausal — langvarig sekventiel behandling øger risikoen for endometriecancer (se opfølgning).</p>
         ${startNote}
         ${drugTable([
           { navn: "Transdermal estradiol + Utrogestan", indhold: "Østrogen dgl. + mikroniseret progesteron (sekventiel)", dosering: `${transdermalText(D)} + ${progesteronDosis(D, "sekventiel")}`, tag: "Anbefalet (transdermal)", tagClass: "tag-recommend" },
@@ -594,11 +629,12 @@
           { navn: "Activelle", indhold: "Estradiol 1 mg + noretisteronacetat 0,5 mg", dosering: "1 tablet dgl.", tag: "Alternativ (oral, fast kombi)", tagClass: "tag-alt" },
           { navn: "Kliogest", indhold: "Estradiol 2 mg + noretisteronacetat 1 mg", dosering: "1 tablet dgl. — højere østrogendosis", tag: "Alternativ (oral)", tagClass: "tag-alt" },
           { navn: "Femoston conti (bekræft udbud i DK)", indhold: "Estradiol + dydrogesteron", dosering: "1 tablet dgl.", tag: "Alternativ (oral)", tagClass: "tag-alt" },
-          { navn: "Livial (tibolon)", indhold: "Tibolon 2,5 mg", dosering: "1 tablet dgl. — kun ≥ 12 mdr. efter sidste menstruation, ikke sammen med anden MHT. Øget apopleksirisiko, særligt hos ældre; undgås ved tidligere brystkræft.", tag: "Alternativ", tagClass: "tag-alt" },
+          { navn: "Livial (tibolon)", indhold: "Tibolon 2,5 mg", dosering: "1 tablet dgl. — kun ≥ 12 mdr. efter sidste menstruation, ikke sammen med anden MHT. Øget risiko for endometriecancer i observationelle studier (dansk kohorte: ca. 3,6 gange) — blødning skal altid udredes. Øget apopleksirisiko, særligt hos ældre; undgås ved tidligere brystkræft.", tag: "Alternativ (sidste valg)", tagClass: "tag-alt" },
         ])}`
       );
     }
 
+    html += endometrieBox(s);
     html += routeBox(s);
     html += relBox(s);
     if (s.uterus) html += progestogenBox(D);
@@ -641,7 +677,7 @@
     const basis = [];
     if (alderKendt(s)) basis.push(`${s.alder} år`);
     if (s.bmi !== null && !isNaN(s.bmi)) basis.push(`BMI ${fmtNum(s.bmi)}`);
-    basis.push(s.uterus ? "uterus bevaret" : "hysterektomeret");
+    basis.push({ ja: "uterus bevaret", ablation: "uterus bevaret (endometrieablation)", delvis: "subtotal hysterektomi", nej: "hysterektomeret" }[s.uterusType]);
     basis.push(STATUS_LABELS[s.status]);
     lines.push(basis.join(", ") + ".");
     lines.push(`Symptomer: ${s.symptomer.length ? s.symptomer.map((k) => SYMPTOM_LABELS[k]).join(", ") : "ingen markeret"}.`);
