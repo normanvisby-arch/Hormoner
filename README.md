@@ -64,8 +64,15 @@ Grenene tjekkes i denne rækkefølge; den første der passer, bestemmer anbefali
 5. **Ingen symptomer** → ingen indikation, undtagen ved POI eller **tidlig menopause (40–44 år)**,
    hvor MHT anbefales til ca. 51 år uanset symptomer.
 6. **Systemisk MHT** vælges ud fra to *uafhængige* felter:
-   - Uterus (ja/nej) — østrogen alene hvis nej (evt. + gestagen ved tidligere endometriose),
-     ellers østrogen + progestogen.
+   - Uterus (bevaret / endometrieablation / subtotal hysterektomi / total hysterektomi) — østrogen
+     alene kun ved total hysterektomi (evt. + gestagen ved tidligere endometriose). Ablation og
+     subtotal hysterektomi kan efterlade endometrium og behandles som bevaret uterus (subtotal:
+     3 måneders sekventiel gestagen som test, jf. BMS).
+   - **Endometriecancer:** kontinuerlig kombineret behandling foretrækkes på sigt (ingen øget
+     risiko i dansk kohorte mod ca. fordoblet ved sekventiel); vejledning om skift fra sekventiel
+     til kontinuerlig; gestagen mindst 12 dage pr. cyklus; Utrogestans endometriebeskyttelse er kun
+     dokumenteret i ca. 5 år; tibolon markeret med øget risiko; ekstra opmærksomhed ved BMI ≥ 30,
+     PCOS, diabetes og Lynch syndrom. Ubehandlet endometriehyperplasi er en kontraindikation.
    - Status — sekventiel behandling ved perimenopause, kontinuerlig ved > 12 måneders amenoré.
    - **Dosisniveau**: standard (Vivelle Dot 50 / Divigel 1 mg), lav ved opstart ≥ 60 år eller
      > 10 år efter menopausen (Vivelle Dot 25 / Divigel 0,5 mg), høj ved POI. En sammenklappelig
@@ -248,6 +255,29 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**26. september 2026 — audit af risikoen for endometriecancer (klimakterie- og præventionsguiden):**
+- **Rettet:**
+  - Ingen mulighed for at angive **endometrieablation** eller **subtotal hysterektomi** — begge kan
+    efterlade endometrium, men ville hidtil blive registreret som "uterus bevaret" eller
+    "hysterektomeret" (sidstnævnte giver østrogen alene). Tilføjet som selvstændige valg med
+    kombineret behandling og BMS' 3-måneders gestagentest ved subtotal hysterektomi.
+  - **Tibolon** stod uden advarsel om endometriecancer (dansk kohorte: ca. 3,6 gange øget risiko);
+    nu markeret som sidste valg med krav om udredning af blødning.
+  - **Lokal vaginal østrogen** stod som "ingen kendt øget risiko" for livmoderkræft — en dansk
+    registerundersøgelse fandt en let øget forekomst (formentlig udredningsbias; metaanalyser
+    viser ingen øgning). Formuleringen er nuanceret.
+  - Ingen vejledning om **skift fra sekventiel til kontinuerlig kombineret behandling**, selvom
+    langvarig sekventiel behandling ca. fordobler risikoen (Mørch 2016). Tilføjet i regimet og
+    opfølgningen (efter ≥ 1 år, når patienten er postmenopausal, og helst inden 5 år).
+  - Ingen note om, at **Utrogestans** endometriebeskyttelse kun er dokumenteret i ca. 5 år (E3N:
+    øget risiko ved længere brug) — tilføjet med råd om Mirena og lav tærskel for udredning.
+- **Nyt:** ubehandlet endometriehyperplasi som kontraindikation; felt for øget risiko for
+  endometriecancer (PCOS, diabetes, Lynch syndrom) og automatisk note ved BMI ≥ 30; note om
+  tamoxifen og tidligere endometriecancer; relative risikotal for endometriecancer pr. regime i
+  risikoboksen; blødning efter ophør af MHT udredes som postmenopausal blødning.
+- **Præventionsguiden:** risikoboksen nævner nu den beskyttende effekt af kombinerede p-piller
+  mod endometrie- og ovariecancer (dansk kohorte: RR ca. 0,6, varer > 10 år efter ophør).
 
 **23. september 2026 — klinisk gennemgang og udvidelse af præventionsværktøjet (`praevention.html`/`praevention.js`):**
 - **Rettede fejl:**

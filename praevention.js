@@ -283,7 +283,7 @@
         <li>P-piller med desogestrel, gestoden eller drospirenon: 9–12</li>
         <li>Gestagen-only metoder (minipiller, implantat, hormonspiral): ingen eller minimal øget risiko</li>
       </ul>
-      <p>Risikoen under graviditet og efter fødsel er højere end ved brug af p-piller. <strong>Brystkræft:</strong> lille øget risiko under brug af hormonel prævention (dansk kohorte: ca. 1 ekstra tilfælde pr. 7.700 kvinder pr. år), som aftager efter ophør.</p>`
+      <p>Risikoen under graviditet og efter fødsel er højere end ved brug af p-piller. <strong>Brystkræft:</strong> lille øget risiko under brug af hormonel prævention (dansk kohorte: ca. 1 ekstra tilfælde pr. 7.700 kvinder pr. år), som aftager efter ophør. <strong>Endometrie- og ovariecancer:</strong> kombinerede p-piller nedsætter risikoen (dansk kohorte: endometriecancer RR ca. 0,6), og beskyttelsen varer mere end 10 år efter ophør — relevant fx ved PCOS med sjældne menstruationer, hvor endometriet ellers er ubeskyttet.</p>`
     );
   }
 
