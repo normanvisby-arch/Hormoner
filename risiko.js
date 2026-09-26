@@ -129,6 +129,19 @@
   const senOpstart = (s) => has(s, "sen") || over60(s);
   const tidligMenopause = (s) => alderKendt(s) && s.alder < 45;
   const fmtNum = (n) => String(n).replace(".", ",");
+
+  // Number needed to harm = 1.000 / ekstra tilfælde pr. 1.000, afrundet så
+  // tallet ikke ser mere præcist ud end de underliggende befolkningstal.
+  function roundNnh(x) {
+    if (x < 100) return Math.round(x / 5) * 5;
+    if (x < 1000) return Math.round(x / 10) * 10;
+    return Math.round(x / 100) * 100;
+  }
+  const fmtInt = (n) => n.toLocaleString("da-DK");
+  const nnhOf = (extraPer1000) => fmtInt(roundNnh(1000 / extraPer1000));
+  // Et interval af ekstra tilfælde (lo–hi) giver et omvendt NNH-interval.
+  const nnhRange = (loExtra, hiExtra) => `${nnhOf(hiExtra)}–${nnhOf(loExtra)}`;
+  const nnhLabel = (tal) => (tal.startsWith("≥") ? tal : `≈ ${tal}`);
   const maxLevel = (a, b) => {
     const order = ["gavn", "lav", "moderat", "hoej"];
     return order.indexOf(a) >= order.indexOf(b) ? a : b;
@@ -197,7 +210,8 @@
       body: `<p>Uden MHT får ca. <strong>${BRYST_BAGGRUND} af 1.000</strong> kvinder brystkræft mellem 50 og 69 år. Med ${s.varighed} års ${typeTxt}: ca. <strong>${BRYST_BAGGRUND + extra} af 1.000</strong> — dvs. ca. <strong>${extra} ekstra</strong>.${s.varighed === 10 ? " (10 år ≈ det dobbelte af 5 år.)" : ""} Risikoen falder efter ophør, men en mindre overrisiko kan vare over 10 år.</p>
       ${iconArray(BRYST_BAGGRUND, extra)}`,
       mods,
-      journal: `Brystkræft: ca. ${extra} ekstra pr. 1.000 til 69 år (baggrund ${BRYST_BAGGRUND}) ved ${s.varighed} års ${typeTxt}`,
+      nnh: { tal: nnhOf(extra), tekst: `Behandles ${nnhOf(extra)} kvinder i ${s.varighed} år med ${typeTxt}, får 1 ekstra brystkræft (diagnosticeret frem til 69 år).` },
+      journal: `Brystkræft: ca. ${extra} ekstra pr. 1.000 til 69 år (baggrund ${BRYST_BAGGRUND}) ved ${s.varighed} års ${typeTxt}; NNH ca. ${nnhOf(extra)}`,
     };
   }
 
@@ -233,7 +247,12 @@
       level,
       body: `<p>Uden MHT får ca. 4–7 af 1.000 kvinder i 50'erne en VTE over 5 år (højere efter 60 år). ${tal}</p>`,
       mods,
-      journal: `VTE: ${s.vej === "transdermal" ? "ingen påvist øgning ved transdermal behandling" : s.uterus ? "ca. 5–10 ekstra pr. 1.000 over 5 år (oral kombineret)" : "ca. 1–4 ekstra pr. 1.000 over 5 år (oral østrogen alene)"}`,
+      nnh: s.vej === "transdermal"
+        ? { tal: null, tekst: "Ikke relevant — transdermal behandling øger ikke påviseligt risikoen." }
+        : s.uterus
+          ? { tal: nnhRange(5, 10), tekst: `Behandles ${nnhRange(5, 10)} kvinder i 5 år med oral kombineret behandling, får 1 ekstra en blodprop.` }
+          : { tal: nnhRange(1, 4), tekst: `Behandles ${nnhRange(1, 4)} kvinder i 5 år med oral østrogen alene, får 1 ekstra en blodprop.` },
+      journal: `VTE: ${s.vej === "transdermal" ? "ingen påvist øgning ved transdermal behandling" : s.uterus ? `ca. 5–10 ekstra pr. 1.000 over 5 år (oral kombineret); NNH ca. ${nnhRange(5, 10)}` : `ca. 1–4 ekstra pr. 1.000 over 5 år (oral østrogen alene); NNH ca. ${nnhRange(1, 4)}`}`,
     };
   }
 
@@ -263,7 +282,10 @@
       level,
       body: `<p>Uden MHT får ca. ${baggrund} af 1.000 kvinder i ${over60(s) ? "60'erne" : "50'erne"} en iskæmisk apopleksi over 5 år. ${tal}</p>`,
       mods,
-      journal: `Apopleksi: ${s.vej === "transdermal" ? "ingen påvist øgning ved transdermal ≤ 50 mikrog." : `ca. ${ekstra} ekstra pr. 1.000 over 5 år (oral)`}`,
+      nnh: s.vej === "transdermal"
+        ? { tal: null, tekst: "Ikke relevant — transdermal behandling op til 50 mikrog./døgn øger ikke påviseligt risikoen." }
+        : { tal: nnhOf(ekstra), tekst: `Behandles ${nnhOf(ekstra)} kvinder i ${over60(s) ? "60'erne" : "50'erne"} i 5 år med oral behandling, får 1 ekstra en iskæmisk apopleksi.` },
+      journal: `Apopleksi: ${s.vej === "transdermal" ? "ingen påvist øgning ved transdermal ≤ 50 mikrog." : `ca. ${ekstra} ekstra pr. 1.000 over 5 år (oral); NNH ca. ${nnhOf(ekstra)}`}`,
     };
   }
 
@@ -285,6 +307,7 @@
       level,
       body: `<p>${tekst}</p>`,
       mods,
+      nnh: { tal: null, tekst: senOpstart(s) ? "Ikke opgjort — lille øgning ved sen opstart, men ikke kvantificeret i kilderne." : "Ikke relevant — ingen øget risiko ved opstart før 60 år." },
       journal: `Iskæmisk hjertesygdom: ${senOpstart(s) ? "lille øget risiko ved sen opstart" : "ingen øget risiko ved opstart < 60 år"}`,
     };
   }
@@ -317,7 +340,10 @@
       level,
       body: `<p>Uden MHT får ca. 4 af 1.000 kvinder med uterus endometriecancer (NICE). ${tal} Østrogen alene med bevaret uterus øger risikoen 2–4 gange og gives aldrig.</p>`,
       mods,
-      journal: `Endometriecancer: ${s.regime === "kontinuerlig" ? "ingen øget risiko (kontinuerlig)" : s.regime === "sekventiel" ? "ca. fordoblet ved sekventiel — skift til kontinuerlig planlagt" : "beskyttet af Mirena"}`,
+      nnh: s.regime === "sekventiel"
+        ? { tal: nnhOf(4), tekst: `Behandles ${nnhOf(4)} kvinder med sekventiel behandling, får 1 ekstra endometriecancer.` }
+        : { tal: null, tekst: s.regime === "mirena" ? "Ikke relevant — Mirena beskytter endometriet." : "Ikke relevant — ingen øget risiko ved kontinuerlig kombineret behandling." },
+      journal: `Endometriecancer: ${s.regime === "kontinuerlig" ? "ingen øget risiko (kontinuerlig)" : s.regime === "sekventiel" ? `ca. fordoblet ved sekventiel; NNH ca. ${nnhOf(4)} — skift til kontinuerlig planlagt` : "beskyttet af Mirena"}`,
     };
   }
 
@@ -330,7 +356,8 @@
       level: "lav",
       body: "<p>Højst ca. <strong>1 ekstra pr. 1.000</strong> kvinder ved 5 års brug fra omkring 50 år.</p>",
       mods,
-      journal: "Æggestokkræft: højst ca. 1 ekstra pr. 1.000 ved 5 års brug",
+      nnh: { tal: `≥ ${nnhOf(1)}`, tekst: `Behandles mindst ${nnhOf(1)} kvinder i 5 år, får højst 1 ekstra æggestokkræft.` },
+      journal: `Æggestokkræft: højst ca. 1 ekstra pr. 1.000 ved 5 års brug; NNH ≥ ${nnhOf(1)}`,
     };
   }
 
@@ -342,6 +369,7 @@
       level: "moderat",
       body: "<p>Opstart efter 65 år var i WHI forbundet med <strong>øget risiko for demens</strong>. MHT anbefales ikke til forebyggelse af kognitiv svækkelse.</p>",
       mods: [],
+      nnh: { tal: null, tekst: "Ikke opgjort — øget risiko ved opstart efter 65 år, men ikke kvantificeret her." },
       journal: "Demens: øget risiko ved opstart efter 65 år",
     };
   }
@@ -367,10 +395,32 @@
   function renderCard(c) {
     const L = LEVEL[c.level];
     const mods = c.mods.length ? `<ul class="risk-mods">${c.mods.map((m) => `<li>${m}</li>`).join("")}</ul>` : "";
+    const nnh = c.nnh
+      ? `<div class="nnh${c.nnh.tal ? "" : " nnh-none"}"><span class="nnh-num">${c.nnh.tal ? `NNH ${nnhLabel(c.nnh.tal)}` : "NNH: –"}</span><span class="nnh-txt">${c.nnh.tekst}</span></div>`
+      : "";
     return `<div class="box ${L.cls} risk-card">
       <div class="risk-head"><h3>${c.title}</h3><span class="chip ${L.chip}">${L.label}</span></div>
+      ${nnh}
       ${c.body}
       ${mods}
+    </div>`;
+  }
+
+  // Laveste (værste) NNH som tal; ved intervaller bruges den laveste grænse.
+  function nnhValue(c) {
+    if (!c.nnh || !c.nnh.tal) return Infinity;
+    return parseInt(c.nnh.tal.replace("≥", "").split("–")[0].replace(/\D/g, ""), 10);
+  }
+
+  function nnhBox(cards) {
+    const rows = cards
+      .filter((c) => c.nnh)
+      .map((c) => `<tr><td>${c.title}</td><td data-label="NNH"><strong>${c.nnh.tal ? nnhLabel(c.nnh.tal) : "–"}</strong></td><td data-label="Betydning">${c.nnh.tekst}</td></tr>`)
+      .join("");
+    return `<div class="box box-blue nnh-box"><h3>Number needed to harm (NNH)</h3>
+      <p><strong>NNH</strong> er det antal kvinder, der skal behandles i den angivne periode, for at <strong>én ekstra</strong> får sygdommen på grund af MHT. <strong>Jo højere tal, jo sjældnere skade.</strong> Beregnet som 1.000 ÷ ekstra tilfælde pr. 1.000 og afrundet; intervaller afspejler usikkerhed i kilderne.</p>
+      <div class="drug-table-wrap"><table class="drug-table stack-mobile"><thead><tr><th>Udfald</th><th>NNH</th><th>Betydning</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <p>NNH gælder for en gruppe kvinder med samme alder og behandling — ikke for den enkelte. Patientens egne risikofaktorer (se kortene nedenfor) kan gøre hendes NNH lavere eller højere.</p>
     </div>`;
   }
 
@@ -381,13 +431,17 @@
     const alderNote = !alderKendt(s)
       ? "<p>Angiv alder for en aldersspecifik vurdering — tallene nedenfor gælder opstart i 50'erne.</p>"
       : "";
+    const worst = cards.filter((c) => nnhValue(c) !== Infinity).sort((a, b) => nnhValue(a) - nnhValue(b))[0];
+    const worstNote = worst
+      ? `<p><strong>Største ekstra risiko:</strong> ${worst.title.toLowerCase()} — <strong>NNH ${nnhLabel(worst.nnh.tal)}</strong>. ${worst.nnh.tekst}</p>`
+      : "";
     if (hoej.length) {
-      return box("box-red", "Samlet: høj risiko på ét eller flere områder", `${scenario}<p>${hoej.map((c) => c.title).join(", ")}: overvej alternativer, justér behandlingen eller konferér med specialist før opstart. Se hvordan risikoen kan mindskes nedenfor.</p>${alderNote}`);
+      return box("box-red", "Samlet: høj risiko på ét eller flere områder", `${scenario}${worstNote}<p>${hoej.map((c) => c.title).join(", ")}: overvej alternativer, justér behandlingen eller konferér med specialist før opstart. Se hvordan risikoen kan mindskes nedenfor.</p>${alderNote}`);
     }
     if (moderat.length) {
-      return box("box-amber", "Samlet: moderat ekstra risiko", `${scenario}<p>${moderat.map((c) => c.title).join(", ")}: den ekstra risiko er lille i absolutte tal og kan ofte mindskes (se nedenfor). For de fleste med generende symptomer overstiger gevinsten fortsat risikoen.</p>${alderNote}`);
+      return box("box-amber", "Samlet: moderat ekstra risiko", `${scenario}${worstNote}<p>${moderat.map((c) => c.title).join(", ")}: den ekstra risiko er lille i absolutte tal og kan ofte mindskes (se nedenfor). For de fleste med generende symptomer overstiger gevinsten fortsat risikoen.</p>${alderNote}`);
     }
-    return box("box-green", "Samlet: lav ekstra risiko", `${scenario}<p>For kvinder under 60 år med generende symptomer overstiger gevinsten typisk risikoen ved dette regime.</p>${alderNote}`);
+    return box("box-green", "Samlet: lav ekstra risiko", `${scenario}${worstNote}<p>For kvinder under 60 år med generende symptomer overstiger gevinsten typisk risikoen ved dette regime.</p>${alderNote}`);
   }
 
   function reduceBox(s) {
@@ -417,6 +471,7 @@
     lastCards = cards.concat([gevinst]);
     output.innerHTML =
       summaryBox(s, cards) +
+      nnhBox(cards) +
       cards.map(renderCard).join("") +
       renderCard(gevinst) +
       reduceBox(s) +
@@ -446,9 +501,11 @@
       const h3 = boxEl.querySelector("h3");
       const chip = boxEl.querySelector(".chip");
       if (h3) lines.push(h3.textContent.trim().toUpperCase() + (chip ? ` — ${chip.textContent.trim()}` : ""));
-      boxEl.querySelectorAll(":scope > p, :scope > ul").forEach((el) => {
+      boxEl.querySelectorAll(":scope > p, :scope > ul, :scope > .nnh, :scope > .drug-table-wrap").forEach((el) => {
         if (el.tagName === "P") lines.push(el.textContent.trim());
-        else el.querySelectorAll("li").forEach((li) => lines.push("- " + li.textContent.trim().replace(/\s+/g, " ")));
+        else if (el.tagName === "UL") el.querySelectorAll("li").forEach((li) => lines.push("- " + li.textContent.trim().replace(/\s+/g, " ")));
+        else if (el.classList.contains("nnh")) lines.push(Array.from(el.children).map((x) => x.textContent.trim()).join(": "));
+        else el.querySelectorAll("tbody tr").forEach((tr) => lines.push("  * " + Array.from(tr.querySelectorAll("td")).map((td) => td.textContent.trim()).join(" — ")));
       });
       lines.push("");
     });

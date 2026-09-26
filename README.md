@@ -137,6 +137,14 @@ end tallene" — det **omregner ikke** tallene, da der ikke findes en valideret 
 | Æggestokkræft | højst ca. +1/1.000 ved 5 års brug | NICE / produktresuméer |
 | Demens | øget risiko ved opstart efter 65 år (vises kun da) | WHIMS |
 
+**Number needed to harm (NNH)** vises tydeligt tre steder: en samlet NNH-tabel øverst, et
+fremhævet NNH-tal i hvert kort og i journalnotatet. NNH = 1.000 ÷ ekstra tilfælde pr. 1.000 i den
+angivne periode, afrundet (til nærmeste 5 under 100, nærmeste 10 under 1.000). Intervaller i
+kilderne giver NNH-intervaller (fx VTE ved oral kombineret behandling: 100–200). Hvor der ikke er
+påvist øget risiko (fx transdermal behandling og VTE), vises "–" med forklaring. Eksempler:
+brystkræft ved 5 års kontinuerlig kombineret behandling NNH ≈ 50, ved 10 år ≈ 25; østrogen alene
+5 år ≈ 200; oral apopleksi ≈ 330 (50'erne); sekventiel behandling og endometriecancer ≈ 250.
+
 Niveauer pr. udfald (lav / moderat / høj / gevinst) vises som tekst, ikke kun farve. "Høj" udløses
 bl.a. af tidligere VTE, BRCA/flere slægtninge med brystkræft, kendt hjerte-kar-sygdom og oral
 behandling kombineret med risikofaktorer for VTE eller apopleksi. En personlig liste viser, hvordan
@@ -285,6 +293,11 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**26. september 2026 — number needed to harm (NNH) i risikovurderingen:**
+- Samlet NNH-tabel øverst med forklaring ("antal kvinder, der skal behandles, for at én ekstra
+  får sygdommen — jo højere tal, jo sjældnere skade"), fremhævet NNH i hvert kort, den laveste
+  (værste) NNH i den samlede vurdering, og NNH i journalnotatet.
 
 **26. september 2026 — nyt værktøj: individuel risikovurdering ved MHT (`risiko.html`):**
 - Absolutte risikotal pr. 1.000 kvinder for brystkræft, VTE, apopleksi, hjertesygdom,
