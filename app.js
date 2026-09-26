@@ -20,6 +20,8 @@
   const alderWarning = document.getElementById("alderWarning");
   const printMeta = document.getElementById("printMeta");
 
+  const RISIKO_URL = "risiko.html";
+
   form.addEventListener("input", update);
   form.addEventListener("change", update);
 
@@ -419,7 +421,8 @@
         <li>${b("sekventiel", "Sekventiel (cyklisk) kombineret: ca. fordoblet (RR 2,1)")}</li>
         <li>Østrogen alene med bevaret uterus: 2–4 gange øget — gives aldrig</li>
         <li>Tibolon: ca. 3,6 gange øget</li>
-      </ul>`
+      </ul>
+      <p>Tal tilpasset patientens alder, regime, administrationsvej og risikofaktorer: se <a href="${RISIKO_URL}" target="_blank" rel="noopener">den individuelle risikovurdering</a>.</p>`
     );
   }
 

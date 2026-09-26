@@ -1,9 +1,12 @@
 # Hormoner — beslutningsstøtte for praktiserende læge
 
-Fire lette, statiske webapps der giver den praktiserende læge en hurtig, struktureret anbefaling
+Fem lette, statiske webapps der giver den praktiserende læge en hurtig, struktureret anbefaling
 til brug ved konsultationen — med konkrete eksempler på præparater der er tilgængelige i Danmark:
 
 - **`index.html`** — hormonbehandling (MHT) ved klimakterielle symptomer.
+- **`risiko.html`** — individuel risikovurdering ved MHT: absolutte risikotal pr. 1.000 kvinder
+  for patientens alder, regime, administrationsvej og varighed, med hendes egne risikofaktorer
+  markeret og en 1.000-personers figur til samtalen.
 - **`praevention.html`** — prævention/kontraception, inkl. en separat, hurtig gren for akut
   nødprævention.
 - **`mrs.html`** — Menopause Rating Scale (MRS): et internationalt valideret, 11-punkts
@@ -13,9 +16,9 @@ til brug ved konsultationen — med konkrete eksempler på præparater der er ti
   blødningsforstyrrelser, i stil med en klassisk papirvægkalender: hele året i ét skærmbillede i
   stedet for én måned ad gangen, så uregelmæssige mønstre bliver synlige med det samme.
 
-Alle fire værktøjer krydshenviser til hinanden i en lille navigationslinje øverst.
+Alle fem værktøjer krydshenviser til hinanden i en lille navigationslinje øverst.
 
-De tre første apps kører udelukkende i browseren og gemmer intet (ingen server, ingen data sendes
+Hormon-, risiko-, præventions- og MRS-værktøjet kører udelukkende i browseren og gemmer intet (ingen server, ingen data sendes
 nogen steder). Udfyld patientens data i venstre panel, og anbefalingen/scoren opdateres
 øjeblikkeligt i højre panel. Brug "Kopiér resumé til journal" for at indsætte resultatet i
 journalnotatet (hormonværktøjet har desuden et kort "journalnotat"), eller "Udskriv" for en
@@ -29,7 +32,7 @@ for hvad det betyder i praksis).
 
 Ingen build-trin eller afhængigheder er nødvendige.
 
-- **Lokalt:** åbn `index.html`, `praevention.html`, `mrs.html` eller `bloedningskalender.html`
+- **Lokalt:** åbn `index.html`, `risiko.html`, `praevention.html`, `mrs.html` eller `bloedningskalender.html`
   direkte i en browser, eller kør en simpel lokal server, fx:
   ```
   python3 -m http.server 8000
@@ -39,7 +42,7 @@ Ingen build-trin eller afhængigheder er nødvendige.
   clipboard-API kræver en sikker kontekst (https eller en lokal server) — kør en lokal server som
   ovenfor, eller markér og kopiér teksten manuelt.
 - **Hosting:** filerne (`index.html`, `praevention.html`, `mrs.html`, `bloedningskalender.html`,
-  `style.css`, `app.js`, `praevention.js`, `mrs.js`, `bloedningskalender.js`) kan deployes som
+  `risiko.html`, `style.css`, `app.js`, `risiko.js`, `praevention.js`, `mrs.js`, `bloedningskalender.js`) kan deployes som
   statisk site til fx GitHub Pages, Netlify eller en intern klinikserver. Bemærk at
   Blødningskalenderens `localStorage`-data er knyttet til den konkrete URL/domæne den køres på —
   flyttes appen til en anden adresse, følger tidligere registreringer ikke med.
@@ -117,6 +120,33 @@ navngiven DSAM-vejledning om hormonbehandling findes — kildelisten er derfor r
 DSOG's guideline, som synes at være de aktuelle primære danske referencer på området. DSAM har
 bredere vejledninger, der berører kvinder i og efter overgangsalderen, men ingen der er
 identificeret som en selvstændig, dedikeret vejledning om hormonbehandling ved klimakteriet.
+
+## Risikovurdering ved MHT — logik og datagrundlag
+
+Værktøjet viser **befolkningstal** pr. 1.000 kvinder for det valgte scenarie (alder, uterus/regime,
+transdermal/oral, 5 eller 10 år) og markerer patientens egne risikofaktorer som "højere/lavere
+end tallene" — det **omregner ikke** tallene, da der ikke findes en valideret samlet model.
+
+| Udfald | Tal i værktøjet | Kilde |
+|---|---|---|
+| Brystkræft | baggrund 63/1.000 (50–69 år); +5 / +14 / +20 ved 5 års østrogen alene / sekventiel / kontinuerlig; ca. dobbelt ved 10 år | MHRA 2019 (CGHFBC) |
+| VTE (5 år) | baggrund ca. 4–7/1.000; oral kombineret +5–10, oral østrogen alene +1–4, transdermal ingen påvist øgning | WHI, NICE |
+| Iskæmisk apopleksi (5 år) | baggrund ca. 8 (50'erne) / 14 (60'erne); oral +3/+4; transdermal ≤ 50 mikrog. ingen påvist øgning | WHI / EU-produktresuméer |
+| Iskæmisk hjertesygdom | ingen øgning ved opstart < 60 år / < 10 år efter menopausen; lille øgning ved sen opstart | WHI, NICE |
+| Endometriecancer | baggrund ca. 4/1.000; kontinuerlig RR 1,0, sekventiel RR 2,1 | NICE, Mørch 2016 |
+| Æggestokkræft | højst ca. +1/1.000 ved 5 års brug | NICE / produktresuméer |
+| Demens | øget risiko ved opstart efter 65 år (vises kun da) | WHIMS |
+
+Niveauer pr. udfald (lav / moderat / høj / gevinst) vises som tekst, ikke kun farve. "Høj" udløses
+bl.a. af tidligere VTE, BRCA/flere slægtninge med brystkræft, kendt hjerte-kar-sygdom og oral
+behandling kombineret med risikofaktorer for VTE eller apopleksi. En personlig liste viser, hvordan
+risikoen kan mindskes (transdermal, kontinuerlig kombineret, mikroniseret progesteron, vægt,
+alkohol, rygning).
+
+**Forbehold:** primærdokumenterne (MHRA, NICE, EMA) kunne ikke tilgås direkte i
+udviklingssessionen — tallene er kontrolleret via sekundære kilder og afrundet, og ved usikkerhed
+angivet som intervaller. WHI brugte konjugeret østrogen og syntetisk gestagen, så risikoen ved
+moderne transdermal behandling er formentlig lavere for VTE og apopleksi.
 
 ## Prævention — klinisk logik (kort opsummeret)
 
@@ -255,6 +285,14 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**26. september 2026 — nyt værktøj: individuel risikovurdering ved MHT (`risiko.html`):**
+- Absolutte risikotal pr. 1.000 kvinder for brystkræft, VTE, apopleksi, hjertesygdom,
+  endometrie- og æggestokkræft (og demens ved opstart ≥ 65 år) samt gevinster, tilpasset alder,
+  regime, administrationsvej og varighed.
+- Patientens risikofaktorer markeres pr. udfald uden at omregne tallene; 1.000-personers figur til
+  samtalen om brystkræft; personlig liste over, hvordan risikoen kan mindskes; kort journalnotat.
+- Klimakterieguidens risikoboks linker til værktøjet, og alle værktøjer har det i navigationen.
 
 **26. september 2026 — audit af risikoen for endometriecancer (klimakterie- og præventionsguiden):**
 - **Rettet:**
