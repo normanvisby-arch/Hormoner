@@ -4,7 +4,9 @@
  * administrationsvej og varighed, og markerer hendes egne risikofaktorer som
  * "højere/lavere end tallene" — uden at omregne dem, da der ikke findes en
  * valideret samlet model. Kilder: MHRA 2019 (brystkræft), WHI/EU-produktresuméer
- * (VTE, apopleksi), NICE NG23 2024, Mørch 2016 (endometriecancer).
+ * (VTE, apopleksi, endometrie- og ovariecancer), dansk registerstudie BMJ 2026
+ * (trombotisk sygdom), NICE NG23 2024, Mørch 2016 og Million Women Study 2005
+ * (endometriecancer), WHIMS 2003 (demens), Huntley BJGP 2024 (familiær disposition).
  */
 
 (function () {
@@ -192,14 +194,16 @@
       level = "hoej";
       mods.push("<strong>Flere slægtninge / BRCA:</strong> tallene gælder ikke. Vurdér risikoen med en valideret model (fx CanRisk) og henvis til genetisk rådgivning før opstart. BRCA-bærere uden brystkræft, som har fået fjernet æggestokkene forebyggende, anbefales dog typisk MHT til ca. 51 år.");
     }
-    if (has(s, "fambryst")) {
+    if (has(s, "fambryst") && !has(s, "brca")) {
       level = maxLevel(level, "moderat");
-      mods.push("<strong>Brystkræft hos førstegradsslægtning:</strong> baggrundsrisikoen er ca. 1,8 gange højere, og den ekstra risiko ved MHT er formentlig tilsvarende større end tallene.");
+      // Den relative øgning ved MHT er omtrent den samme, så det absolutte
+      // antal ekstra tilfælde skaleres med baggrundsrisikoen (Huntley 2024).
+      mods.push(`<strong>Brystkræft hos førstegradsslægtning:</strong> baggrundsrisikoen er ca. 1,8 gange højere, og den relative øgning ved MHT er omtrent den samme — så det ekstra antal tilfælde er ca. 1,8 gange større end tallene (NNH formentlig nærmere ${nnhOf(extra * 1.8)}). Ved brystkræft hos en ung slægtning (< 50 år) eller flere slægtninge: brug en valideret model.`);
     }
     if (bmiHigh(s)) mods.push(`<strong>BMI ${fmtNum(s.bmi)}:</strong> baggrundsrisikoen er højere end tallene, men den relative øgning ved MHT er mindre end hos normalvægtige.`);
     if (has(s, "alkohol")) mods.push("<strong>Alkohol:</strong> øger risikoen uafhængigt af MHT — mindre alkohol mindsker den.");
     if (over60(s)) mods.push("<strong>Opstart efter 60 år:</strong> den relative øgning er mindre, men baggrundsrisikoen højere.");
-    if (tidligMenopause(s)) mods.push("<strong>Menopause før 45 år:</strong> MHT erstatter manglende hormoner — brystkræftrisikoen øges ikke ud over jævnaldrendes før ca. 51 år, så tallene overvurderer risikoen.");
+    if (tidligMenopause(s)) mods.push("<strong>Menopause før 45 år:</strong> MHT erstatter manglende hormoner — brystkræftrisikoen øges ikke ud over jævnaldrendes før ca. 51 år, så tallene og NNH gælder først brug efter ca. 51 år.");
     if (s.uterus && s.regime === "mirena") mods.push("<strong>Mirena + østrogen:</strong> sparsomme data — vist som kontinuerlig kombineret behandling.");
     else if (s.uterus) mods.push("Mikroniseret progesteron (Utrogestan) og dydrogesteron er i observationelle studier forbundet med mindre øgning end syntetiske gestagener, men evidensen er usikker.");
     const typeTxt = { alene: "østrogen alene", sekventiel: "sekventiel kombineret behandling", kontinuerlig: "kontinuerlig kombineret behandling" }[type];
@@ -207,11 +211,15 @@
       key: "bryst",
       title: "Brystkræft",
       level,
-      body: `<p>Uden MHT får ca. <strong>${BRYST_BAGGRUND} af 1.000</strong> kvinder brystkræft mellem 50 og 69 år. Med ${s.varighed} års ${typeTxt}: ca. <strong>${BRYST_BAGGRUND + extra} af 1.000</strong> — dvs. ca. <strong>${extra} ekstra</strong>.${s.varighed === 10 ? " (10 år ≈ det dobbelte af 5 år.)" : ""} Risikoen falder efter ophør, men en mindre overrisiko kan vare over 10 år.</p>
+      body: `<p>Uden MHT får ca. <strong>${BRYST_BAGGRUND} af 1.000</strong> kvinder brystkræft mellem 50 og 69 år. Med ${s.varighed} års ${typeTxt}: ca. <strong>${BRYST_BAGGRUND + extra} af 1.000</strong> — dvs. ca. <strong>${extra} ekstra</strong>.${s.varighed === 10 ? " (10 år ≈ det dobbelte af 5 år.)" : ""} Risikoen falder efter ophør, men en mindre overrisiko kan vare over 10 år. Dødelighed af brystkræft: ca. 1 ekstra dødsfald pr. 1.000 ved 5 års kombineret behandling (modelstudie, Huntley 2024).</p>
       ${iconArray(BRYST_BAGGRUND, extra)}`,
       mods,
-      nnh: { tal: nnhOf(extra), tekst: `Behandles ${nnhOf(extra)} kvinder i ${s.varighed} år med ${typeTxt}, får 1 ekstra brystkræft (diagnosticeret frem til 69 år).` },
-      journal: `Brystkræft: ca. ${extra} ekstra pr. 1.000 til 69 år (baggrund ${BRYST_BAGGRUND}) ved ${s.varighed} års ${typeTxt}; NNH ca. ${nnhOf(extra)}`,
+      nnh: has(s, "brca")
+        ? { tal: null, tekst: "Ikke beregnet — befolkningstallene gælder ikke ved BRCA eller stærk familiær disposition. Brug en valideret model (fx CanRisk)." }
+        : { tal: nnhOf(extra), tekst: `Behandles ${nnhOf(extra)} kvinder i ${s.varighed} år med ${typeTxt}, får 1 ekstra brystkræft (diagnosticeret frem til 69 år).` },
+      journal: has(s, "brca")
+        ? "Brystkræft: befolkningstal gælder ikke (BRCA/stærk familiær disposition) — individuel vurdering (fx CanRisk/genetisk rådgivning)"
+        : `Brystkræft: ca. ${extra} ekstra pr. 1.000 til 69 år (baggrund ${BRYST_BAGGRUND}) ved ${s.varighed} års ${typeTxt}; NNH ca. ${nnhOf(extra)}${has(s, "fambryst") ? ` (med familiær disposition formentlig ca. ${nnhOf(extra * 1.8)})` : ""}`,
     };
   }
 
@@ -225,8 +233,8 @@
       level = "lav";
     } else {
       tal = s.uterus
-        ? "Oral kombineret behandling: ca. <strong>5–10 ekstra pr. 1.000</strong> over 5 år (størst i første år)."
-        : "Oral østrogen alene: ca. <strong>1–4 ekstra pr. 1.000</strong> over 5 år (størst i første år).";
+        ? "Oral kombineret behandling: ca. <strong>5–10 ekstra pr. 1.000</strong> over 5 år (størst i første år, men øget under hele behandlingen)."
+        : "Oral østrogen alene: ca. <strong>1–4 ekstra pr. 1.000</strong> over 5 år (størst i første år, men øget under hele behandlingen).";
       level = risikofaktor ? "hoej" : "moderat";
     }
     if (has(s, "tidlVTE")) {
@@ -240,6 +248,7 @@
     if (bmiHigh(s)) mods.push(`<strong>BMI ${fmtNum(s.bmi)}:</strong> overvægt øger i sig selv VTE-risikoen ca. 2–3 gange.`);
     if (has(s, "ryger")) mods.push("<strong>Rygning:</strong> øger baggrundsrisikoen.");
     if (senOpstart(s)) mods.push("<strong>Alder/sen opstart:</strong> baggrundsrisikoen stiger med alderen.");
+    if (s.vej === "oral") mods.push("<strong>Dansk registerstudie (BMJ 2026, kvinder 50–69 år):</strong> oral behandling gav 1 ekstra VTE pr. ca. 1.050 kvinder pr. behandlingsår — uanset dosis og varighed. Transdermal behandling gav ingen øgning.");
     if (s.vej === "oral" && risikofaktor) mods.push("<strong>Anbefaling:</strong> skift til transdermal behandling.");
     return {
       key: "vte",
@@ -267,8 +276,11 @@
       tal = "Transdermal østrogen op til 50 mikrog./døgn <strong>øger ikke påviseligt risikoen</strong>.";
       level = karFaktorer.length ? "moderat" : "lav";
     } else {
-      tal = `Oral behandling: ca. <strong>${ekstra} ekstra pr. 1.000</strong> over 5 år (relativ risiko ca. 1,3).`;
-      level = karFaktorer.length || over60(s) ? "hoej" : "moderat";
+      tal = `Oral behandling: ca. <strong>${ekstra} ekstra pr. 1.000</strong> over 5 år (relativ risiko ca. 1,3 i WHI).`;
+      // Kun karrisikofaktorer løfter til "høj"; alder alene giver moderat, da
+      // den ekstra risiko er lille i absolutte tal og kan fjernes ved skift.
+      level = karFaktorer.length ? "hoej" : "moderat";
+      mods.push("<strong>Dosis:</strong> i et dansk registerstudie (BMJ 2026) sås øget apopleksi kun ved oral estradiol over 1 mg/døgn i mere end 1 år — hold en oral dosis på højst 1 mg/døgn.");
     }
     if (has(s, "hjertekar")) {
       level = "hoej";
@@ -319,10 +331,10 @@
     let tal;
     if (s.regime === "kontinuerlig") {
       level = "lav";
-      tal = "Kontinuerlig kombineret behandling: <strong>ingen øget risiko</strong> (dansk kohorte, RR 1,0).";
+      tal = "Kontinuerlig kombineret behandling: <strong>ingen øget risiko</strong> (dansk kohorte RR 1,0; i Million Women Study endda lavere, RR 0,71).";
     } else if (s.regime === "sekventiel") {
       level = "moderat";
-      tal = "Sekventiel behandling: risikoen er <strong>ca. fordoblet</strong> (RR 2,1) — dvs. ca. 4 ekstra pr. 1.000. Skift til kontinuerlig behandling, når patienten er postmenopausal.";
+      tal = "Sekventiel behandling: studierne er uenige — <strong>ingen øgning</strong> i Million Women Study (RR 1,05), men <strong>ca. fordoblet</strong> risiko i den danske kohorte (RR ca. 2), især ved langvarig brug. En fordobling svarer til <strong>højst ca. 5 ekstra pr. 1.000</strong> frem til 65 år ved langvarig brug — færre ved kortere brug. Skift til kontinuerlig behandling, når patienten er postmenopausal.";
     } else {
       level = "lav";
       tal = "Mirena beskytter endometriet (godkendt i op til 5 år).";
@@ -332,18 +344,18 @@
       mods.push(`<strong>${has(s, "endorisiko") ? "Øget risiko for endometriecancer" : `BMI ${fmtNum(s.bmi)}`}:</strong> højere baggrundsrisiko — foretræk kontinuerlig kombineret behandling eller Mirena, og hav lav tærskel for udredning af blødning.`);
     }
     if (s.varighed === 10 && s.regime !== "mirena") {
-      mods.push("<strong>Langvarig brug:</strong> Utrogestans endometriebeskyttelse er dokumenteret i ca. 5 år — overvej Mirena.");
+      mods.push("<strong>Langvarig brug med mikroniseret progesteron (Utrogestan):</strong> endometriebeskyttelsen er kun dokumenteret i ca. 5 år — overvej Mirena eller et syntetisk gestagen ved længere brug.");
     }
     return {
       key: "endometrie",
       title: "Endometriecancer",
       level,
-      body: `<p>Uden MHT får ca. 4 af 1.000 kvinder med uterus endometriecancer (NICE). ${tal} Østrogen alene med bevaret uterus øger risikoen 2–4 gange og gives aldrig.</p>`,
+      body: `<p>Uden MHT får ca. 5 af 1.000 kvinder med uterus endometriecancer mellem 50 og 65 år (EU-produktresumé). ${tal} Østrogen alene med bevaret uterus giver 5–55 ekstra pr. 1.000 afhængigt af dosis og varighed og gives aldrig.</p>`,
       mods,
       nnh: s.regime === "sekventiel"
-        ? { tal: nnhOf(4), tekst: `Behandles ${nnhOf(4)} kvinder med sekventiel behandling, får 1 ekstra endometriecancer.` }
+        ? { tal: `≥ ${nnhOf(5)}`, tekst: `I værste fald (dansk kohorte, langvarig brug) får 1 ud af ca. ${nnhOf(5)} kvinder med sekventiel behandling en ekstra endometriecancer frem til 65 år — ved kortere brug og i Million Women Study færre.` }
         : { tal: null, tekst: s.regime === "mirena" ? "Ikke relevant — Mirena beskytter endometriet." : "Ikke relevant — ingen øget risiko ved kontinuerlig kombineret behandling." },
-      journal: `Endometriecancer: ${s.regime === "kontinuerlig" ? "ingen øget risiko (kontinuerlig)" : s.regime === "sekventiel" ? `ca. fordoblet ved sekventiel; NNH ca. ${nnhOf(4)} — skift til kontinuerlig planlagt` : "beskyttet af Mirena"}`,
+      journal: `Endometriecancer: ${s.regime === "kontinuerlig" ? "ingen øget risiko (kontinuerlig)" : s.regime === "sekventiel" ? `RR 1,0–2 ved sekventiel (uenige studier); NNH ≥ ${nnhOf(5)} — skift til kontinuerlig planlagt` : "beskyttet af Mirena"}`,
     };
   }
 
@@ -354,23 +366,30 @@
       key: "ovarie",
       title: "Æggestokkræft",
       level: "lav",
-      body: "<p>Højst ca. <strong>1 ekstra pr. 1.000</strong> kvinder ved 5 års brug fra omkring 50 år.</p>",
+      body: `<p>Uden MHT får ca. 1 af 1.000 kvinder i starten af 50'erne æggestokkræft over 5 år. Med 5 års brug fra omkring 50 år: ca. <strong>0,5–1 ekstra pr. 1.000</strong> (EU-produktresumé og Lancet 2015).${s.varighed === 10 ? " Ved 10 års brug er det ekstra antal formentlig lidt større." : ""}</p>`,
       mods,
-      nnh: { tal: `≥ ${nnhOf(1)}`, tekst: `Behandles mindst ${nnhOf(1)} kvinder i 5 år, får højst 1 ekstra æggestokkræft.` },
-      journal: `Æggestokkræft: højst ca. 1 ekstra pr. 1.000 ved 5 års brug; NNH ≥ ${nnhOf(1)}`,
+      nnh: { tal: nnhRange(0.5, 1), tekst: `Behandles ${nnhRange(0.5, 1)} kvinder i 5 år, får 1 ekstra æggestokkræft.` },
+      journal: `Æggestokkræft: ca. 0,5–1 ekstra pr. 1.000 ved 5 års brug; NNH ca. ${nnhRange(0.5, 1)}`,
     };
   }
 
   function demensCard(s) {
     if (!alderKendt(s) || s.alder < 65) return null;
+    // WHIMS (≥ 65 år): kombineret 45 vs. 22 pr. 10.000 kvindeår = 23 ekstra,
+    // dvs. ca. 11,5 pr. 1.000 over 5 år (ekstrapoleret fra ca. 4 års opfølgning).
+    const kombineret = s.uterus;
     return {
       key: "demens",
       title: "Demens",
       level: "moderat",
-      body: "<p>Opstart efter 65 år var i WHI forbundet med <strong>øget risiko for demens</strong>. MHT anbefales ikke til forebyggelse af kognitiv svækkelse.</p>",
+      body: kombineret
+        ? "<p>Opstart efter 65 år med kombineret behandling fordoblede risikoen for demens i WHI's demensstudie (WHIMS): <strong>ca. 2 ekstra pr. 1.000 pr. år</strong> (45 mod 22 pr. 10.000 kvindeår). Studiet brugte oral konjugeret østrogen + medroxyprogesteron — betydningen for transdermal behandling er ukendt. MHT anbefales ikke til forebyggelse af kognitiv svækkelse.</p>"
+        : "<p>Opstart efter 65 år med østrogen alene var i WHI's demensstudie (WHIMS) forbundet med en <strong>ikke-signifikant øget risiko</strong> for demens. MHT anbefales ikke til forebyggelse af kognitiv svækkelse.</p>",
       mods: [],
-      nnh: { tal: null, tekst: "Ikke opgjort — øget risiko ved opstart efter 65 år, men ikke kvantificeret her." },
-      journal: "Demens: øget risiko ved opstart efter 65 år",
+      nnh: kombineret
+        ? { tal: nnhOf(11.5), tekst: `Behandles ca. ${nnhOf(11.5)} kvinder over 65 år i 5 år med kombineret behandling, får 1 ekstra demens (WHIMS, ekstrapoleret fra ca. 4 års opfølgning).` }
+        : { tal: null, tekst: "Ikke beregnet — øgningen var ikke statistisk sikker for østrogen alene (WHIMS)." },
+      journal: kombineret ? `Demens: ca. 2 ekstra pr. 1.000 pr. år ved kombineret opstart efter 65 år (WHIMS); NNH ca. ${nnhOf(11.5)} over 5 år` : "Demens: ikke-signifikant øgning ved østrogen alene efter 65 år (WHIMS)",
     };
   }
 
@@ -386,6 +405,7 @@
         <li><strong>Hedeture og svedeture</strong> reduceres med ca. 75 %; ofte bedre søvn og livskvalitet.</li>
         <li><strong>Knogler:</strong> ca. 30 % færre frakturer (fx hoftebrud) under behandling; effekten aftager efter ophør.</li>
         <li><strong>Urogenitale gener</strong> bedres (ved behov suppleret med lokal østrogen).</li>
+        <li><strong>Samlet dødelighed er ikke øget</strong> — hverken i WHI efter 18 års opfølgning eller i et dansk registerstudie (BMJ 2026).</li>
       </ul>`,
       mods,
       journal: `Gevinster: færre hedeture (ca. 75 %), ca. 30 % færre frakturer${has(s, "osteo") ? " (vigtigt pga. osteoporose)" : ""}`,
@@ -420,7 +440,8 @@
     return `<div class="box box-blue nnh-box"><h3>Number needed to harm (NNH)</h3>
       <p><strong>NNH</strong> er det antal kvinder, der skal behandles i den angivne periode, for at <strong>én ekstra</strong> får sygdommen på grund af MHT. <strong>Jo højere tal, jo sjældnere skade.</strong> Beregnet som 1.000 ÷ ekstra tilfælde pr. 1.000 og afrundet; intervaller afspejler usikkerhed i kilderne.</p>
       <div class="drug-table-wrap"><table class="drug-table stack-mobile"><thead><tr><th>Udfald</th><th>NNH</th><th>Betydning</th></tr></thead><tbody>${rows}</tbody></table></div>
-      <p>NNH gælder for en gruppe kvinder med samme alder og behandling — ikke for den enkelte. Patientens egne risikofaktorer (se kortene nedenfor) kan gøre hendes NNH lavere eller højere.</p>
+      <p>NNH gælder for en gruppe kvinder med samme alder og behandling — ikke for den enkelte. Patientens egne risikofaktorer (se kortene nedenfor) kan gøre hendes NNH lavere eller højere. Tidsrammen står i hver linje: VTE, apopleksi og æggestokkræft gælder 5 års brug, brystkræft den valgte varighed.</p>
+      <p>Kortenes farve afspejler også, om risikoen bør ændre behandlingen (fx at transdermal behandling fjerner den) — ikke kun størrelsen af NNH.</p>
     </div>`;
   }
 
@@ -475,7 +496,7 @@
       cards.map(renderCard).join("") +
       renderCard(gevinst) +
       reduceBox(s) +
-      `<p class="source-note">Tal pr. 1.000 kvinder er afrundede befolkningstal (MHRA 2019, WHI, NICE 2024, Mørch 2016) og gælder primært opstart i 50'erne. De bygger delvist på ældre præparater (konjugeret østrogen, syntetiske gestagener) — ved moderne transdermal behandling er risikoen formentlig lavere.</p>`;
+      `<p class="source-note">Tal pr. 1.000 kvinder er afrundede befolkningstal (MHRA 2019, WHI/EU-produktresuméer, dansk registerstudie BMJ 2026, Mørch 2016, Million Women Study) og gælder primært opstart i 50'erne. Brystkræfttallene er britiske. Tallene bygger delvist på ældre præparater (konjugeret østrogen, syntetiske gestagener) — ved moderne transdermal behandling er risikoen for blodpropper og apopleksi formentlig lavere.</p>`;
   }
 
   // Kort, redigerbart journalnotat.

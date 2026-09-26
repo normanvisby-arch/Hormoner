@@ -130,12 +130,14 @@ end tallene" — det **omregner ikke** tallene, da der ikke findes en valideret 
 | Udfald | Tal i værktøjet | Kilde |
 |---|---|---|
 | Brystkræft | baggrund 63/1.000 (50–69 år); +5 / +14 / +20 ved 5 års østrogen alene / sekventiel / kontinuerlig; ca. dobbelt ved 10 år | MHRA 2019 (CGHFBC) |
-| VTE (5 år) | baggrund ca. 4–7/1.000; oral kombineret +5–10, oral østrogen alene +1–4, transdermal ingen påvist øgning | WHI, NICE |
-| Iskæmisk apopleksi (5 år) | baggrund ca. 8 (50'erne) / 14 (60'erne); oral +3/+4; transdermal ≤ 50 mikrog. ingen påvist øgning | WHI / EU-produktresuméer |
+| VTE (5 år) | baggrund ca. 4–7/1.000; oral kombineret +5–10, oral østrogen alene +1–4, transdermal ingen påvist øgning; dansk NNH ca. 1.050 pr. behandlingsår ved oral behandling | WHI, NICE, dansk registerstudie BMJ 2026 |
+| Iskæmisk apopleksi (5 år) | baggrund ca. 8 (50'erne) / 14 (60'erne); oral +3/+4; transdermal ≤ 50 mikrog. ingen påvist øgning; i dansk data kun øget ved oral estradiol > 1 mg/døgn i > 1 år | WHI / EU-produktresuméer, BMJ 2026 |
 | Iskæmisk hjertesygdom | ingen øgning ved opstart < 60 år / < 10 år efter menopausen; lille øgning ved sen opstart | WHI, NICE |
-| Endometriecancer | baggrund ca. 4/1.000; kontinuerlig RR 1,0, sekventiel RR 2,1 | NICE, Mørch 2016 |
-| Æggestokkræft | højst ca. +1/1.000 ved 5 års brug | NICE / produktresuméer |
-| Demens | øget risiko ved opstart efter 65 år (vises kun da) | WHIMS |
+| Endometriecancer | baggrund ca. 5/1.000 (50–65 år); kontinuerlig RR 1,0 (MWS 0,71); sekventiel RR 1,05 (MWS) til ca. 2 (dansk) → højst ca. +5/1.000 ved langvarig brug | EU-produktresuméer, Mørch 2016, Million Women Study 2005 |
+| Æggestokkræft | ca. +0,5–1/1.000 ved 5 års brug fra ca. 50 år | EU-produktresuméer, Lancet 2015 |
+| Demens (kun ≥ 65 år) | kombineret: ca. +2/1.000 pr. år (45 vs. 22 pr. 10.000 kvindeår); østrogen alene: ikke-signifikant | WHIMS (Shumaker 2003) |
+| Familiær disposition (brystkræft) | én førstegradsslægtning: baggrund × 1,8 og samme relative MHT-øgning → ekstra tilfælde × 1,8 | CGHFBC 2001, Huntley BJGP 2024 |
+| Samlet dødelighed | ikke øget | WHI 18 år (Manson 2017), dansk registerstudie BMJ 2026 |
 
 **Number needed to harm (NNH)** vises tydeligt tre steder: en samlet NNH-tabel øverst, et
 fremhævet NNH-tal i hvert kort og i journalnotatet. NNH = 1.000 ÷ ekstra tilfælde pr. 1.000 i den
@@ -143,11 +145,14 @@ angivne periode, afrundet (til nærmeste 5 under 100, nærmeste 10 under 1.000).
 kilderne giver NNH-intervaller (fx VTE ved oral kombineret behandling: 100–200). Hvor der ikke er
 påvist øget risiko (fx transdermal behandling og VTE), vises "–" med forklaring. Eksempler:
 brystkræft ved 5 års kontinuerlig kombineret behandling NNH ≈ 50, ved 10 år ≈ 25; østrogen alene
-5 år ≈ 200; oral apopleksi ≈ 330 (50'erne); sekventiel behandling og endometriecancer ≈ 250.
+5 år ≈ 200; oral apopleksi ≈ 330 (50'erne); sekventiel behandling og endometriecancer ≥ 200 (værste
+fald); æggestokkræft 1.000–2.000; demens ved kombineret opstart efter 65 år ≈ 85 over 5 år.
+Ved BRCA/stærk familiær disposition vises ingen NNH for brystkræft, da befolkningstallene ikke gælder.
 
 Niveauer pr. udfald (lav / moderat / høj / gevinst) vises som tekst, ikke kun farve. "Høj" udløses
 bl.a. af tidligere VTE, BRCA/flere slægtninge med brystkræft, kendt hjerte-kar-sygdom og oral
-behandling kombineret med risikofaktorer for VTE eller apopleksi. En personlig liste viser, hvordan
+behandling kombineret med risikofaktorer for VTE eller apopleksi. Niveauet afspejler også, om
+risikoen bør ændre behandlingen — ikke kun størrelsen af NNH. En personlig liste viser, hvordan
 risikoen kan mindskes (transdermal, kontinuerlig kombineret, mikroniseret progesteron, vægt,
 alkohol, rygning).
 
@@ -293,6 +298,27 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**26. september 2026 — ekstern audit af beregninger og kilder i risikovurderingen:**
+- Kontrolleret: brystkræfttal (MHRA 2019: 63 + 5/14/20 ved 5 år, dobbelt ved 10 år), apopleksi
+  (EU-produktresumé: 8/14 + 3/4) og NNH-beregningen (1.000 ÷ ekstra, afrundet) er korrekte.
+- **Rettet:**
+  - **Endometriecancer:** baggrunden var angivet som "4/1.000 (NICE)" uden tidsramme; nu 5/1.000
+    mellem 50 og 65 år fra EU-produktresuméet. Sekventiel behandling blev fremstillet som sikkert
+    fordoblet med NNH ≈ 250; studierne er uenige (Million Women Study RR 1,05 mod dansk RR ca. 2),
+    så nu vises intervallet og NNH ≥ 200 som værste fald. "Østrogen alene øger 2–4 gange" var for
+    lavt, nu 5–55 ekstra pr. 1.000 (produktresumé). Utrogestan-noten gælder nu kun ved Utrogestan.
+  - **Æggestokkræft:** EU-produktresuméet angiver ca. 0,5 ekstra pr. 1.000 og Lancet 2015 ca. 1,
+    så NNH er nu 1.000–2.000 i stedet for ≥ 1.000.
+  - **BRCA:** der blev vist en brystkræft-NNH, selvom kortet sagde, at tallene ikke gælder, og den
+    kunne blive fremhævet som "største risiko". Nu ingen NNH og henvisning til CanRisk.
+  - **Apopleksi:** oral behandling efter 60 år uden karrisikofaktorer stod som "høj" (4 ekstra pr.
+    1.000), mens brystkræft med 40 ekstra stod som "moderat". Nu "moderat", men "høj" ved
+    karrisikofaktorer.
+- **Nyt:** dansk registerstudie om trombotisk sygdom (BMJ 2026) med NNH pr. behandlingsår for
+  oral behandling og en dosisgrænse på 1 mg estradiol for apopleksi; demenstal fra WHIMS; NNH ved
+  familiær disposition; dødelighed af brystkræft (Huntley 2024); samlet dødelighed ikke øget
+  (WHI, BMJ 2026); tidsramme for NNH og forklaring af farveniveauerne i NNH-boksen.
 
 **26. september 2026 — number needed to harm (NNH) i risikovurderingen:**
 - Samlet NNH-tabel øverst med forklaring ("antal kvinder, der skal behandles, for at én ekstra

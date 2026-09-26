@@ -410,16 +410,16 @@
       <p>Ved 10 års brug omtrent fordoblet. Risikoen falder efter ophør, men en mindre overrisiko kan vare over 10 år. Overvægt og alkohol øger risikoen i sammenlignelig eller højere grad.</p>
       <ul>
         <li><strong>Blodpropper (VTE):</strong> oral østrogen øger risikoen (ca. 2 gange); transdermal i standarddosis ses ikke at øge den.</li>
-        <li><strong>Apopleksi:</strong> lille overrisiko ved oral behandling; ikke påvist ved transdermal i standarddosis.</li>
+        <li><strong>Apopleksi:</strong> lille overrisiko ved oral behandling (i dansk registerstudie, BMJ 2026, kun ved oral estradiol over 1 mg/døgn i mere end 1 år); ikke påvist ved transdermal i standarddosis.</li>
         <li><strong>Hjertesygdom:</strong> ingen overrisiko ved opstart før 60 år / inden for 10 år efter menopausen.</li>
         <li><strong>Knogler:</strong> færre frakturer under behandling.</li>
         <li><strong>Lokal vaginal østrogen:</strong> ingen påvist øget risiko for brystkræft eller VTE. Metaanalyser viser ikke øget risiko for endometriecancer; en dansk registerundersøgelse fandt en let øget forekomst, som formentlig skyldes øget udredning — blødning skal altid udredes.</li>
       </ul>
-      <p><strong>Endometriecancer</strong> (kun ved bevaret uterus) — relativ risiko i forhold til ingen MHT, dansk kohorte af 915.000 kvinder (Mørch 2016):</p>
+      <p><strong>Endometriecancer</strong> (kun ved bevaret uterus; baggrund ca. 5 pr. 1.000 mellem 50 og 65 år) — relativ risiko i forhold til ingen MHT, dansk kohorte af 915.000 kvinder (Mørch 2016):</p>
       <ul>
         <li>${b("kontinuerlig", "Kontinuerlig kombineret: ingen øget risiko (RR 1,0)")}</li>
-        <li>${b("sekventiel", "Sekventiel (cyklisk) kombineret: ca. fordoblet (RR 2,1)")}</li>
-        <li>Østrogen alene med bevaret uterus: 2–4 gange øget — gives aldrig</li>
+        <li>${b("sekventiel", "Sekventiel (cyklisk) kombineret: ca. fordoblet (RR 2,1) — især ved langvarig brug; Million Women Study fandt ingen øgning (RR 1,05)")}</li>
+        <li>Østrogen alene med bevaret uterus: markant øget (5–55 ekstra pr. 1.000 frem til 65 år afhængigt af dosis og varighed) — gives aldrig</li>
         <li>Tibolon: ca. 3,6 gange øget</li>
       </ul>
       <p>Tal tilpasset patientens alder, regime, administrationsvej og risikofaktorer: se <a href="${RISIKO_URL}" target="_blank" rel="noopener">den individuelle risikovurdering</a>.</p>`
