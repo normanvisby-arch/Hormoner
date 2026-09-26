@@ -369,6 +369,72 @@ body {
 
 .drug-table-wrap { overflow-x: auto; }
 
+[hidden] { display: none !important; }
+
+/* Risikovurdering: kort med niveau-mærkat og 1.000-personers figur. */
+.risk-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.3rem;
+}
+.risk-head h3 { margin: 0; }
+.chip {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: var(--color-panel);
+  white-space: nowrap;
+}
+.chip-hoej { color: var(--color-red-text); }
+.chip-moderat { color: var(--color-amber-text); }
+.chip-lav { color: var(--color-blue-text); }
+.chip-gavn { color: var(--color-green-text); }
+.risk-mods {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0 0 1.2rem;
+  border-top: 1px dashed currentColor;
+  font-size: 0.88rem;
+}
+.risk-mods li { margin-bottom: 0.25rem; }
+
+.icon-array {
+  --ia-base: #2a78d6;
+  --ia-extra: #eb6834;
+  --ia-none: #dde3e8;
+  margin: 0.6rem 0 0.2rem;
+  background: var(--color-panel);
+  border-radius: 6px;
+  padding: 0.6rem;
+}
+.ia-grid {
+  display: grid;
+  grid-template-columns: repeat(40, 1fr);
+  gap: 1px;
+  max-width: 420px;
+}
+.ia-cell { aspect-ratio: 1; border-radius: 1px; }
+.ia-base { background: var(--ia-base); }
+.ia-extra { background: var(--ia-extra); }
+.ia-none { background: var(--ia-none); }
+.ia-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  margin-top: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--color-text);
+}
+.ia-legend > span { display: inline-flex; align-items: center; gap: 0.35rem; }
+.ia-key { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 2px; }
+@media print {
+  .ia-cell, .ia-key { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
 .drug-table {
   width: 100%;
   border-collapse: collapse;

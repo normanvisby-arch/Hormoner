@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MHT-risikovurdering</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">⚖</span>
+      <div>
+        <h1>Individuel risikovurdering ved MHT</h1>
+        <p class="subtitle">Absolutte risikotal til den fælles beslutning — tilpasset alder, regime, administrationsvej og risikofaktorer</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Hormonbehandling ved klimakteriet</a>
+  <span aria-current="page">Risikovurdering</span>
+  <a href="praevention.html">Prævention</a>
+  <a href="mrs.html">MRS-scoring</a>
+  <a href="bloedningskalender.html">Blødningskalender</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Tallene er befolkningstal for kvinder med samme alder og behandling (MHRA, WHI, NICE, danske registerstudier) — ikke en valideret individuel risikomodel. Patientens egne risikofaktorer vises som "højere" eller "lavere" end tallene, men omregnes ikke. Til familiær brystkræftrisiko bruges en valideret model (fx CanRisk) eller genetisk rådgivning.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se risikovurdering ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patient og planlagt behandling" onsubmit="return false;">
+    <h2>1. Patient og planlagt behandling</h2>
+
+    <div class="field">
+      <label for="alder">Alder ved opstart (år)</label>
+      <input type="number" id="alder" min="30" max="85" placeholder="fx 52">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+
+    <div class="field">
+      <label for="bmiInput">BMI (valgfrit, kg/m²)</label>
+      <input type="number" id="bmiInput" min="12" max="70" step="0.1" placeholder="fx 27,5">
+    </div>
+
+    <fieldset class="field">
+      <legend>Uterus</legend>
+      <label class="radio"><input type="radio" name="uterus" value="ja" checked> Bevaret — østrogen + gestagen</label>
+      <label class="radio"><input type="radio" name="uterus" value="nej"> Hysterektomeret — østrogen alene</label>
+    </fieldset>
+
+    <fieldset class="field" id="regimeField">
+      <legend>Gestagen-regime</legend>
+      <label class="radio"><input type="radio" name="regime" value="kontinuerlig" checked> Kontinuerlig kombineret (postmenopausal)</label>
+      <label class="radio"><input type="radio" name="regime" value="sekventiel"> Sekventiel/cyklisk (perimenopausal)</label>
+      <label class="radio"><input type="radio" name="regime" value="mirena"> Mirena + østrogen</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Administrationsvej for østrogen</legend>
+      <label class="radio"><input type="radio" name="vej" value="transdermal" checked> Transdermal (plaster/gel/spray)</label>
+      <label class="radio"><input type="radio" name="vej" value="oral"> Oral (tablet)</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Planlagt behandlingsvarighed</legend>
+      <label class="radio"><input type="radio" name="varighed" value="5" checked> Ca. 5 år</label>
+      <label class="radio"><input type="radio" name="varighed" value="10"> Ca. 10 år</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Patientens risikofaktorer</legend>
+      <label class="checkbox"><input type="checkbox" name="rf" value="sen"> Mere end 10 år siden menopausen</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="fambryst"> Brystkræft hos én førstegradsslægtning</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="brca"> Flere slægtninge med bryst-/æggestokkræft eller kendt BRCA-variant</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="alkohol"> Alkohol over 10 genstande om ugen</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="tidlVTE"> Tidligere venøs tromboemboli (VTE)</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="trombofili"> Kendt trombofili eller VTE hos forælder/søskende</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="ryger"> Ryger</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="htn"> Hypertension</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="diabetes"> Diabetes</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="hjertekar"> Kendt hjerte-kar-sygdom (iskæmisk hjertesygdom, apopleksi/TCI)</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="migraene"> Migræne med aura</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="endorisiko"> Øget risiko for endometriecancer (fx PCOS, Lynch syndrom)</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="osteo"> Osteoporose, lavenergibrud eller høj frakturrisiko</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Risikovurdering" id="resultPanel">
+    <h2>2. Risikovurdering</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld vurdering</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>MHRA (2019) / Collaborative Group on Hormonal Factors in Breast Cancer, <em>Lancet</em> 2019 — brystkræft: ekstra tilfælde pr. 1.000 kvinder til 69 år efter 5 og 10 års brug</li>
+    <li>Women's Health Initiative (WHI) og de harmoniserede EU-produktresuméer — VTE og iskæmisk apopleksi over 5 år for kvinder 50–59 og 60–69 år</li>
+    <li>NICE NG23 (2024) inkl. diskussionsværktøj om HRT — baggrundsrisici, transdermal vs. oral, ovariecancer</li>
+    <li>Mørch LS m.fl. (2016) — endometriecancer pr. regime i en dansk kohorte på 915.000 kvinder</li>
+    <li>Sundhedsstyrelsens NRL (2022) og DSOG — transdermal som førstevalg</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra de nævnte kilder og ikke en valideret individuel risikomodel. Befolkningstallene er afrundede og bygger på studier med konjugeret østrogen og syntetiske gestagener (WHI) eller blandede præparater; risikoen ved moderne transdermal behandling er formentlig lavere for VTE og apopleksi. Primærdokumenterne (MHRA, NICE, EMA) kunne ikke tilgås direkte ved udviklingen — tallene er kontrolleret via sekundære kilder. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="risiko.js"></script>
+</body>
+</html>
