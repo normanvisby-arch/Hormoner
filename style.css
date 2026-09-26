@@ -402,6 +402,28 @@ body {
 }
 .risk-mods li { margin-bottom: 0.25rem; }
 
+.nnh {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem 0.9rem;
+  flex-wrap: wrap;
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-panel);
+  border: 1px solid currentColor;
+  border-radius: 8px;
+}
+.nnh-num {
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.nnh-txt { font-size: 0.9rem; flex: 1 1 16rem; }
+.nnh-none { border-style: dashed; }
+.nnh-none .nnh-num { font-size: 1rem; }
+.nnh-box .drug-table td:nth-child(2) { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
 .icon-array {
   --ia-base: #2a78d6;
   --ia-extra: #eb6834;
