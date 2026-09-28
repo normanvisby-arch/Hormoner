@@ -1,0 +1,13 @@
+{
+  "_note": "Publicerede claude.ai-artifacts pr. side. mode=tool: siden bruger style.css og bygges ind i det publicerede artifacts <head>; mode=standalone: siden har sin egen <style> og bygges direkte fra repoet.",
+  "oversigt.html": { "url": "https://claude.ai/artifact/6C4ZgTrT9twTm4sjoQ7PdM", "mode": "standalone" },
+  "index.html": { "url": "https://claude.ai/artifact/PAK2nP4NBtPTYtuRUoGcPH", "mode": "tool" },
+  "risiko.html": { "url": "https://claude.ai/artifact/CehJoNuD2wCAB8gkWb2h7k", "mode": "tool" },
+  "huskeskema.html": { "url": "https://claude.ai/artifact/DqfSHb1SfWGRF2DuxtU7AJ", "mode": "standalone" },
+  "praevention.html": { "url": "https://claude.ai/artifact/Wmjsd8cxZc73Kwh4CoXNch", "mode": "tool" },
+  "mrs.html": { "url": "https://claude.ai/artifact/WTNDCRY3SdB5a8rUvVeBou", "mode": "tool" },
+  "osteoporose.html": { "url": "https://claude.ai/artifact/Ts6p7AJ4CrGqeZAAhK4jwy", "mode": "tool" },
+  "fraktur.html": { "url": "https://claude.ai/artifact/4K2j9dCrJPkY84FLRwuGFp", "mode": "tool" },
+  "osteoplan.html": { "url": "https://claude.ai/artifact/LJxgTqb7W5MhMY6H5mjoUT", "mode": "tool" },
+  "osteohuskeskema.html": { "url": "https://claude.ai/artifact/QGofiJpPddCkp4oX4tfTAj", "mode": "standalone" }
+}

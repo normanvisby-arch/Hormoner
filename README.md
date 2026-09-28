@@ -86,6 +86,15 @@ Værktøjerne er en installerbar webapp (PWA) med eget ikon, som også virker ud
 - Ikonerne i `icons/` er genereret fra `icons/icon.svg` (maskable-varianten har symbolet inden for
   sikkerhedszonen).
 
+## Tests og publicering
+
+- `tests/run_all.sh` kører alle Playwright-suiter (klimakterie, endometrie, risiko, prævention,
+  osteoporose, frakturrisiko, opfølgningsplan, app/offline og en røgtest af alle sider) mod en
+  lokal server. `tests/run_all.sh osteo` kører kun suiter med "osteo" i navnet.
+- `tools/build_artifact.py` bygger den publicerede claude.ai-version af en side; adresserne står i
+  `tools/artifacts.json`. Fremgangsmåden er beskrevet i `CLAUDE.md`.
+- En kvartalsvis rutine gennemgår kilderne og foreslår opdateringer som PR (se `CLAUDE.md`).
+
 ## Sådan køres appen
 
 Ingen build-trin eller afhængigheder er nødvendige.
@@ -355,6 +364,11 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**28. september 2026 — kvartalsvis opdatering og testinfrastruktur:**
+- Testsuiterne ligger nu i `tests/` med `run_all.sh`; byggeværktøj til de publicerede versioner i
+  `tools/`; arbejdsgang og tjekliste til den faglige gennemgang i `CLAUDE.md`.
+- Oversigtens installationsvejledning er markeret som app-specifik (vises ikke på claude.ai).
 
 **28. september 2026 — nyt område: osteoporose (knoglesundhed):**
 - Fire nye værktøjer: behandlingsguide, frakturrisiko og NNT, opfølgningsplan og huskeskema.
