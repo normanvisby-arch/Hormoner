@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Osteoporose — opfølgningsplan</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b6e5f">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Klinikværktøjer">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🗓</span>
+      <div>
+        <h1>Opfølgningsplan ved osteoporosebehandling</h1>
+        <p class="subtitle">Datoer for kontrol, DXA, revurdering, behandlingspause og denosumab-injektioner</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="oversigt.html">Oversigt</a>
+  <a href="osteoporose.html">Osteoporose</a>
+  <a href="fraktur.html">Frakturrisiko</a>
+  <span aria-current="page">Opfølgningsplan</span>
+  <a href="osteohuskeskema.html">Huskeskema</a>
+  <a href="index.html">Klimakterieguide</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Planen følger DSAM (2024) og DES' NBV. Intervallerne er vejledende og tilpasses den enkelte patient. Datoerne beregnes kun i browseren — intet gemmes.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se plan ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Behandling" onsubmit="return false;">
+    <h2>1. Behandling</h2>
+
+    <fieldset class="field">
+      <legend>Præparat</legend>
+      <label class="radio"><input type="radio" name="drug" value="alendronat" checked> Alendronat (eller risedronat) — tablet ugentligt</label>
+      <label class="radio"><input type="radio" name="drug" value="zoledronsyre"> Zoledronsyre — infusion årligt</label>
+      <label class="radio"><input type="radio" name="drug" value="denosumab"> Denosumab — injektion hver 6. måned</label>
+    </fieldset>
+
+    <div class="field">
+      <label for="start">Behandlingsstart</label>
+      <input type="date" id="start">
+      <span class="input-warning" id="startWarning" aria-live="polite"></span>
+    </div>
+
+    <div class="field" id="lastField" hidden>
+      <label for="last">Seneste denosumab-injektion (valgfrit)</label>
+      <input type="date" id="last">
+      <p class="field-hint">Bruges til at beregne næste injektion og om den er forsinket.</p>
+    </div>
+
+    <fieldset class="field">
+      <legend>Forhold, der taler imod behandlingspause</legend>
+      <label class="checkbox"><input type="checkbox" name="hr" value="hofteryg"> Hoftebrud eller brud i ryggen (før eller under behandling)</label>
+      <label class="checkbox"><input type="checkbox" name="hr" value="nytbrud"> Nyt lavenergibrud under behandlingen</label>
+      <label class="checkbox"><input type="checkbox" name="hr" value="tscore"> T-score i hoften ≤ −2,5 ved revurdering</label>
+      <label class="checkbox"><input type="checkbox" name="hr" value="prednisolon"> Fortsat prednisolonbehandling</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Plan" id="resultPanel">
+    <h2>2. Plan</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér plan til journal</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>DSAM — Klinisk vejledning: Osteoporose (2024): revurdering efter 5 år (alendronat) og 3 år (zoledronsyre), behandlingspause og DXA under pause</li>
+    <li>Dansk Endokrinologisk Selskab — NBV Osteoporose (2025), inkl. ophør med denosumab</li>
+    <li>ECTS (2021) — zoledronsyre 6 måneder efter sidste denosumab-injektion eller alendronat i mindst 12 måneder</li>
+    <li>Produktresumé for Prolia — injektion hver 6. måned; calcium før hver injektion</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra DSAM eller DES. Primærdokumenterne kunne ikke tilgås direkte ved udviklingen; intervallerne er kontrolleret via sekundære kilder. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="osteoplan.js"></script>
+<script src="pwa.js"></script>
+</body>
+</html>

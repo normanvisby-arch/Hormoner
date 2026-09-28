@@ -1,7 +1,7 @@
 {
   "name": "Klinikværktøjer til kvindesundhed",
   "short_name": "Klinikværktøjer",
-  "description": "Klimakterieguide, MHT-risikovurdering, huskeskema, præventionsguide og MRS-scoring til almen praksis.",
+  "description": "Klimakterieguide, MHT-risikovurdering, præventionsguide, MRS-scoring og osteoporose — beslutningsstøtte til almen praksis.",
   "lang": "da",
   "start_url": "oversigt.html",
   "scope": "./",

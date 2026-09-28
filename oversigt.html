@@ -96,6 +96,7 @@
   }
   @media (max-width: 720px) { .grid { grid-template-columns: minmax(0, 1fr); } }
   .tool-wide { grid-column: 1 / -1; }
+  .section-title { margin: 8px 0 -12px; font-size: 1.1rem; color: var(--primary-dark); }
 
   .tool {
     background: var(--surface);
@@ -169,9 +170,10 @@
   <header>
     <p class="eyebrow">Almen praksis · danske forhold</p>
     <h1>Klinikværktøjer til kvindesundhed</h1>
-    <p class="lede">Fem små webapps til konsultationen. De kører direkte i browseren, kræver ingen installation, og intet sendes nogen steder hen.</p>
+    <p class="lede">Ni små webapps til konsultationen — hormoner, prævention og knoglesundhed. De kører direkte i browseren, kræver ingen installation, og intet sendes nogen steder hen.</p>
   </header>
 
+  <h2 class="section-title">Klimakteriet og prævention</h2>
   <div class="grid">
     <article class="tool">
       <div class="tool-head"><span class="kind">Beslutningsstøtte</span><span class="who">Til lægen</span></div>
@@ -240,6 +242,58 @@
 
   </div>
 
+  <h2 class="section-title">Knoglesundhed</h2>
+  <div class="grid">
+    <article class="tool">
+      <div class="tool-head"><span class="kind">Beslutningsstøtte</span><span class="who">Til lægen</span></div>
+      <h2>Osteoporose</h2>
+      <p class="use">DXA-indikation, behandlingsindikation ud fra brud og T-score, præparatvalg ud fra nyrefunktion og tolerans, udredning før opstart, varighed og journalnotat.</p>
+      <p class="basis">DSAM 2024 · DES NBV 2025 · Medicinrådet</p>
+      <div class="actions">
+        <a class="btn btn-open" href="osteoporose.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-osteo" data-url="osteoporose.html">Kopiér link</button>
+        <span class="copied" aria-live="polite"></span>
+      </div>
+      <span class="url"></span>
+    </article>
+    <article class="tool">
+      <div class="tool-head"><span class="kind">Risikovurdering</span><span class="who">Til lægen og patienten</span></div>
+      <h2>Frakturrisiko og NNT</h2>
+      <p class="use">Patientens FRAX-risiko omregnet til brud pr. 1.000 over 5 år med og uden behandling, NNT, 1.000-personers figur og bivirkninger i absolutte tal.</p>
+      <p class="basis">FRAX · Cochrane 2025 · FIT · HORIZON · FREEDOM</p>
+      <div class="actions">
+        <a class="btn btn-open" href="fraktur.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-fraktur" data-url="fraktur.html">Kopiér link</button>
+        <span class="copied" aria-live="polite"></span>
+      </div>
+      <span class="url"></span>
+    </article>
+    <article class="tool">
+      <div class="tool-head"><span class="kind">Opfølgning</span><span class="who">Til lægen</span></div>
+      <h2>Opfølgningsplan</h2>
+      <p class="use">Datoer for kontrol, DXA, revurdering og behandlingspause — og for denosumab næste injektion med advarsel ved forsinkelse.</p>
+      <p class="basis">DSAM 2024 · DES NBV · ECTS 2021</p>
+      <div class="actions">
+        <a class="btn btn-open" href="osteoplan.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-plan" data-url="osteoplan.html">Kopiér link</button>
+        <span class="copied" aria-live="polite"></span>
+      </div>
+      <span class="url"></span>
+    </article>
+    <article class="tool">
+      <div class="tool-head"><span class="kind">Huskeskema</span><span class="who">Til lægen</span></div>
+      <h2>Osteoporose-huskeskema</h2>
+      <p class="use">Tolv principper for udredning, opstart og sikker langtidsbehandling, effekt i tal og hvornår man henviser.</p>
+      <p class="basis">DSAM 2024 · DES NBV · FIT · HORIZON · FREEDOM</p>
+      <div class="actions">
+        <a class="btn btn-open" href="osteohuskeskema.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-ohusk" data-url="osteohuskeskema.html">Kopiér link</button>
+        <span class="copied" aria-live="polite"></span>
+      </div>
+      <span class="url"></span>
+    </article>
+  </div>
+
   <div class="note" role="note">
     <p><strong>Installér som app:</strong> på iPhone åbnes siden i Safari → Del-ikonet → "Føj til hjemmeskærm". På Android åbnes den i Chrome → ⋮ → "Installer app" / "Føj til startskærm". Appen virker også uden internet, når den har været åbnet én gang.</p>
   </div>
@@ -249,7 +303,7 @@
     <p>Der indtastes ingen personhenførbare oplysninger, og intet gemmes eller sendes.</p>
   </div>
 
-  <footer>Uafhængige hjælpeværktøjer — ikke officielle publikationer fra Sundhedsstyrelsen, DSOG eller øvrige nævnte kilder. Senest opdateret 27. september 2026.</footer>
+  <footer>Uafhængige hjælpeværktøjer — ikke officielle publikationer fra Sundhedsstyrelsen, DSOG eller øvrige nævnte kilder. Senest opdateret 28. september 2026.</footer>
 </div>
 
 <script>

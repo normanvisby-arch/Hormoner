@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Osteoporose — beslutningsstøtte</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b6e5f">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Klinikværktøjer">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🦴</span>
+      <div>
+        <h1>Osteoporose — udredning og behandling</h1>
+        <p class="subtitle">DXA-indikation, behandlingsindikation, præparatvalg og opstart i almen praksis</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="oversigt.html">Oversigt</a>
+  <span aria-current="page">Osteoporose</span>
+  <a href="fraktur.html">Frakturrisiko</a>
+  <a href="osteoplan.html">Opfølgningsplan</a>
+  <a href="osteohuskeskema.html">Huskeskema</a>
+  <a href="index.html">Klimakterieguide</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Hurtig klinisk huskeseddel bygget på DSAM's kliniske vejledning (2024), Dansk Endokrinologisk Selskabs NBV og Medicinrådets basisliste — erstatter ikke den kliniske vurdering eller opslag på pro.medicin.dk. Behandlingsbeslutningen træffes sammen med patienten.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se anbefaling ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patientens data</h2>
+
+    <fieldset class="field">
+      <legend>Patientgruppe</legend>
+      <label class="radio"><input type="radio" name="gruppe" value="kvinde" checked> Postmenopausal kvinde</label>
+      <label class="radio"><input type="radio" name="gruppe" value="mand"> Mand ≥ 60 år</label>
+      <label class="radio"><input type="radio" name="gruppe" value="ung"> Præmenopausal kvinde eller mand under 60 år</label>
+    </fieldset>
+
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="18" max="110" placeholder="fx 68">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+
+    <fieldset class="field">
+      <legend>Lavenergibrud (fald fra egen højde eller mindre)</legend>
+      <label class="checkbox"><input type="checkbox" name="brud" value="hofte"> Hoftebrud</label>
+      <label class="checkbox"><input type="checkbox" name="brud" value="ryg"> Brud i ryggen (sammenfald af hvirvel)</label>
+      <label class="checkbox"><input type="checkbox" name="brud" value="ryg2"> To eller flere sammenfald i ryggen (&gt; 25 %)</label>
+      <label class="checkbox"><input type="checkbox" name="brud" value="rygny"> Nyt sammenfald i ryggen inden for 3 år (&gt; 25 %)</label>
+      <label class="checkbox"><input type="checkbox" name="brud" value="andet"> Andet lavenergibrud efter 50 år (underarm, overarm, bækken, ribben)</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>DXA-skanning</legend>
+      <label class="radio"><input type="radio" name="dxa" value="nej" checked> Ikke foretaget</label>
+      <label class="radio"><input type="radio" name="dxa" value="ja"> Foretaget — laveste T-score:</label>
+      <input type="number" id="tscore" min="-7" max="4" step="0.1" placeholder="fx -2,7" aria-label="Laveste T-score (ryg, total hofte eller lårbenshals)" disabled>
+      <p class="field-hint">Laveste værdi af lænderyg, total hofte og lårbenshals. Z-score kan ikke bruges til behandlingsindikation.</p>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Risikofaktorer</legend>
+      <label class="checkbox"><input type="checkbox" name="rf" value="prednisolon"> Prednisolon ≥ 5 mg dagligt i ≥ 3 måneder (aktuelt eller planlagt)</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="aromatase"> Aromatasehæmmer (brystkræft)</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="tidligmeno"> Menopause før 45 år</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="lavbmi"> BMI under 19 eller betydeligt vægttab</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="ryger"> Ryger</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="alkohol"> Stort alkoholforbrug</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="arv"> Hoftebrud hos forælder</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="fald"> Faldtendens (1–2 fald om året eller flere)</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="sekundaer"> Sygdom med øget risiko (fx leddegigt, hyperthyreose, hyperparathyreoidisme, malabsorption/cøliaki, type 1-diabetes)</label>
+    </fieldset>
+
+    <div class="field">
+      <label for="egfr">eGFR (ml/min/1,73 m²)</label>
+      <input type="number" id="egfr" min="5" max="150" placeholder="fx 72">
+      <p class="field-hint">Bestemmer, hvilke præparater der kan bruges.</p>
+    </div>
+
+    <fieldset class="field">
+      <legend>Forhold ved valg af præparat</legend>
+      <label class="checkbox"><input type="checkbox" name="forhold" value="oraluegnet"> Tabletter uegnede (øsofagussygdom, kan ikke sidde oprejst 30 min, malabsorption)</label>
+      <label class="checkbox"><input type="checkbox" name="forhold" value="oralbivirk"> Gener eller manglende adhærens ved alendronat</label>
+      <label class="checkbox"><input type="checkbox" name="forhold" value="tand"> Dårlig tandstatus, ingen tandlægekontakt eller planlagt tandkirurgi</label>
+      <label class="checkbox"><input type="checkbox" name="forhold" value="dmangel"> Kendt D-vitaminmangel eller lavt calcium</label>
+      <label class="checkbox"><input type="checkbox" name="forhold" value="klimakteriegener"> Generende klimakterielle gener (kvinde under 60 år)</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Anbefaling" id="resultPanel">
+    <h2>2. Anbefaling</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld anbefaling</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>DSAM — Klinisk vejledning for almen praksis: Osteoporose (2024): DXA-indikationer, behandlingsindikation, præparatrækkefølge og behandlingspause</li>
+    <li>Dansk Endokrinologisk Selskab — NBV Osteoporose (revideret 2025) og NBV Glukokortikoid-induceret osteoporose</li>
+    <li>Medicinrådet — basisliste for osteoporose (alendronat førstevalg; calcium og D-vitamin)</li>
+    <li>Lægemiddelstyrelsen / pro.medicin.dk — tilskud, nyregrænser og dosering (alendronat og zoledronsyre ikke ved eGFR &lt; 35; risedronat ikke ved eGFR &lt; 30)</li>
+    <li>ECTS (2021) — håndtering af ophør med denosumab</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra DSAM, DES eller Medicinrådet. Primærdokumenterne kunne ikke tilgås direkte ved udviklingen; kriterierne er kontrolleret via sekundære kilder og skal verificeres i de gældende vejledninger. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="osteoporose.js"></script>
+<script src="pwa.js"></script>
+</body>
+</html>
