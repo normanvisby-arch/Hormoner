@@ -1,0 +1,56 @@
+const { chromium } = require('playwright');
+// Kør via tests/run_all.sh (starter en lokal server). BASE_URL kan pege på en anden server.
+const ROOT = process.env.BASE_URL || 'http://localhost:8795/';
+const SHOTS = process.env.SHOT_DIR || require('os').tmpdir() + '/';
+const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
+const BASE = process.env.BASE || ROOT + 'fraktur.html';
+(async () => {
+  const b = await chromium.launch({ executablePath: CHROMIUM });
+  const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(BASE).origin });
+  const p = await ctx.newPage(); const errors = []; p.on('pageerror', (e) => errors.push(String(e)));
+  let fails = 0; const check = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + x : '')); if (!c) fails++; };
+  const fresh = async () => { await p.goto(BASE); await p.waitForTimeout(120); };
+  const out = async () => p.locator('#output').innerText();
+  const card = async (t) => { const c = p.locator('.risk-card', { has: p.locator('h3', { hasText: new RegExp('^' + t + '$') }) }); return (await c.count()) ? c.innerText() : null; };
+
+  await fresh(); let o = await out();
+  check('1 empty -> prompt + trials + harms', o.includes('Indtast patientens FRAX-resultat') && o.includes('Effekten i de store studier') && o.includes('Bivirkninger'));
+  await p.fill('#mof', '20'); o = await out();
+  check('2 MOF 20 -> 5y 106/1000', (await card('Større osteoporotiske brud')).includes('ca. 106 af 1.000'));
+  check('2 NNT ≈ 30 (25–45)', o.includes('NNT ≈ 30 (25–45)'), o.match(/NNT[^\n]*/)?.[0]);
+  check('2 treated 74, prevented 32', (await card('Større osteoporotiske brud')).includes('ca. 74 af 1.000') && o.includes('ca. 32 brud forebygges'));
+  check('2 icon array counts', (await p.locator('.ia-saved.ia-cell').count()) === 32 && (await p.locator('.ia-base.ia-cell').count()) === 74);
+  check('2 no hip card yet + hint', (await card('Hoftebrud')) === null && o.includes('Indtast også FRAX-risikoen for hoftebrud'));
+  await p.fill('#hip', '5'); o = await out();
+  check('3 hip 25,3 -> NNT ≈ 100 (80–130)', (await card('Hoftebrud')).includes('ca. 25 af 1.000') && (await card('Hoftebrud')).includes('NNT ≈ 100 (80–130)'), (await card('Hoftebrud')).split('\n').slice(0,3).join('|'));
+  check('3 summary green', o.includes('Samlet: gevinst ved behandling'));
+  await p.fill('#hip', '25'); o = await out(); check('4 hip > MOF warning', (await p.locator('#hipWarning').innerText()).includes('kan ikke være højere') && o.includes('Indtast patientens FRAX'));
+  await p.fill('#hip', ''); await p.fill('#mof', '95'); check('5 out of range', (await p.locator('#mofWarning').innerText()).includes('mellem 0 og 90'));
+  await fresh(); await p.fill('#mof', '10'); await p.fill('#hip', '2'); await p.check('input[name="status"][value="osteopeni"]'); o = await out();
+  check('6 osteopeni -> ≥ 80, amber, hip usikker', o.includes('NNT ≥ 80') && o.includes('Samlet: usikker gevinst') && (await card('Hoftebrud')).includes('NNT: –'), o.match(/NNT[^\n]*/)?.[0]);
+  await fresh(); await p.fill('#mof', '4'); o = await out(); check('7 low risk MOF 4 -> NNT', /NNT ≈ \d+/.test(o), o.match(/NNT ≈[^\n]*/)?.[0]);
+  await p.fill('#mof', '0.5'); o = await out(); check('7b tiny risk decimals', (await card('Større osteoporotiske brud')).includes('ca. 2,5 af 1.000'));
+  await fresh(); await p.fill('#mof', '20'); await p.check('input[name="rf"][value="nyligt"]'); await p.check('input[name="rf"][value="fald"]'); o = await out();
+  check('8 FRAX undervurderer box', o.includes('Risikoen er formentlig højere end FRAX angiver') && o.includes('imminent'));
+  // Trial table
+  const tr = await p.locator('details').first().evaluate((d) => { d.open = true; return d.innerText; });
+  check('9 trial NNTs', tr.includes('15,0 % → 8,0 %') && /Hoftebrud\s+2,5 % → 1,4 %\s+90/.test(tr) && /Brud uden for ryggen\s+8,0 % → 6,5 %\s+65/.test(tr), '');
+  check('9 highlight alendronat', (await p.locator('tr.row-highlight').count()) === 2);
+  await p.check('input[name="drug"][value="denosumab"]'); o = await out();
+  check('10 denosumab harms rebound', o.includes('Rebound ved ophør') || (await p.locator('details').nth(1).evaluate((d) => d.textContent)).includes('Rebound'));
+  check('10 highlight denosumab rows', (await p.locator('tr.row-highlight').count()) === 3);
+  await p.check('input[name="drug"][value="alendronat"]');
+  const harms = await p.locator('details').nth(1).evaluate((d) => d.textContent); check('11 ONJ NNH', harms.includes('NNH ca. 2.000–20.000') && harms.includes('149 hoftebrud'));
+  await p.fill('#hip', '5');
+  await p.click('#copyBtn'); await p.waitForTimeout(150); const note = await p.evaluate(() => navigator.clipboard.readText()); console.log('---\n' + note + '\n---');
+  check('12 journal', note.includes('FRAX 10 år: større osteoporotisk brud 20 %, hoftebrud 5 %') && note.includes('NNT ≈ 30 (25–45)') && note.includes('brud inden for 2 år'));
+  await p.click('#copyFullBtn'); await p.waitForTimeout(150); const full = await p.evaluate(() => navigator.clipboard.readText());
+  check('12 full text', full.includes('NUMBER NEEDED TO TREAT') && full.includes('NNT ≈ 30 (25–45): Behandles ca. 30') && full.includes('FIT (alendronat)'));
+  await p.click('#resetBtn'); o = await out(); check('13 reset', (await p.inputValue('#mof')) === '' && o.includes('Indtast patientens FRAX'));
+  const m = await ctx.newPage(); await m.setViewportSize({ width: 390, height: 844 }); await m.goto(BASE); await m.fill('#mof', '20'); await m.fill('#hip', '5'); await m.waitForTimeout(100);
+  check('14 mobile no overflow', (await m.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+  await m.locator('#resultPanel').screenshot({ path: SHOTS + 'fraktur_mobile.png' });
+  check('JS errors', errors.length === 0, JSON.stringify(errors));
+  console.log('FAILS:', fails); await b.close();
+})();
