@@ -5,6 +5,14 @@ til brug ved konsultationen — med konkrete eksempler på præparater der er ti
 De kan installeres som app på telefonen (se "Installér som app" nedenfor):
 
 - **`oversigt.html`** — startside med alle værktøjer; appens forside.
+- **Osteoporose (knoglesundhed):**
+  - **`osteoporose.html`** — DXA-indikation, behandlingsindikation (brud og T-score), præparatvalg
+    ud fra nyrefunktion og tolerans, udredning før opstart, varighed og journalnotat.
+  - **`fraktur.html`** — frakturrisiko og NNT: patientens FRAX-resultat omregnet til brud pr.
+    1.000 over 5 år med og uden behandling, 1.000-personers figur og bivirkninger.
+  - **`osteoplan.html`** — opfølgningsplan med datoer for kontrol, DXA, revurdering, pause og
+    denosumab-injektioner (advarsel ved forsinkelse).
+  - **`osteohuskeskema.html`** — tolv principper, effekt i tal og henvisningskriterier.
 - **`huskeskema.html`** — MHT-huskeskema: tolv principper for lavest mulig risiko, afvejningen
   mellem kontinuerlig og sekventiel behandling, de skift der flytter risikoen mest, og hvornår
   man skal konferere.
@@ -35,6 +43,34 @@ printvenlig version med tidsstempel.
 Blødningskalenderen er anderledes: den er lavet til at bruges over uger/måneder, og gemmer derfor
 data lokalt i browserens `localStorage` mellem besøg (se afsnittet "Blødningskalender" nedenfor
 for hvad det betyder i praksis).
+
+## Osteoporose — logik og datagrundlag
+
+**Behandlingsguiden** (`osteoporose.js`) følger DSAM (2024) og DES' NBV (2025):
+- Lavenergibrud i hofte eller ryg → behandling uanset T-score. T-score ≤ −4,0 → behandling.
+  T-score ≤ −2,5 med mindst én risikofaktor (eller andet lavenergibrud) → behandling; uden
+  risikofaktorer → individuel vurdering med FRAX. Ved glukokortikoid → behandling allerede ved
+  T-score ≤ −1,0 (DES; tjek dosisgrænsen). Osteopeni med andet lavenergibrud → individuel vurdering.
+- Uden DXA: DXA ved prednisolon ≥ 5 mg i ≥ 3 mdr., aromatasehæmmer, lavenergibrud efter 50 år
+  eller mindst 2 øvrige risikofaktorer — og kun hvis patienten vil overveje behandling.
+- Præparat: alendronat 1. valg; zoledronsyre 2. og denosumab 3. valg ved problemer med tabletter.
+  eGFR < 35: ikke alendronat/zoledronsyre (risedronat ned til 30); eGFR < 30: specialist.
+  Meget høj risiko (≥ 2 sammenfald i ryggen, eller nyt sammenfald og T ≤ −3,0): henvis mhp.
+  anabol behandling. Kvinder under 60 med klimakterielle gener: MHT som mulighed.
+- Varighed: revurdering efter 5 år (tabletter) / 3 år (zoledronsyre); pause ved hofte-T-score
+  > −2,5 og ingen nye brud; denosumab stoppes aldrig uden efterbehandling (zoledronsyre efter 6 mdr.).
+
+**Frakturrisiko og NNT** (`fraktur.js`): 5-års risiko = 1 − √(1 − FRAX 10-års risiko).
+Relativ risiko med behandling: større osteoporotiske brud 0,7 (0,6–0,8), hoftebrud 0,6 (0,5–0,7)
+(Cochrane 2025; FIT, HORIZON, FREEDOM). Ved osteopeni uden brud bruges Cochranes
+primærforebyggelse: større brud 0,89 (0,76–1,0), ingen sikker effekt på hoftebrud. NNT = 1.000 ÷
+forebyggede brud pr. 1.000, afrundet som NNH i MHT-værktøjet. Bivirkninger: kæbenekrose ca. 1 pr.
+10.000–100.000 behandlingsår ved tabletter (ASBMR); ca. 149 forebyggede hoftebrud pr. 2 atypiske
+lårbensbrud efter 3 år (Black 2020).
+
+**Forbehold:** DSAM-, DES- og Medicinrådets dokumenter kunne ikke tilgås direkte; kriterierne er
+kontrolleret via sekundære kilder og skal verificeres. FRAX er beskyttet og kan ikke indbygges —
+brugeren indtaster resultatet fra den officielle beregner.
 
 ## Installér som app
 
@@ -319,6 +355,14 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**28. september 2026 — nyt område: osteoporose (knoglesundhed):**
+- Fire nye værktøjer: behandlingsguide, frakturrisiko og NNT, opfølgningsplan og huskeskema.
+- Oversigten har en ny sektion "Knoglesundhed"; service workeren cacher de nye sider (v2).
+- Klimakterieguidens knogleboks linker til osteoporose-guiden.
+- Egen audit: glukokortikoid-tærsklen markeret som dosisafhængig, zoledronsyre gives oftest i
+  hospitalsregi, denosumab har klausuleret tilskud, og osteopeni uden brud får et forsigtigt
+  effektskøn ("usikker gevinst") i stedet for de effekter, der ses ved osteoporose.
 
 **28. september 2026 — installerbar app (PWA) og GitHub Pages:**
 - Ny startside `oversigt.html` og nyt `huskeskema.html` (samme indhold som de publicerede versioner).

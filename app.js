@@ -21,6 +21,7 @@
   const printMeta = document.getElementById("printMeta");
 
   const RISIKO_URL = "risiko.html";
+  const OSTEO_URL = "osteoporose.html";
 
   form.addEventListener("input", update);
   form.addEventListener("change", update);
@@ -327,7 +328,7 @@
       html += box(
         "box-blue",
         "Knogler",
-        `<p>MHT forebygger knogletab og reducerer frakturrisikoen og kan være førstevalg til forebyggelse hos kvinder under 60 år med klimakterielle gener${poiEllerTidlig ? " — og er særligt vigtig ved POI/tidlig menopause" : ""}. Effekten aftager efter ophør, så knoglestatus og evt. anden osteoporosebehandling bør vurderes ved seponering.</p>`
+        `<p>MHT forebygger knogletab og reducerer frakturrisikoen og kan være førstevalg til forebyggelse hos kvinder under 60 år med klimakterielle gener${poiEllerTidlig ? " — og er særligt vigtig ved POI/tidlig menopause" : ""}. Effekten aftager efter ophør, så knoglestatus og evt. anden osteoporosebehandling bør vurderes ved seponering. Udredning og behandling af osteoporose: se <a href="${OSTEO_URL}" target="_blank" rel="noopener">Osteoporose-guiden</a>.</p>`
       );
     }
     return html;

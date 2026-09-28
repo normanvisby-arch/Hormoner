@@ -250,7 +250,8 @@ body {
   padding: 0;
 }
 
-.field input[type="number"] {
+.field input[type="number"],
+.field input[type="date"] {
   width: 100%;
   max-width: 140px;
   padding: 0.4rem 0.6rem;
@@ -428,6 +429,7 @@ body {
   --ia-base: #2a78d6;
   --ia-extra: #eb6834;
   --ia-none: #dde3e8;
+  --ia-saved: #1e9e63;
   margin: 0.6rem 0 0.2rem;
   background: var(--color-panel);
   border-radius: 6px;
@@ -443,6 +445,8 @@ body {
 .ia-base { background: var(--ia-base); }
 .ia-extra { background: var(--ia-extra); }
 .ia-none { background: var(--ia-none); }
+.ia-saved { background: var(--ia-saved); }
+.field input[type="date"] { max-width: 190px; }
 .ia-legend {
   display: flex;
   flex-wrap: wrap;

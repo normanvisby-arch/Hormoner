@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frakturrisiko og NNT</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b6e5f">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Klinikværktøjer">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">⚖</span>
+      <div>
+        <h1>Frakturrisiko og effekt af behandling</h1>
+        <p class="subtitle">Brud pr. 1.000 kvinder over 5 år med og uden behandling — ud fra patientens FRAX-resultat</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="oversigt.html">Oversigt</a>
+  <a href="osteoporose.html">Osteoporose</a>
+  <span aria-current="page">Frakturrisiko</span>
+  <a href="osteoplan.html">Opfølgningsplan</a>
+  <a href="osteohuskeskema.html">Huskeskema</a>
+  <a href="index.html">Klimakterieguide</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Sådan bruges siden:</strong> Beregn patientens 10-års risiko i <a href="https://frax.shef.ac.uk/FRAX/" target="_blank" rel="noopener">FRAX</a> (vælg Danmark, gerne med T-score fra lårbenshalsen), og indtast resultatet her. Siden omregner til 5 år og anvender den relative risikoreduktion fra de store studier. Det er et skøn til den fælles beslutning — ikke en valideret individuel model.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se resultat ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="FRAX og behandling" onsubmit="return false;">
+    <h2>1. FRAX og behandling</h2>
+
+    <div class="field">
+      <label for="mof">FRAX: 10-års risiko for større osteoporotisk brud (%)</label>
+      <input type="number" id="mof" min="0" max="90" step="0.1" placeholder="fx 18">
+      <span class="input-warning" id="mofWarning" aria-live="polite"></span>
+      <p class="field-hint">Hofte, ryg (klinisk), underarm eller overarm.</p>
+    </div>
+
+    <div class="field">
+      <label for="hip">FRAX: 10-års risiko for hoftebrud (%)</label>
+      <input type="number" id="hip" min="0" max="90" step="0.1" placeholder="fx 5">
+      <span class="input-warning" id="hipWarning" aria-live="polite"></span>
+    </div>
+
+    <fieldset class="field">
+      <legend>Knoglestatus</legend>
+      <label class="radio"><input type="radio" name="status" value="brud" checked> Tidligere lavenergibrud (fx hofte, ryg, underarm)</label>
+      <label class="radio"><input type="radio" name="status" value="osteoporose"> Osteoporose på DXA (T-score ≤ −2,5), ingen brud</label>
+      <label class="radio"><input type="radio" name="status" value="osteopeni"> Osteopeni (T-score −1 til −2,5), ingen brud</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Behandling</legend>
+      <label class="radio"><input type="radio" name="drug" value="alendronat" checked> Alendronat (tablet ugentligt)</label>
+      <label class="radio"><input type="radio" name="drug" value="zoledronsyre"> Zoledronsyre (infusion årligt)</label>
+      <label class="radio"><input type="radio" name="drug" value="denosumab"> Denosumab (injektion hver 6. måned)</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Forhold FRAX undervurderer</legend>
+      <label class="checkbox"><input type="checkbox" name="rf" value="nyligt"> Brud inden for de seneste 2 år</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="flere"> Flere tidligere brud eller flere sammenfald i ryggen</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="fald"> Faldtendens</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="prednisolon"> Prednisolon over 7,5 mg dagligt</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="ryglav"> T-score i ryggen markant lavere end i lårbenshalsen</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="t2d"> Type 2-diabetes</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Resultat" id="resultPanel">
+    <h2>2. Risiko og effekt</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld vurdering</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>FRAX (University of Sheffield) — 10-års risiko for større osteoporotisk brud og hoftebrud; dansk model</li>
+    <li>Cochrane (Wells m.fl., 2025) — alendronat: hoftebrud RR 0,60; sekundær forebyggelse: ikke-vertebrale brud RR 0,77, vertebrale RR 0,55; primær forebyggelse: ingen sikker effekt på ikke-vertebrale brud (RR 0,89) og hoftebrud</li>
+    <li>FIT (Black m.fl., <em>Lancet</em> 1996), HORIZON (Black m.fl., <em>NEJM</em> 2007) og FREEDOM (Cummings m.fl., <em>NEJM</em> 2009) — frakturforekomst med og uden behandling over 3 år</li>
+    <li>Black m.fl., <em>NEJM</em> 2020 — atypiske lårbensbrud mod forebyggede hoftebrud; ASBMR — kæbenekrose</li>
+    <li>DSAM (2024) og DES NBV — behandling og varighed</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en valideret individuel risikomodel. 5-års risikoen er omregnet fra FRAX' 10-års risiko under antagelse af jævn risiko over tid, og den relative risikoreduktion er taget fra studier af kvinder med osteoporose eller tidligere brud. Primærdokumenterne kunne ikke tilgås direkte ved udviklingen; tallene er kontrolleret via abstracts og sekundære kilder. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="fraktur.js"></script>
+<script src="pwa.js"></script>
+</body>
+</html>
