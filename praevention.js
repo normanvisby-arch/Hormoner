@@ -23,7 +23,6 @@
   const nodCheckbox = document.getElementById("nodPraevention");
   const nodTimingWrap = document.getElementById("nodTimingWrap");
 
-  const BLOEDNINGSKALENDER_URL = "bloedningskalender.html";
   const KLIMAKTERIE_URL = "index.html";
 
   form.addEventListener("input", update);
@@ -228,7 +227,7 @@
       `<ul class="followup-list">
         <li>P-piller/plaster/ring: kontrol efter ca. 3 måneder (bivirkninger, blodtryk, compliance), derefter årligt med blodtryk og opdateret VTE-anamnese.</li>
         <li>Spiral: kontrol af tråde efter 4–6 uger efter lokal praksis; informér om udskiftningstidspunkt og notér det i journalen. Det samme gælder implantat.</li>
-        <li>Uregelmæssig blødning er den hyppigste årsag til henvendelse — forvent pletblødning de første 3–6 måneder, især ved gestagen-only metoder. Ved vedvarende blødning: udeluk graviditet og klamydia, og overvej <a href="${BLOEDNINGSKALENDER_URL}" target="_blank" rel="noopener">Blødningskalenderen</a> til at kortlægge mønsteret (se også DSAM's vejledning om blødningsforstyrrelser).</li>
+        <li>Uregelmæssig blødning er den hyppigste årsag til henvendelse — forvent pletblødning de første 3–6 måneder, især ved gestagen-only metoder. Ved vedvarende blødning: udeluk graviditet og klamydia, og overvej en blødningskalender til at kortlægge mønsteret (se også DSAM's vejledning om blødningsforstyrrelser).</li>
       </ul>`
     );
   }
@@ -511,7 +510,7 @@
       html += box(
         "box-blue",
         "Kraftige eller smertefulde menstruationer",
-        `<p>Mirena reducerer blødningen mest og er ofte førstevalg; kombinerede p-piller (gerne i forlænget regime) hjælper også. Kobberspiral kan forværre generne. Ved nyopståede eller tiltagende gener: udred (hæmoglobin, evt. ferritin, gynækologisk undersøgelse) — <a href="${BLOEDNINGSKALENDER_URL}" target="_blank" rel="noopener">Blødningskalenderen</a> kan kortlægge mønsteret.</p>`
+        `<p>Mirena reducerer blødningen mest og er ofte førstevalg; kombinerede p-piller (gerne i forlænget regime) hjælper også. Kobberspiral kan forværre generne. Ved nyopståede eller tiltagende gener: udred (hæmoglobin, evt. ferritin, gynækologisk undersøgelse) — en blødningskalender kan kortlægge mønsteret.</p>`
       );
     }
 
