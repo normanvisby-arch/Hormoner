@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 // Kør via tests/run_all.sh. Indlæser alle sider og fejler ved JavaScript-fejl eller vandret scroll på mobil.
 const ROOT = process.env.BASE_URL || 'http://localhost:8795/';
 const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
-const PAGES = ['oversigt.html', 'index.html', 'risiko.html', 'huskeskema.html', 'praevention.html', 'mrs.html', 'bloedningskalender.html', 'osteoporose.html', 'fraktur.html', 'osteoplan.html', 'osteohuskeskema.html'];
+const PAGES = ['oversigt.html', 'index.html', 'risiko.html', 'huskeskema.html', 'praevention.html', 'mrs.html', 'bloedningskalender.html', 'osteoporose.html', 'fraktur.html', 'osteoplan.html', 'osteohuskeskema.html', 'hjerte/index.html', 'hjerte/cvrisiko.html', 'hjerte/af.html', 'hjerte/huskeskema.html'];
 (async () => {
   const b = await chromium.launch({ executablePath: CHROMIUM });
   let fails = 0;
