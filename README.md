@@ -1,5 +1,8 @@
 # Hormoner — beslutningsstøtte for praktiserende læge
 
+> **To selvstændige apps:** kvindesundhed (repoets rod, startside `oversigt.html`) og
+> **hjerte-kar** (mappen `hjerte/`, startside `hjerte/index.html` — se afsnittet "Hjerte-kar").
+
 Lette, statiske webapps der giver den praktiserende læge en hurtig, struktureret anbefaling
 til brug ved konsultationen — med konkrete eksempler på præparater der er tilgængelige i Danmark.
 De kan installeres som app på telefonen (se "Installér som app" nedenfor):
@@ -71,6 +74,33 @@ lårbensbrud efter 3 år (Black 2020).
 **Forbehold:** DSAM-, DES- og Medicinrådets dokumenter kunne ikke tilgås direkte; kriterierne er
 kontrolleret via sekundære kilder og skal verificeres. FRAX er beskyttet og kan ikke indbygges —
 brugeren indtaster resultatet fra den officielle beregner.
+
+## Hjerte-kar (`hjerte/`) — logik og datagrundlag
+
+Selvstændig app med eget manifest, ikon og service worker (installeres fra
+`https://normanvisby-arch.github.io/Hormoner/hjerte/`).
+
+- **`cvrisiko.html`**: 10-års risiko for hjerte-kar-død, ikke-dødeligt AMI og apopleksi med
+  SCORE2 (40–69 år), SCORE2-OP (70–89 år, inkl. diabetes) og SCORE2-Diabetes (type 2-diabetes,
+  40–69 år; HbA1c, eGFR, alder ved diagnose), alle kalibreret til ESC's lavrisikoregion.
+  Koefficienter fra de publicerede algoritmer (*Eur Heart J* 2021/2023), kontrolleret mod
+  R-pakken RiskScorescvd og Python-pakken cvd-risk (300 tilfældige tilfælde, afvigelse < 10⁻¹³) og
+  de publicerede regneeksempler (6,3 / 4,3 / 18,6 / 15,2 / 8,4 %). Danske tærskler (DCS):
+  medicin ofte indiceret ved > 5 % (40–59 år), > 7,5 % (60–69), > 10 % (70–75), individuelt
+  over 75; ESC-kategorien vises til orientering. Bruges ikke ved kendt hjerte-kar-sygdom,
+  familiær hyperkolesterolæmi, kronisk nyresygdom eller diabetes med organskade. Effekt: CTT
+  (RR 0,78 pr. mmol/l LDL; moderat statin −35 %, høj −50 %) × BPLTTC (RR 0,90 pr. 5 mmHg) →
+  NNT over 10 år og 1.000-personers figur.
+- **`af.html`**: CHA₂DS₂-VA (ESC 2024/DCS; ≥ 2 anbefales, 1 overvejes), CHA₂DS₂-VASc til
+  sammenligning, HAS-BLED som støtte (ikke grund til at undlade AK), kreatininclearance
+  (Cockcroft-Gault), dosis og status for apixaban, rivaroxaban, edoxaban og dabigatran efter
+  produktresuméerne, interaktioner og kontrolinterval (EHRA: clearance/10 måneder, 6 måneder fra
+  75 år, ellers årligt). VKA ved mekanisk klap/mitralstenose.
+- **`huskeskema.html`**: tolv principper, effekt i tal (CTT, BPLTTC, Hart 2007, Ruff 2014) og
+  henvisningskriterier.
+
+**Forbehold:** DCS' NBV og EHRA-guiden kunne ikke tilgås direkte; tærskler og doseringsregler er
+kontrolleret via sekundære kilder og produktresuméer.
 
 ## Installér som app
 
@@ -364,6 +394,12 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**28. september 2026 — ny selvstændig app: hjerte-kar (`hjerte/`):**
+- CV-risiko (SCORE2/SCORE2-OP/SCORE2-Diabetes med danske tærskler og NNT), antikoagulation ved
+  atrieflimren (CHA₂DS₂-VA, DOAK-dosis, interaktioner, kontrol) og huskeskema; egen startside,
+  manifest, ikon og offline-cache; testsuiter `cvrisiko`, `af` og `pwa-hjerte`.
+- Byggeværktøjet håndterer nu sider i undermapper og faste artifact-titler.
 
 **28. september 2026 — kvartalsvis opdatering og testinfrastruktur:**
 - Testsuiterne ligger nu i `tests/` med `run_all.sh`; byggeværktøj til de publicerede versioner i
