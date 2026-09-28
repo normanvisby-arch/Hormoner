@@ -1,7 +1,13 @@
 # Hormoner — beslutningsstøtte for praktiserende læge
 
-Fem lette, statiske webapps der giver den praktiserende læge en hurtig, struktureret anbefaling
-til brug ved konsultationen — med konkrete eksempler på præparater der er tilgængelige i Danmark:
+Lette, statiske webapps der giver den praktiserende læge en hurtig, struktureret anbefaling
+til brug ved konsultationen — med konkrete eksempler på præparater der er tilgængelige i Danmark.
+De kan installeres som app på telefonen (se "Installér som app" nedenfor):
+
+- **`oversigt.html`** — startside med alle værktøjer; appens forside.
+- **`huskeskema.html`** — MHT-huskeskema: tolv principper for lavest mulig risiko, afvejningen
+  mellem kontinuerlig og sekventiel behandling, de skift der flytter risikoen mest, og hvornår
+  man skal konferere.
 
 - **`index.html`** — hormonbehandling (MHT) ved klimakterielle symptomer.
 - **`risiko.html`** — individuel risikovurdering ved MHT: absolutte risikotal pr. 1.000 kvinder
@@ -16,7 +22,9 @@ til brug ved konsultationen — med konkrete eksempler på præparater der er ti
   blødningsforstyrrelser, i stil med en klassisk papirvægkalender: hele året i ét skærmbillede i
   stedet for én måned ad gangen, så uregelmæssige mønstre bliver synlige med det samme.
 
-Alle fem værktøjer krydshenviser til hinanden i en lille navigationslinje øverst.
+Værktøjerne krydshenviser til hinanden i en lille navigationslinje øverst (Oversigt,
+Hormonbehandling, Risikovurdering, Huskeskema, Prævention, MRS-scoring). Blødningskalenderen er
+fjernet fra navigationen efter ønske, men filen findes fortsat og kan åbnes direkte.
 
 Hormon-, risiko-, præventions- og MRS-værktøjet kører udelukkende i browseren og gemmer intet (ingen server, ingen data sendes
 nogen steder). Udfyld patientens data i venstre panel, og anbefalingen/scoren opdateres
@@ -27,6 +35,20 @@ printvenlig version med tidsstempel.
 Blødningskalenderen er anderledes: den er lavet til at bruges over uger/måneder, og gemmer derfor
 data lokalt i browserens `localStorage` mellem besøg (se afsnittet "Blødningskalender" nedenfor
 for hvad det betyder i praksis).
+
+## Installér som app
+
+Værktøjerne er en installerbar webapp (PWA) med eget ikon, som også virker uden internet:
+
+- **Adresse:** `https://normanvisby-arch.github.io/Hormoner/oversigt.html` (kræver at GitHub Pages
+  er slået til: Settings → Pages → "Deploy from a branch" → `main` / `(root)`).
+- **iPhone:** åbn adressen i Safari → Del-ikonet → "Føj til hjemmeskærm".
+- **Android:** åbn adressen i Chrome → ⋮ → "Installer app" / "Føj til startskærm".
+- `manifest.webmanifest` beskriver appen (navn, ikon, startside `oversigt.html`); `sw.js` gemmer
+  alle filer, så appen virker offline. Netværket prøves først, så opdateringer slår igennem ved
+  næste åbning med forbindelse. Hæv `VERSION` i `sw.js`, når filer tilføjes eller fjernes.
+- Ikonerne i `icons/` er genereret fra `icons/icon.svg` (maskable-varianten har symbolet inden for
+  sikkerhedszonen).
 
 ## Sådan køres appen
 
@@ -41,9 +63,8 @@ Ingen build-trin eller afhængigheder er nødvendige.
   server), vil "Kopiér resumé til journal" sandsynligvis fejle stille, da browserens
   clipboard-API kræver en sikker kontekst (https eller en lokal server) — kør en lokal server som
   ovenfor, eller markér og kopiér teksten manuelt.
-- **Hosting:** filerne (`index.html`, `praevention.html`, `mrs.html`, `bloedningskalender.html`,
-  `risiko.html`, `style.css`, `app.js`, `risiko.js`, `praevention.js`, `mrs.js`, `bloedningskalender.js`) kan deployes som
-  statisk site til fx GitHub Pages, Netlify eller en intern klinikserver. Bemærk at
+- **Hosting:** hele mappen kan deployes som statisk site til fx GitHub Pages (se ovenfor),
+  Netlify eller en intern klinikserver. Service workeren kræver https (eller localhost). Bemærk at
   Blødningskalenderens `localStorage`-data er knyttet til den konkrete URL/domæne den køres på —
   flyttes appen til en anden adresse, følger tidligere registreringer ikke med.
 
@@ -298,6 +319,13 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**28. september 2026 — installerbar app (PWA) og GitHub Pages:**
+- Ny startside `oversigt.html` og nyt `huskeskema.html` (samme indhold som de publicerede versioner).
+- `manifest.webmanifest`, app-ikon (`icons/`), service worker (`sw.js`) til offline-brug og
+  `pwa.js`, der registrerer den; alle sider har app-metadata til iPhone og Android.
+- Fælles navigation med Oversigt og Huskeskema på alle sider; Blødningskalenderen er fjernet fra
+  navigationen og som link i præventionsguiden (teksten anbefaler fortsat en blødningskalender).
 
 **26. september 2026 — ekstern audit af beregninger og kilder i risikovurderingen:**
 - Kontrolleret: brystkræfttal (MHRA 2019: 63 + 5/14/20 ved 5 år, dobbelt ved 10 år), apopleksi

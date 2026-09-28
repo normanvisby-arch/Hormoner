@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Klinikværktøjer til kvindesundhed</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b6e5f">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Klinikværktøjer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6f3;
+    --surface: #ffffff;
+    --border: #dbe2dc;
+    --text: #1c2624;
+    --muted: #5c6b64;
+    --primary: #0b6e5f;
+    --primary-dark: #08554a;
+    --on-primary: #ffffff;
+    --chip-bg: #e7f2ee;
+    --chip-text: #0b5c47;
+    --note-bg: #eaf2fa;
+    --note-border: #a9c9e6;
+    --note-text: #1c4a72;
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101615; --surface: #1a2321; --border: #2c3835;
+      --text: #e7ece9; --muted: #9bb0a8;
+      --primary: #35b79c; --primary-dark: #278d78; --on-primary: #06120f;
+      --chip-bg: #12332a; --chip-text: #a9e6cd;
+      --note-bg: #16273a; --note-border: #35608a; --note-text: #bcd9f5;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101615; --surface: #1a2321; --border: #2c3835;
+    --text: #e7ece9; --muted: #9bb0a8;
+    --primary: #35b79c; --primary-dark: #278d78; --on-primary: #06120f;
+    --chip-bg: #12332a; --chip-text: #a9e6cd;
+    --note-bg: #16273a; --note-border: #35608a; --note-text: #bcd9f5;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 40px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  header { display: flex; flex-direction: column; gap: 8px; max-width: 64ch; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin: 0;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+  .lede { margin: 0; color: var(--muted); font-size: 1.02rem; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  @media (max-width: 720px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .tool-wide { grid-column: 1 / -1; }
+
+  .tool {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tool-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .kind {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--chip-bg);
+    color: var(--chip-text);
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .who { font-size: 0.8rem; color: var(--muted); }
+  .tool h2 { margin: 0; font-size: 1.2rem; line-height: 1.25; }
+  .tool p { margin: 0; }
+  .use { color: var(--text); }
+  .basis {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.74rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    margin-top: auto;
+  }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    font: inherit; font-size: 0.9rem; font-weight: 600;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    text-decoration: none; border: 1px solid transparent;
+  }
+  .btn-open { background: var(--primary); color: var(--on-primary); }
+  .btn-open:hover { background: var(--primary-dark); }
+  .btn-copy { background: var(--surface); color: var(--text); border-color: var(--border); }
+  .btn-copy:hover { background: var(--bg); }
+  .btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .copied { font-size: 0.82rem; color: var(--primary); font-weight: 600; min-width: 5ch; }
+  .url {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    word-break: break-all;
+    user-select: all;
+  }
+
+  .note {
+    background: var(--note-bg);
+    border: 1px solid var(--note-border);
+    color: var(--note-text);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    max-width: 80ch;
+  }
+  .note p { margin: 0; }
+  .note p + p { margin-top: 6px; }
+  footer { font-size: 0.8rem; color: var(--muted); max-width: 80ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Almen praksis · danske forhold</p>
+    <h1>Klinikværktøjer til kvindesundhed</h1>
+    <p class="lede">Fem små webapps til konsultationen. De kører direkte i browseren, kræver ingen installation, og intet sendes nogen steder hen.</p>
+  </header>
+
+  <div class="grid">
+    <article class="tool">
+      <div class="tool-head"><span class="kind">Beslutningsstøtte</span><span class="who">Til lægen</span></div>
+      <h2>Klimakterieguide</h2>
+      <p class="use">Hormonbehandling i klimakteriet: valg af regime, dosis og administrationsvej ud fra uterus, status, kontraindikationer og risikofaktorer. Med ikke-hormonelle alternativer, risikotal til samtalen og kort journalnotat.</p>
+      <p class="basis">NRL 2022 · DSOG 2026 · BMS · NICE · ESHRE (POI)</p>
+      <div class="actions">
+        <a class="btn btn-open" href="index.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-klim" data-url="index.html">Kopiér link</button>
+        <span class="copied" aria-live="polite"></span>
+      </div>
+      <span class="url"></span>
+    </article>
+
+    <article class="tool">
+      <div class="tool-head"><span class="kind">Risikovurdering</span><span class="who">Til lægen og patienten</span></div>
+      <h2>MHT-risikovurdering</h2>
+      <p class="use">Absolutte risikotal pr. 1.000 kvinder for brystkræft, blodpropper, apopleksi og endometriecancer — tilpasset alder, regime, administrationsvej og varighed, med patientens egne risikofaktorer markeret og en figur til samtalen.</p>
+      <p class="basis">MHRA 2019 · WHI · BMJ 2026 · NICE 2024 · Mørch 2016</p>
+      <div class="actions">
+        <a class="btn btn-open" href="risiko.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-risiko" data-url="risiko.html">Kopiér link</button>
+        <span class="copied" aria-live="polite"></span>
+      </div>
+      <span class="url"></span>
+    </article>
+
+    <article class="tool">
+      <div class="tool-head"><span class="kind">Beslutningsstøtte</span><span class="who">Til lægen</span></div>
+      <h2>Præventionsguide</h2>
+      <p class="use">Valg af prævention ud fra kontraindikationer, alder, amning, medicin og præference — plus en hurtig gren for nødprævention. Med glemte piller, opstart, VTE-tal og kort journalnotat.</p>
+      <p class="basis">NRL 2022 · Lægemiddelstyrelsen · EMA · FSRH</p>
+      <div class="actions">
+        <a class="btn btn-open" href="praevention.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-praev" data-url="praevention.html">Kopiér link</button>
+        <span class="copied" aria-live="polite"></span>
+      </div>
+      <span class="url"></span>
+    </article>
+
+    <article class="tool">
+      <div class="tool-head"><span class="kind">Scoringsskema</span><span class="who">Til lægen og patienten</span></div>
+      <h2>MRS-scoring</h2>
+      <p class="use">Menopause Rating Scale: 11 spørgsmål, 0–44 point fordelt på somato-vegetative, psykiske og urogenitale symptomer. Bruges til at kvantificere gener og følge effekten af behandling.</p>
+      <p class="basis">Menopause Rating Scale (ZEG Berlin)</p>
+      <div class="actions">
+        <a class="btn btn-open" href="mrs.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-mrs" data-url="mrs.html">Kopiér link</button>
+        <span class="copied" aria-live="polite"></span>
+      </div>
+      <span class="url"></span>
+    </article>
+
+    <article class="tool tool-wide">
+      <div class="tool-head"><span class="kind">Huskeskema</span><span class="who">Til lægen</span></div>
+      <h2>MHT-huskeskema</h2>
+      <p class="use">Tolv principper, der holder risikoen lavest ved opstart og årlig kontrol: indikation og tidspunkt, østrogen, gestagen og endometrium, varighed og opfølgning. Med de skift, der flytter risikoen mest, og hvornår man skal konferere.</p>
+      <p class="basis">MHRA 2019 · WHI · BMJ 2026 · Mørch 2016 · NRL 2022 · DSOG 2026</p>
+      <div class="actions">
+        <a class="btn btn-open" href="huskeskema.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-husk" data-url="huskeskema.html">Kopiér link</button>
+        <span class="copied" aria-live="polite"></span>
+      </div>
+      <span class="url"></span>
+    </article>
+
+  </div>
+
+  <div class="note" role="note">
+    <p><strong>Installér som app:</strong> på iPhone åbnes siden i Safari → Del-ikonet → "Føj til hjemmeskærm". På Android åbnes den i Chrome → ⋮ → "Installer app" / "Føj til startskærm". Appen virker også uden internet, når den har været åbnet én gang.</p>
+  </div>
+
+  <div class="note" role="note">
+    <p><strong>Til kolleger:</strong> Værktøjerne er hurtige huskesedler til brug i konsultationen. De erstatter ikke den kliniske vurdering, de officielle vejledninger eller opslag på pro.medicin.dk før ordination.</p>
+    <p>Der indtastes ingen personhenførbare oplysninger, og intet gemmes eller sendes.</p>
+  </div>
+
+  <footer>Uafhængige hjælpeværktøjer — ikke officielle publikationer fra Sundhedsstyrelsen, DSOG eller øvrige nævnte kilder. Senest opdateret 27. september 2026.</footer>
+</div>
+
+<script>
+  // Links are relative in the app, so show and copy the full address.
+  document.querySelectorAll(".tool").forEach(function (tool) {
+    var btn = tool.querySelector(".btn-copy");
+    tool.querySelector(".url").textContent = new URL(btn.dataset.url, location.href).href;
+  });
+  document.querySelectorAll(".btn-copy").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var status = btn.parentElement.querySelector(".copied");
+      var url = new URL(btn.dataset.url, location.href).href;
+      var showSelect = function () {
+        var el = btn.closest(".tool").querySelector(".url");
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        status.textContent = "Markeret — kopiér med Ctrl/⌘+C";
+      };
+      try {
+        navigator.clipboard.writeText(url).then(function () {
+          status.textContent = "Kopieret";
+          setTimeout(function () { status.textContent = ""; }, 2000);
+        }, showSelect);
+      } catch (e) {
+        showSelect();
+      }
+    });
+  });
+</script>
+<script src="pwa.js"></script>
+</body>
+</html>

@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MHT-risikovurdering</title>
 <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b6e5f">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Klinikværktøjer">
 </head>
 <body>
 
@@ -25,11 +32,12 @@
 </header>
 
 <nav class="tool-nav">
+  <a href="oversigt.html">Oversigt</a>
   <a href="index.html">Hormonbehandling ved klimakteriet</a>
   <span aria-current="page">Risikovurdering</span>
+  <a href="huskeskema.html">Huskeskema</a>
   <a href="praevention.html">Prævention</a>
   <a href="mrs.html">MRS-scoring</a>
-  <a href="bloedningskalender.html">Blødningskalender</a>
 </nav>
 
 <div class="disclaimer" role="note">
@@ -126,5 +134,6 @@
 </footer>
 
 <script src="risiko.js"></script>
+<script src="pwa.js"></script>
 </body>
 </html>
