@@ -69,17 +69,21 @@
   const collapsible = (cls, title, body) => `<div class="box ${cls} box-collapsible"><details><summary><h3>${title}</h3></summary>${body}</details></div>`;
   const ul = (items) => `<ul class="followup-list">${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
 
+  const actWarning = document.getElementById("actWarning");
+
   function getState() {
     const situation = radio("situation");
     startFields.hidden = situation !== "ny";
     behFields.hidden = situation !== "kendt";
+    const act = num("act");
+    actWarning.textContent = !isNaN(act) && (act < 5 || act > 25) ? "ACT går fra 5 til 25 — tjek værdien (ignoreres)." : "";
     return {
       alder: num("alder"),
       situation,
       start: radio("start"),
       beh: radio("beh"),
       kontrol: checked("kontrol"),
-      act: num("act"),
+      act: act >= 5 && act <= 25 ? act : NaN,
       eks: isNaN(num("eks")) ? 0 : num("eks"),
       fev1: num("fev1pct"),
       andet: checked("andet"),
@@ -118,7 +122,7 @@
   }
   function trin5Rows() {
     return [
-      { key: "trin5|lama", navn: "Spiriva Respimat 2,5 mikrog. (tiotropium)", indhold: "LAMA — tillæg til MART med medium dosis", dosering: "2 pust × 1 dagligt. Fortsæt ICS-formoterol.", tag: "Tillæg", tagClass: "tag-recommend" },
+      { key: "trin5|lama", navn: "Spiriva Respimat 2,5 mikrog. (tiotropium)", indhold: "LAMA — tillæg til medium/høj dosis ICS-LABA eller MART", dosering: "2 pust × 1 dagligt. Fortsæt nuværende ICS-LABA/ICS-formoterol.", tag: "Tillæg", tagClass: "tag-recommend" },
       { key: "trin5|henvis", navn: "Henvisning til lungemedicinsk afdeling", indhold: "Fænotypning (eosinofile, FeNO, allergi) og vurdering af biologisk behandling", dosering: "Biologiske lægemidler ordineres kun i specialistregi.", tag: "Anbefalet", tagClass: "tag-recommend" },
     ];
   }
@@ -142,6 +146,17 @@
     return { n, niveau: "ukontrolleret", cls: "box-red" };
   }
   const actTekst = (a) => (a >= 20 ? "velkontrolleret" : a >= 16 ? "ikke velkontrolleret" : "dårligt kontrolleret");
+  // Samlet niveau: det dårligste af GINA-kriterierne og ACT (ACT 16–19 ~ delvist, ≤ 15 ~ ukontrolleret).
+  const NIVEAUER = [
+    { niveau: "velkontrolleret", cls: "box-green" },
+    { niveau: "delvist kontrolleret", cls: "box-amber" },
+    { niveau: "ukontrolleret", cls: "box-red" },
+  ];
+  function samletNiveau(s, k) {
+    let i = k.n === 0 ? 0 : k.n <= 2 ? 1 : 2;
+    if (!isNaN(s.act)) i = Math.max(i, s.act >= 20 ? 0 : s.act >= 16 ? 1 : 2);
+    return NIVEAUER[i];
+  }
 
   // Returnerer { maal, titel, tekst[] } — maal er det anbefalede trin (nøgle i DOSIS eller "trin5").
   function anbefaling(s, k) {
@@ -156,17 +171,26 @@
     }
     const cur = s.beh;
     if (cur === "saba") {
-      tekst.push("SABA alene anbefales ikke længere — det øger risikoen for svære forværringer. Skift til ICS-formoterol efter behov.");
-      return { maal: ukontrolleret && k.n >= 2 ? "martlav" : "air", titel: "Skift fra SABA alene", tekst };
+      tekst.push("SABA alene anbefales ikke længere — det øger risikoen for svære forværringer. Skift til ICS-formoterol.");
+      if (s.eks >= 2) tekst.push("≥ 2 prednisolonkrævende forværringer det seneste år: start på trin 3, og henvis til lungemedicinsk vurdering.");
+      const maal = (ukontrolleret && k.n >= 2) || s.eks >= 2 ? "martlav" : "air";
+      return { maal, titel: `Skift fra SABA alene — ${TRIN[maal].navn}`, tekst };
     }
     if (ukontrolleret) {
       if (!has(s.andet, "teknik")) tekst.push("<strong>Før optrapning:</strong> kontrollér inhalationsteknik, adhærens, rygning, eksponeringer og komorbiditet (rhinitis, refluks, overvægt, angst) — og om diagnosen er rigtig.");
-      const op = { air: "martlav", icsfast: "martlav", martlav: "martmedium", icslabalav: "martmedium", martmedium: "trin5", icslabahoej: "trin5", trin5: "trin5" }[cur];
-      if (TRIN[cur].spor === 2 && op !== "trin5") tekst.push("Ved optrapning anbefales skift til spor 1 (ICS-formoterol som anfaldsmedicin), der mindsker risikoen for forværringer mere end SABA-baseret behandling.");
+      // Spor 2 trin 4 skifter først til MART med medium dosis (GINA: spor 1 foretrækkes før trin 5).
+      const op = { air: "martlav", icsfast: "martlav", martlav: "martmedium", icslabalav: "martmedium", martmedium: "trin5", icslabahoej: "martmedium", trin5: "trin5" }[cur];
+      if (cur === "icslabahoej") tekst.push("Ukontrolleret på fast medium/høj dosis ICS-LABA med SABA: skift til MART med medium dosis, før tillæg af LAMA eller henvisning til biologisk behandling overvejes. Henvis ved diagnostisk tvivl eller fortsat manglende kontrol.");
+      else if (TRIN[cur].spor === 2 && op !== "trin5") tekst.push("Ved optrapning anbefales skift til spor 1 (ICS-formoterol som anfaldsmedicin), der mindsker risikoen for forværringer mere end SABA-baseret behandling.");
       if (op === "trin5") tekst.push(cur === "trin5" ? "Allerede på trin 5 og fortsat ukontrolleret: henvis til lungemedicinsk afdeling (svær astma)." : "Ukontrolleret på trin 4: henvis til lungemedicinsk vurdering, og overvej tillæg af LAMA.");
       return { maal: op, titel: `Optrapning — ${TRIN[op].navn}`, tekst };
     }
     if (s.eks === 1) tekst.push("1 prednisolonkrævende forværring det seneste år: gennemgå handleplan, teknik og adhærens, og overvej optrapning, hvis der ikke var en oplagt udløsende årsag. Trap ikke ned.");
+    if (has(s.andet, "stabil") && s.eks === 0 && has(s.andet, "gravid") && cur !== "air") {
+      tekst.push("Trap ikke ned under graviditet — fortsæt nuværende behandling, og revurdér efter fødslen.");
+      const same = { icsfast: "air", martlav: "martlav", icslabalav: "martlav", martmedium: "martmedium", icslabahoej: "martmedium", trin5: "trin5" }[cur];
+      return { maal: same, titel: "Fortsæt — ingen nedtrapning under graviditet", tekst };
+    }
     if (has(s.andet, "stabil") && s.eks === 0) {
       const ned = { air: "air", icsfast: "air", martlav: "air", icslabalav: "martlav", martmedium: "martlav", icslabahoej: "martmedium", trin5: "martmedium" }[cur];
       if (cur === "air") tekst.push("Laveste trin — fortsæt ICS-formoterol efter behov.");
@@ -190,6 +214,12 @@
     const s = getState();
     alderWarning.textContent = !isNaN(s.alder) && s.alder < 12 ? "Værktøjet gælder voksne og unge fra 12 år — børn følger pædiatriske retningslinjer." : !isNaN(s.alder) && s.alder > 110 ? "Alder virker usædvanlig — tjek indtastningen." : "";
     const k = kontrolNiveau(s);
+    Object.assign(k, samletNiveau(s, k));
+    if (!isNaN(s.alder) && s.alder < 12) {
+      last = { s, k, a: null };
+      output.innerHTML = box("box-amber", "Børn under 12 år", "<p>Værktøjet gælder voksne og unge fra 12 år. Børn under 12 år behandles efter pædiatriske retningslinjer (GINA 6–11 år, Dansk Pædiatrisk Selskab) med andre doser og præparater.</p>");
+      return;
+    }
     const a = anbefaling(s, k);
     last = { s, k, a };
     let html = "";
@@ -199,9 +229,9 @@
     if (s.eks >= 1) risiko.push(`${s.eks} forværring(er) med prednisolon det seneste år`);
     if (!isNaN(s.fev1) && s.fev1 < 60) risiko.push(`lav lungefunktion (FEV1 ${Math.round(s.fev1)} %)`);
     if (has(s.andet, "ryger")) risiko.push("rygning");
-    if (has(s.andet, "saba3") || s.beh === "saba") risiko.push(has(s.andet, "saba3") ? "højt SABA-forbrug (≥ 3 inhalatorer/år)" : "SABA uden ICS");
+    if (has(s.andet, "saba3") || (s.situation === "kendt" && s.beh === "saba")) risiko.push(has(s.andet, "saba3") ? "højt SABA-forbrug (≥ 3 inhalatorer/år)" : "SABA uden ICS");
     if (has(s.andet, "gravid")) risiko.push("graviditet");
-    const actLinje = isNaN(s.act) ? "" : `<p>ACT ${s.act}: ${actTekst(s.act)}${(s.act >= 20) !== (k.n === 0) ? " — afviger fra GINA-vurderingen; brug den dårligste." : "."}</p>`;
+    const actLinje = isNaN(s.act) ? "" : `<p>ACT ${s.act}: ${actTekst(s.act)}${(s.act >= 20) !== (k.n === 0) ? " — afviger fra GINA-vurderingen; overskriften bruger den dårligste." : "."}</p>`;
     html += box(
       k.cls,
       `Astmakontrol: ${k.niveau}`,
@@ -216,7 +246,7 @@
       `Behandling: ${a.titel}`,
       `${a.tekst.map((t) => `<p>${t}</p>`).join("")}
       ${drugTable(list)}
-      ${a.maal !== "trin5" ? "<p>Én inhalator til både vedligeholdelse og anfald. Formoterol virker efter 1–3 minutter, så den samme inhalator bruges ved symptomer. Skyl munden efter brug. Beclometason/formoterol (fx Innovair 100/6) kan bruges på samme måde.</p>" : ""}
+      ${a.maal !== "trin5" ? `<p>${a.maal === "air" ? "ICS-formoterol efter behov: formoterol virker efter 1–3 minutter, og hver inhalation giver samtidig inhalationssteroid." : "Én inhalator til både vedligeholdelse og anfald. Formoterol virker efter 1–3 minutter, så den samme inhalator bruges ved symptomer."} Skyl munden efter brug.${a.maal === "martlav" || a.maal === "martmedium" ? " Beclometason/formoterol (Innovair 100/6 mikrog.) er godkendt som MART på trin 3–4: 1 pust × 2 dagligt + efter behov, maks. 8 pust pr. døgn." : ""}</p>` : ""}
       <p><strong>Spor 2</strong> (SABA som anfaldsmedicin) er et alternativ, hvis ICS-formoterol ikke er muligt — så skal ICS tages dagligt (trin 2 fast lav dosis ICS; trin 3 lav dosis ICS-LABA; trin 4 medium/høj dosis ICS-LABA).</p>`
     );
     if (has(s.andet, "gravid")) {
@@ -283,13 +313,25 @@
     if (s.situation === "kendt") basis.push(`i behandling med ${TRIN[s.beh].navn}`);
     if (!isNaN(s.fev1)) basis.push(`FEV1 ${Math.round(s.fev1)} % af forventet`);
     if (basis.length) lines.push(basis.join(", ").replace(/^./, (c) => c.toUpperCase()) + ".");
-    lines.push(`Astmakontrol (GINA): ${k.niveau} (${k.n}/4)${isNaN(s.act) ? "" : `, ACT ${s.act}`}. Forværringer med prednisolon seneste år: ${s.eks}.`);
+    lines.push(`Astmakontrol (GINA/ACT): ${k.niveau} (GINA ${k.n}/4)${isNaN(s.act) ? "" : `, ACT ${s.act}`}. Forværringer med prednisolon seneste år: ${s.eks}.`);
     lines.push(`Vurdering: ${a.titel}.`);
-    const row = valg.valgtRaekke() || (output.querySelector(".tag-recommend") || {}).closest?.("tr");
-    if (row) {
-      const r = Behandlingsvalg.raekkeTekst(row);
-      lines.push(`${valg.valgtRaekke() ? "Valgt behandling" : "Førstevalg"}: ${r.navn} — ${r.celler[1]}`);
+    if (!a) {
+      lines.push("Barn under 12 år — følg pædiatriske retningslinjer.");
+      return lines.join("\n");
     }
+    const valgt = valg.valgtRaekke();
+    if (valgt) {
+      const r = Behandlingsvalg.raekkeTekst(valgt);
+      lines.push(`Valgt behandling: ${r.navn} — ${r.celler[1]}`);
+    } else {
+      // Alle anbefalede rækker, når de supplerer hinanden (trin 5: LAMA og henvisning); ellers kun førstevalget.
+      const rows = Array.from(output.querySelectorAll(".tag-recommend")).map((t) => t.closest("tr")).filter(Boolean);
+      (a.maal === "trin5" ? rows : rows.slice(0, 1)).forEach((tr, i) => {
+        const r = Behandlingsvalg.raekkeTekst(tr);
+        lines.push(`${a.maal === "trin5" ? "Plan" : "Førstevalg"}: ${r.navn} — ${r.celler[1]}`);
+      });
+    }
+    if (s.situation === "ny" && s.start === "akut") lines.push("Prednisolon 37,5–50 mg dagligt i 5–7 dage. Kontrol inden for 1–2 uger.");
     lines.push("Plan (tilpas): inhalationsteknik gennemgået, skriftlig handleplan, kontrol efter 1–3 måneder ved ændring, ellers årligt.");
     return lines.join("\n");
   }
