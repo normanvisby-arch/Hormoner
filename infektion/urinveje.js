@@ -34,9 +34,11 @@
       recidiv: andet.includes("recidiv"),
       kompl: andet.includes("kompl"),
     };
-    s.barn = !isNaN(alder) && alder < 15;
+    // Barn: under 15 år — eller under 40 kg, når alderen ikke er angivet.
+    s.barn = (!isNaN(alder) && alder < 15) || (isNaN(alder) && s.vaegt < 40);
     s.mand = koen === "mand";
-    s.kompliceret = s.mand || s.gravid || s.barn || s.kateter || s.recidiv || s.kompl;
+    // Gentagne infektioner alene gør ikke cystitis kompliceret (Region Hovedstaden).
+    s.kompliceret = s.mand || s.gravid || s.barn || s.kateter || s.kompl;
     return s;
   }
 
@@ -48,14 +50,14 @@
   const pivm = (dage, tag, rec, dosis) => ({ key: `pivm${dage}`, navn: "Pivmecillinam", dosering: `${dosis || "400 mg × 3"} dagligt i ${dage} dage`, note: "Ingen dosisjustering ved nedsat nyrefunktion. Tages med rigeligt vand under et måltid.", tag, rec });
   function nitro(s, dage, tag, rec) {
     const note = nitroOk(s)
-      ? `Kun ved eGFR ≥ 45.${s.gravid ? " Undgås sidst i graviditeten (fra uge 36) pga. risiko for hæmolyse hos barnet." : ""}${s.mand ? " Når ikke prostata — ikke ved feber eller mistanke om prostatitis." : ""}`
+      ? `Kun ved eGFR ≥ 45 (Region Hovedstaden: 100 mg × 4; pro.medicin.dk: 50 mg × 4).${s.gravid ? " Undgås sidst i graviditeten (fra uge 36) pga. risiko for hæmolyse hos barnet." : ""}${s.mand ? " Når ikke prostata — ikke ved feber eller mistanke om prostatitis." : ""}`
       : `<strong>Kontraindiceret ved eGFR ${Math.round(s.egfr)}</strong> (under 45) — virker ikke og ophobes.`;
     return { key: `nitro${dage}`, navn: "Nitrofurantoin", dosering: `100 mg × 4 dagligt i ${dage} dage`, note, tag: nitroOk(s) ? tag : "Ikke ved eGFR < 45", rec: rec && nitroOk(s) };
   }
   function trim(s, dage, tag) {
     const note = [
       "Kun ved kendt følsomhed (resistens ca. 25–30 %).",
-      !isNaN(s.egfr) && s.egfr < 15 ? `<strong>eGFR ${Math.round(s.egfr)}: undgås.</strong>` : !isNaN(s.egfr) && s.egfr <= 30 ? "eGFR 15–30: halv dosis efter 3 dage." : "",
+      !isNaN(s.egfr) && s.egfr < 15 ? `<strong>eGFR ${Math.round(s.egfr)}: undgås.</strong>` : !isNaN(s.egfr) && s.egfr <= 30 ? "Nyrefunktion 15–30: halv dosis efter 3 dage." : "",
       s.gravid ? "Undgås i 1. trimester (folatantagonist)." : "",
       "Kan hæve kreatinin og kalium.",
     ].filter(Boolean).join(" ");
@@ -70,6 +72,8 @@
   // ---------------------------------------------------------------------
   // Vurdering
   // ---------------------------------------------------------------------
+
+  const RECIDIV = "<strong>Gentagne infektioner:</strong> overvej forebyggelse — rigelig væske, vaginal østrogen efter menopausen, evt. profylakse (trimethoprim 100 mg, pivmecillinam 200 mg eller nitrofurantoin 50 mg dagligt ved sengetid eller efter samleje). Nitrofurantoin som langtidsprofylakse kan give lunge- og leverskade — kontrollér. Overvej udredning.";
 
   function res(titel, cls, tekst) {
     return { titel, cls, tekst: [].concat(tekst || []), rows: [], noter: [], sikkerhed: [], dyrkning: "", ab: false };
@@ -106,7 +110,8 @@
       if (s.barn) return res("Feber og urinvejsinfektion hos barn: akut pædiatrisk vurdering", "box-red", "Børn med feber og mistanke om urinvejsinfektion (pyelonefritis) henvises akut til pædiatrisk afdeling — især under 2 år.");
       if (s.mand) {
         r = res("Feber-UVI hos mand: pyelonefritis eller akut prostatitis", "box-amber", ["Feber og urinvejsinfektion hos mænd er altid kompliceret. Lav tærskel for indlæggelse; tag urin til dyrkning før behandling, og undgå prostatamassage.", "Ambulant behandling kun ved let påvirket almentilstand og mulighed for tæt opfølgning."]);
-        r.rows = [cipro(s, "7 dage ved pyelonefritis — 2–4 uger ved akut prostatitis", "Anbefalet", true)];
+        r.rows = [cipro(s, "14 dage — 2–4 uger ved akut prostatitis", "Anbefalet", true)];
+        r.noter.push("7 dage er for kort hos mænd med feber-UVI (PROSTASHORT, <em>Clin Infect Dis</em> 2023: klinisk succes 56 % mod 78 % ved 14 dage).");
         r.noter.push("Ciprofloxacin vælges, fordi det når prostata. Tilpas efter dyrkningssvar.");
         r.noter.push("Efter behandling: overvej urologisk udredning, særligt ved første infektion uden oplagt årsag, gentagne infektioner eller resturin.");
       } else {
@@ -131,7 +136,8 @@
       } else if (s.allergi) {
         r.tekst.push("Penicillinallergi: behandl efter resistensbestemmelse i samråd med pædiatrisk afdeling.");
       } else {
-        r.rows = [{ key: "pivmbarn", navn: "Pivmecillinam", dosering: boernetekst(s.vaegt, 20, 3, 400, "i 5 dage"), note: "Børn over 2 år uden feber.", tag: "Anbefalet", rec: true }];
+        const stor = s.vaegt >= 40;
+        r.rows = [{ key: "pivmbarn", navn: "Pivmecillinam", dosering: stor ? "400 mg × 3 dagligt i 5 dage (voksendosis fra 40 kg)" : boernetekst(s.vaegt, 20, 3, 400, "i 5 dage"), note: stor ? "Børn over 2 år uden feber." : "Børn over 2 år uden feber. Afrund til en mulig tabletdosis (200 og 400 mg) — se produktresuméet.", tag: "Anbefalet", rec: true }];
         r.ab = true;
       }
       r.noter.push("Første urinvejsinfektion hos barn, feber-UVI eller gentagne infektioner: overvej henvisning til udredning (ultralyd, vandladning).");
@@ -166,11 +172,11 @@
       return r;
     }
     if (s.kompliceret) {
-      const hvorfor = [s.kateter && "blærekateter", s.recidiv && "gentagne infektioner", s.kompl && "komplicerende forhold"].filter(Boolean).join(", ");
+      const hvorfor = [s.kateter && "blærekateter", s.kompl && "komplicerende forhold"].filter(Boolean).join(", ");
       r = res(`Kompliceret cystitis (${hvorfor}): 5 dage`, "box-green", "Tag altid urin til dyrkning og resistensbestemmelse før behandling.");
       r.rows = s.allergi ? [nitro(s, 5, "Anbefalet (penicillinallergi)", true), trim(s, 5)] : [pivm(5, "Anbefalet", true), nitro(s, 5, "Ved penicillinallergi", false), trim(s, 5)];
       if (s.kateter) r.noter.push("<strong>Kateter:</strong> behandl kun ved symptomer. Skift kateteret, og tag urinprøven fra det nye kateter.");
-      if (s.recidiv) r.noter.push("<strong>Gentagne infektioner:</strong> overvej forebyggelse — rigelig væske, vaginal østrogen efter menopausen, evt. profylakse (trimethoprim 100 mg, pivmecillinam 200 mg eller nitrofurantoin 50 mg dagligt ved sengetid eller efter samleje). Overvej udredning.");
+      if (s.recidiv) r.noter.push(RECIDIV);
       r.ab = true;
       r.dyrkning = "Altid dyrkning og resistensbestemmelse";
       r.sikkerhed.push("Kontakt straks ved feber, flankesmerter eller manglende bedring efter 2–3 dage.");
@@ -185,12 +191,13 @@
       r.rows = [pivm(3, "Hvis der behandles", false)];
       r.dyrkning = "Dyrkning ved typiske symptomer";
     } else {
-      r = res("Akut ukompliceret cystitis: 3 dage", "box-green", beggePos ? "Positiv stix for både leukocytter og nitrit (ca. 90 % sandsynlighed for UVI): behandl uden forudgående dyrkning." : "Typiske symptomer. Stix er ikke entydigt positiv — send urin til dyrkning, og start evt. behandling.");
+      r = res(s.recidiv ? "Recidiverende ukompliceret cystitis: 3 dage" : "Akut ukompliceret cystitis: 3 dage", "box-green", s.recidiv ? "Gentagne infektioner: send urin til dyrkning og resistensbestemmelse, og behandl som ukompliceret cystitis." : beggePos ? "Positiv stix for både leukocytter og nitrit (ca. 90 % sandsynlighed for UVI): behandl uden forudgående dyrkning." : "Typiske symptomer. Stix er ikke entydigt positiv — send urin til dyrkning, og start evt. behandling.");
       r.rows = s.allergi
         ? [nitro(s, 3, "Anbefalet (penicillinallergi)", true), trim(s, 3), sulfa(3)]
         : [pivm(3, "Anbefalet", true), nitro(s, 3, "Ved penicillinallergi", false), trim(s, 3), sulfa(3)];
       r.ab = true;
-      r.dyrkning = beggePos ? "Dyrkning ikke nødvendig" : "Dyrkning og resistensbestemmelse";
+      r.dyrkning = beggePos && !s.recidiv ? "Dyrkning ikke nødvendig" : "Dyrkning og resistensbestemmelse";
+      if (s.recidiv) r.noter.push(RECIDIV);
     }
     r.sikkerhed.push("Kontakt igen ved feber, flankesmerter, blod i urinen efter behandling eller ingen bedring efter 2–3 dage.");
     return r;
@@ -205,6 +212,7 @@
     const warn = [];
     if (!isNaN(s.alder) && s.alder > 110) warn.push("Alder virker usædvanlig — tjek indtastningen.");
     if (s.barn && isNaN(s.vaegt)) warn.push("Angiv vægt — børn doseres efter vægt.");
+    if (isNaN(s.alder) && s.vaegt < 40) warn.push("Angiv alder — under 40 kg behandles som barn.");
     alderWarning.textContent = warn.join(" ");
     const r = vurder(s);
     last = { s, r };

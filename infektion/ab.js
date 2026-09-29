@@ -73,10 +73,12 @@ window.AB = function (opts) {
   // Børn under 40 kg doseres efter vægt; enkeltdosis rundes af (under 100 mg til
   // nærmeste 5 mg, ellers 25 mg) og overstiger aldrig voksendosis.
   const rund = (mg) => (mg < 100 ? Math.round(mg / 5) * 5 : Math.round(mg / 25) * 25);
-  function boernedosis(vaegt, mgKgDoegn, doser, maksMg) {
+  // trin: afrund til en tablet- eller kapselstyrke (fx 250 mg), der ikke kan deles.
+  function boernedosis(vaegt, mgKgDoegn, doser, maksMg, trin) {
     if (!(vaegt > 0)) return null;
     const raa = (vaegt * mgKgDoegn) / doser;
-    return { mg: Math.min(rund(raa), maksMg), maks: raa >= maksMg };
+    const mg = trin ? Math.max(trin, Math.round(raa / trin) * trin) : rund(raa);
+    return { mg: Math.min(mg, maksMg), maks: raa >= maksMg };
   }
   // "barn" = under 12 år eller under 40 kg; "voksen" ellers. Ukendt alder og
   // vægt behandles som voksen, men siden beder om alder.
@@ -85,9 +87,9 @@ window.AB = function (opts) {
     return "voksen";
   }
   // Tekst for børnedosis: "250 mg × 3 dagligt (50 mg/kg/døgn)".
-  function boernetekst(vaegt, mgKgDoegn, doser, maksMg, tillaeg) {
-    const d = boernedosis(vaegt, mgKgDoegn, doser, maksMg);
-    const basis = `${mgKgDoegn} mg/kg/døgn fordelt på ${doser} doser`;
+  function boernetekst(vaegt, mgKgDoegn, doser, maksMg, tillaeg, trin) {
+    const d = boernedosis(vaegt, mgKgDoegn, doser, maksMg, trin);
+    const basis = doser === 1 ? `${mgKgDoegn} mg/kg × 1 dagligt` : `${mgKgDoegn} mg/kg/døgn fordelt på ${doser} doser`;
     if (!d) return `${basis}${tillaeg ? " " + tillaeg : ""} — angiv vægt for at beregne dosis.`;
     return `${d.mg} mg × ${doser} dagligt (${basis}${d.maks ? "; maks. voksendosis" : ""})${tillaeg ? " " + tillaeg : ""}.`;
   }

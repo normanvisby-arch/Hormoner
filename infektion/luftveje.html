@@ -70,6 +70,7 @@
       <legend>Forhold</legend>
       <label class="checkbox"><input type="checkbox" name="andet" value="allergi"> Penicillinallergi</label>
       <label class="checkbox"><input type="checkbox" name="andet" value="gravid"> Gravid</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="meningitis"> Petekkier, nakkestivhed eller bevidsthedspåvirkning</label>
     </fieldset>
 
     <fieldset class="field" id="fsTons">
@@ -90,14 +91,15 @@
     <fieldset class="field" id="fsOt" hidden>
       <legend>Mellemøre</legend>
       <label class="checkbox"><input type="checkbox" name="ot" value="paavirket"> Almen påvirket (feber, betydelige smerter, nedsat almentilstand)</label>
-      <label class="checkbox"><input type="checkbox" name="ot" value="otore3"> Flåd fra øret i mere end 3 dage, men upåvirket</label>
+      <label class="checkbox"><input type="checkbox" name="ot" value="otore3"> Flåd gennem trommehindedræn i mere end 3 dage, upåvirket</label>
       <label class="checkbox"><input type="checkbox" name="ot" value="svigt"> Ingen bedring efter 2–3 dages penicillin</label>
       <label class="checkbox"><input type="checkbox" name="ot" value="mastoid"> Hævelse, rødme eller ømhed bag øret / udstående øre</label>
     </fieldset>
 
     <fieldset class="field" id="fsSin" hidden>
       <legend>Bihuler</legend>
-      <label class="radio"><input type="radio" name="varighed" value="kort" checked> Symptomer under 10 dage</label>
+      <label class="radio"><input type="radio" name="varighed" value="kort" checked> Symptomer under 5 dage</label>
+      <label class="radio"><input type="radio" name="varighed" value="mellem"> Symptomer i 5–9 dage</label>
       <label class="radio"><input type="radio" name="varighed" value="lang"> Symptomer i 10 dage eller mere</label>
       <label class="radio"><input type="radio" name="varighed" value="dobbelt"> Forværring efter initial bedring ("dobbelt sygdom")</label>
       <p class="field-hint">Tegn på bakteriel rhinosinuitis</p>
@@ -142,8 +144,10 @@
 <footer class="sources">
   <h2>Kilder &amp; grundlag</h2>
   <ul>
-    <li>DSAM — Klinisk vejledning: Akutte luftvejsinfektioner og rationel antibiotikabehandling i almen praksis (2024): Centor-kriterier og strep A-test ved ≥ 2 kriterier; penicillin V 1 mio. IE (660 mg) × 4 i 5 dage til voksne og 50 mg/kg/døgn fordelt på 3 doser i 5 dage til børn; CRP under 50 mg/l taler imod behandlingskrævende bakteriel pneumoni; rhinosinuitis tidligst efter 10 dage</li>
+    <li>DSAM — Klinisk vejledning: Akutte luftvejsinfektioner og rationel antibiotikabehandling i almen praksis (2024): Centor-kriterier og strep A-test ved ≥ 2 kriterier; penicillin V 1 mio. IE (660 mg) × 4 i 5 dage til voksne og 50 mg/kg/døgn fordelt på 3 doser i 5 dage til børn; CRP under 50 mg/l taler imod behandlingskrævende bakteriel pneumoni; bakteriel rhinosinuitis som regel efter 5–10 dage; børn med trommehindedræn og flåd i over 3 dage: øredråber</li>
     <li>Region Hovedstaden — Antibiotikavejledning for primærsektoren (opdateret 15.05.2025 og 25.11.2025): penicillin V "1 mio. IE eller 800 mg × 4", 5 dages behandling af tonsillitis til børn og voksne</li>
+    <li>Region Hovedstaden — pneumoni: roxithromycin 150 mg × 2 (eller 300 mg × 1) i 5 dage ved penicillinallergi, 10 dage ved påvist mykoplasma/klamydia; børn 50 mg/kg/døgn penicillin V fordelt på 4 doser</li>
+    <li>Andersen m.fl., <em>PLoS One</em> 2013 — clarithromycin i graviditeten og abortrisiko (dansk registerstudie)</li>
     <li>EPOS 2020 (European Position Paper on Rhinosinusitis) — mindst 3 tegn på akut bakteriel rhinosinuitis</li>
     <li>Lim m.fl., <em>Thorax</em> 2003 — CRB-65</li>
     <li>Skoog Ståhlgren m.fl., <em>BMJ</em> 2019 — penicillin V × 4 i 5 dage er ikke ringere end × 3 i 10 dage ved streptokok-tonsillitis</li>

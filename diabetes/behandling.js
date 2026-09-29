@@ -316,7 +316,7 @@
         <tr><td>GLP-1-receptoragonist</td><td data-label="eGFR ≥ 45">Ingen justering</td><td data-label="30–44">Ingen justering</td><td data-label="&lt; 30">Kan bruges; begrænset erfaring ved terminal nyresvigt</td></tr>
         <tr><td>Sitagliptin</td><td data-label="eGFR ≥ 45">100 mg</td><td data-label="30–44">50 mg</td><td data-label="&lt; 30">25 mg</td></tr>
         <tr><td>Linagliptin</td><td data-label="eGFR ≥ 45">5 mg</td><td data-label="30–44">5 mg</td><td data-label="&lt; 30">5 mg</td></tr>
-        <tr><td>Sulfonylurinstof</td><td data-label="eGFR ≥ 45">Hypoglykæmirisiko</td><td data-label="30–44">Lav dosis, forsigtighed</td><td data-label="&lt; 30">Undgås</td></tr>
+        <tr><td>Sulfonylurinstof</td><td data-label="eGFR ≥ 45">Hypoglykæmirisiko</td><td data-label="30–44">Lav dosis, forsigtighed</td><td data-label="&lt; 30">Undgås (glimepirid er kontraindiceret)</td></tr>
       </tbody></table></div>
       <p>eGFR-grænserne følger produktresuméerne. Tjek aktuelle grænser for det enkelte præparat på pro.medicin.dk.</p>`
     );

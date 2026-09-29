@@ -180,23 +180,29 @@ eller 25 mg og overstiger aldrig voksendosis.
 - **`luftveje.html`** (DSAM 2024, Region Hovedstaden 2025): faryngo-tonsillitis efter Centor
   (0–1: ingen test; ≥ 2: strep A-test, antibiotika kun ved positiv test), otitis media (almen
   påvirket → penicillin; ellers observation; flåd > 3 dage → øredråber; svigt → amoxicillin med
-  clavulansyre), rhinosinuitis (≥ 10 dage eller forværring efter bedring og ≥ 3 af 5 tegn inkl.
-  CRP ≥ 50), pneumoni (CRB-65, SAT &lt; 92 %, CRP &lt; 20 / &lt; 50 / ≥ 50) og bronkitis. Penicillin V
+  clavulansyre; flåd gennem dræn > 3 dage → øredråber), rhinosinuitis (≥ 5 dage eller forværring
+  efter bedring og ≥ 3 af 5 tegn inkl. CRP ≥ 50), pneumoni (CRB-65, SAT &lt; 92 %, CRP &lt; 20 / &lt; 50 / ≥ 50) og bronkitis. Penicillin V
   1 mio. IE (660 mg) eller 800 mg × 4 i 5 dage til voksne, 50 mg/kg/døgn fordelt på 3 doser i 5
-  dage til børn; clarithromycin ved penicillinallergi. Alarmtegn giver akut henvisning.
+  dage til børn; ved penicillinallergi roxithromycin til voksne og clarithromycin til børn (gravide:
+  konferér). Centor 4 uden test kan behandles ved udtalt påvirkning. Alarmtegn (også petekkier og
+  nakkestivhed) giver akut henvisning.
 - **`urinveje.html`** (Region Hovedstaden 2025, Medicinrådet, Region Midtjylland 2025,
   Lægehåndbogen): ukompliceret cystitis pivmecillinam 400 mg × 3 i 3 dage (stix ++ → ingen
   dyrkning); kompliceret (mænd, gravide, kateter, recidiv, komplicerende forhold) 5 dage med
   dyrkning; børn pivmecillinam 20 mg/kg/døgn (over 2 år); feber hos gravide og børn → akut;
   pyelonefritis pivmecillinam 400 mg × 3 i 7 dage (Medicinrådet: × 4 i 7–10 dage) eller
-  ciprofloxacin; feber-UVI hos mænd ciprofloxacin (prostatitis 2–4 uger); asymptomatisk bakteriuri
+  ciprofloxacin; feber-UVI hos mænd ciprofloxacin i 14 dage (prostatitis 2–4 uger; PROSTASHORT);
+  gentagne infektioner alene behandles som ukompliceret (3 dage) med dyrkning; under 40 kg uden
+  alder behandles som barn; asymptomatisk bakteriuri
   behandles kun hos gravide. Nitrofurantoin kontraindiceret ved eGFR &lt; 45; trimethoprim og
   ciprofloxacin justeres ved nedsat nyrefunktion.
 - **`hud.html`** (Region Hovedstaden og Midtjylland 2025, Sundhedsstyrelsen): erysipelas
   (penicillin V), cellulitis/sårinfektion og byld (dicloxacillin; byld drænes), impetigo
-  (antiseptisk; udbredt: dicloxacillin/flucloxacillin 50 mg/kg/døgn), erythema migrans (penicillin
-  V 1,5 mio. IE × 3 i 10 dage; doxycyclin) og bid (amoxicillin med clavulansyre i 3 dage ved
-  højrisikobid). Alarmtegn: nekrotiserende infektion, sepsis, periorbital infektion.
+  (antiseptisk; udbredt: dicloxacillin/flucloxacillin 50 mg/kg/døgn; kapsler afrundet til 250 mg),
+  erythema migrans (penicillin V 1,5 mio. IE × 3 i 10 dage, børn 100 mg/kg/døgn fordelt på 4 doser;
+  doxycyclin 100 mg × 2 i 10 dage; azithromycin under 8 år) og bid (Region Hovedstaden: penicillin V
+  i 3 dage ved højrisikobid, + dicloxacillin ved menneskebid, 10 dage ved infektion; alternativ
+  amoxicillin med clavulansyre). Alarmtegn: nekrotiserende infektion, sepsis, periorbital infektion.
 - **`huskeskema.html`**: tolv principper for rationel antibiotikabrug, tal til samtalen og akut
   henvisning.
 
@@ -207,16 +213,16 @@ direkte; doser og varigheder er kontrolleret via sekundære kilder. Regionerne a
 ## Nyrer (`nyre/`) — logik og datagrundlag
 
 - **`ckd.html`** (KDIGO 2024, DNS 2024): stadie G1–G5 × A1–A3 med farvekort og kontrolhyppighed
-  (KDIGO fig. 7); KFRE, 4 variable, kalibreret uden for Nordamerika (Tangri, JAMA 2016: koefficienter
+  (KDIGO 2024: fx 3 gange årligt ved G1–G2 A3, 4 ved G4 A3 og G5); KFRE, 4 variable, kalibreret uden for Nordamerika (Tangri, JAMA 2016: koefficienter
   −0,2201 alder/10, 0,2467 mand, −0,5567 eGFR/5, 0,451 ln UACR; baseline 0,9832 (2 år) og 0,9365
   (5 år); kontrolleret mod Python-pakken kfre, se `tests/nyre.test.js`). Henvisning: eGFR &lt; 30,
-  fald &gt; 5 pr. år eller ≥ 25 % med kategoriskift (undtagen forventet fald ≤ 30 % efter opstart af
+  fald &gt; 5 pr. år ved eGFR under 60 eller ≥ 25 % med kategoriskift (undtagen forventet fald ≤ 30 % efter opstart af
   ACE-hæmmer/ARB eller SGLT-2-hæmmer), UACR &gt; 700 mg/g (DNS; overvej ≥ 300 efter KDIGO), 5-års KFRE
   ≥ 5 % (overvej 3–5 %), hæmaturi med albuminuri, resistent hypertension, kalium ≥ 6 (akut).
   Behandling: BT &lt; 130/80 (KDIGO: systolisk &lt; 120), ACE-hæmmer/ARB ved albuminuri,
   SGLT-2-hæmmer (anbefales ved T2D, hjertesvigt eller UACR ≥ 200; overvej ved eGFR 20–45; ikke ved
   polycystisk nyresygdom/immunsuppression; start ikke under eGFR 20), finerenon ved T2D med
-  albuminuri trods ACE-hæmmer/ARB (eGFR ≥ 25, kalium ≤ 4,8–5,0), statin fra 50 år ved eGFR &lt; 60.
+  albuminuri trods ACE-hæmmer/ARB og SGLT-2-hæmmer (tilskudsklausul; eGFR ≥ 25, kalium ≤ 4,8–5,0), statin fra 50 år ved eGFR &lt; 60.
 - **`dosis.html`**: 36 almindelige lægemidler med grænser efter produktresuméerne, hver efter det
   mål, produktresuméet bruger (eGFR eller kreatininclearance efter Cockcroft-Gault, beregnet af
   alder, vægt, kreatinin og køn; eGFR bruges, hvis CrCl mangler). Søgning, "kun handling" og notat.
@@ -523,7 +529,7 @@ en server. Konsekvenser af det valg:
 
 ## Ændringslog
 
-**30. september 2026 — to nye selvstændige apps: infektioner og nyrer:**
+**29. september 2026 — to nye selvstændige apps: infektioner og nyrer:**
 - `infektion/` (luftveje, urinveje, hud og bløddele, huskeskema; fælles `ab.js`) og `nyre/`
   (kronisk nyresygdom med KDIGO-farvekort og KFRE, dosis efter nyrefunktion, huskeskema), hver med
   startside, manifest, ikon, offline-cache og installér-knap. Testsuiter `infektion` og `nyre`;
@@ -534,6 +540,22 @@ en server. Konsekvenser af det valg:
   til nyre-appen — så de to apps er enige.
 - Service worker v8 (rod), v5 (hjerte) og v2 (lunge, thyreoidea, diabetes) pga. ændret
   `style.css` og startsider.
+- Rettelser efter uafhængig ekstern audit:
+  - Urinveje: barn bestemmes også af vægt, når alder mangler (før fik et barn på 15 kg
+    voksendosis); feber-UVI hos mænd 14 dage (PROSTASHORT, Region Hovedstaden); gentagne
+    infektioner alene er ikke kompliceret; børn fra 40 kg får voksendosis.
+  - Luftveje: rhinosinuitis kan behandles fra 5 dage (DSAM 2024: 5–10 dage); roxithromycin som
+    makrolid til voksne (Region Hovedstaden); gravide med penicillinallergi får ingen anbefalet
+    makrolid (abortrisiko ved clarithromycin); Centor 4 kan behandles uden test ved udtalt påvirkning;
+    journalen skriver "CRP måles", når CRP mangler; øredråber kun ved flåd gennem trommehindedræn;
+    alarmtegn for meningitis.
+  - Hud: erythema migrans med doxycyclin 100 mg × 2 i 10 dage, azithromycin til børn under 8 år og
+    penicillin fordelt på 4 doser til børn (Region Hovedstaden); bidsår efter Region Hovedstaden
+    (10 dage ved infektion, moxifloxacin ved allergi); dicloxacillin til børn afrundet til kapsler.
+  - Nyrer: henvisning ved fald &gt; 5 kun ved nedsat eGFR (også i diabetes-årskontrollen); KDIGO
+    2024-kontroltabellen; finerenon først efter SGLT-2-hæmmer (tilskudsklausul); DOAK-rækken gælder
+    atrieflimren (edoxaban ≤ 50); metformin maks. 2.000 mg ved eGFR 45–59; tramadol frarådes under
+    CrCl 10; ens trimethoprim-grænse; NSAID ved normal nyrefunktion tæller ikke som "kræver handling".
 
 **29. september 2026 — tre nye selvstændige apps: lunger, hypothyreose og type 2-diabetes:**
 - `lunge/` (KOL, astma, huskeskema), `thyreoidea/` (hypothyreose, huskeskema) og `diabetes/`

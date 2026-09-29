@@ -35,7 +35,10 @@
     return { key: "penv", navn: "Penicillin V", dosering: "1 mio. IE (660 mg) eller 800 mg × 4 dagligt i 5–7 dage", note: "Region Hovedstaden (2025). Region Midtjylland: 1 mio. IE × 3 i 7 dage.", tag, rec };
   }
   function diclox(s, tag, rec, dage) {
-    if (barn(s)) return { key: "diclox", navn: "Dicloxacillin", dosering: boernetekst(s.vaegt, 45, 3, 1000, `i ${dage || 7} dage`), note: "Under ca. 20 kg: flucloxacillin-mikstur.", tag, rec };
+    if (barn(s)) {
+      const lille = !isNaN(s.vaegt) && s.vaegt < 20;
+      return { key: "diclox", navn: lille ? "Flucloxacillin mikstur" : "Dicloxacillin", dosering: boernetekst(s.vaegt, 45, 3, 1000, `i ${dage || 7} dage`, lille ? 0 : 250), note: lille ? "Under 20 kg: mikstur." : "Kapsler à 250 og 500 mg — dosis afrundet til hel kapsel.", tag, rec };
+    }
     return { key: "diclox", navn: "Dicloxacillin", dosering: `1 g × 3 dagligt i ${dage || 7} dage`, note: "Tages på tom mave (1 time før eller 2 timer efter et måltid).", tag, rec };
   }
   function makrolid(s, tag, rec, dage) {
@@ -61,11 +64,12 @@
 
   function erysipelas(s) {
     const r = res("Erysipelas: penicillin V", "box-green", "Erysipelas skyldes næsten altid streptokokker — penicillin V er førstevalg.");
+    r.tekst.push("Ved svigt eller mistanke om stafylokokker: Region Hovedstaden supplerer med dicloxacillin 1 g × 4; Region Midtjylland skifter til dicloxacillin 1 g × 3.");
     r.rows = s.allergi ? [makrolid(s, "Anbefalet (penicillinallergi)", true)] : [penV(s, "Anbefalet", true), makrolid(s, "Ved penicillinallergi", false), diclox(s, "Ved svigt eller stafylokokker", false)];
     r.ab = true;
     r.noter.push("Markér rødmens afgrænsning med pen, og løft benet. Rødmen kan tiltage det første døgn trods virksom behandling.");
     r.noter.push("Behandl indgangsporten (fodsvamp, sår, eksem) — det mindsker risikoen for recidiv.");
-    r.noter.push("Ingen bedring efter 2–3 dage, eller pus/sår: tænk stafylokokker — skift til dicloxacillin, eller overvej indlæggelse.");
+    r.noter.push("Ingen bedring efter 2–3 dage, eller pus/sår: tænk stafylokokker — tillæg eller skift til dicloxacillin efter regionens vejledning, eller overvej indlæggelse.");
     r.sikkerhed.push("Kontakt straks ved høj feber, kulderystelser, hurtig spredning eller stærke smerter.");
     return r;
   }
@@ -98,7 +102,7 @@
       if (s.allergi) r.rows = [makrolid(s, "Anbefalet (penicillinallergi)", true, barn(s) ? "5–7" : undefined)];
       else if (barn(s)) {
         const lille = !isNaN(s.vaegt) && s.vaegt < 20;
-        r.rows = [{ key: "diclox-imp", navn: lille ? "Flucloxacillin mikstur" : "Dicloxacillin", dosering: boernetekst(s.vaegt, 50, 4, 1000, "i 5–7 dage"), note: lille ? "Børn under 20 kg (Region Hovedstaden)." : "Kapsler fra ca. 20 kg (Region Hovedstaden).", tag: "Anbefalet", rec: true }, makrolid(s, "Ved penicillinallergi", false, "5–7")];
+        r.rows = [{ key: "diclox-imp", navn: lille ? "Flucloxacillin mikstur" : "Dicloxacillin", dosering: boernetekst(s.vaegt, 50, 4, 1000, "i 5–7 dage", lille ? 0 : 250), note: lille ? "Børn under 20 kg (Region Hovedstaden)." : "Kapsler fra 20 kg (Region Hovedstaden) — dosis afrundet til hel kapsel à 250 mg.", tag: "Anbefalet", rec: true }, makrolid(s, "Ved penicillinallergi", false, "5–7")];
       } else r.rows = [diclox(s, "Anbefalet", true, "5–7"), makrolid(s, "Ved penicillinallergi", false)];
       r.ab = true;
     }
@@ -112,18 +116,22 @@
   function em(s) {
     const r = res("Erythema migrans: klinisk diagnose — behandl", "box-green", ["Rødme på mindst 5 cm, der breder sig over dage, med eller uden central opklaring, efter flåtbid. Ingen serologi ved typisk EM.", "Flåtbid uden erythema migrans behandles ikke forebyggende."]);
     r.ab = true;
+    const alderUkendt = barn(s) && isNaN(s.alder);
     if (!s.allergi) {
       r.rows = barn(s)
-        ? [{ key: "penv-em", navn: "Penicillin V", dosering: boernetekst(s.vaegt, 100, 3, 990, "i 10 dage"), note: "100 mg (0,15 mio. IE)/kg/døgn.", tag: "Anbefalet", rec: true }]
+        ? [{ key: "penv-em", navn: "Penicillin V", dosering: boernetekst(s.vaegt, 100, 4, 750, "i 10 dage (maks. 3 g/døgn)"), note: "100 mg (0,15 mio. IE)/kg/døgn fordelt på 4 doser (Region Hovedstaden).", tag: "Anbefalet", rec: true }]
         : [{ key: "penv-em", navn: "Penicillin V", dosering: "1,5 mio. IE (990 mg) × 3 dagligt i 10 dage", note: "Højere dosis end ved andre infektioner.", tag: "Anbefalet", rec: true }];
     }
-    const doxyOk = !s.gravid && (!barn(s) || s.alder >= 8);
+    const allergiTag = s.allergi ? "Anbefalet (penicillinallergi)" : "Ved penicillinallergi";
     if (barn(s) && s.alder >= 8) {
-      r.rows.push({ key: "doxy-em", navn: "Doxycyclin", dosering: boernetekst(s.vaegt, 4, 2, 100, "i 10 dage"), note: "Børn fra 8 år (maks. 100 mg pr. dosis).", tag: s.allergi ? "Anbefalet (penicillinallergi)" : "Ved penicillinallergi", rec: s.allergi });
-    } else if (!barn(s) && doxyOk) {
-      r.rows.push({ key: "doxy-em", navn: "Doxycyclin", dosering: "100 mg × 2 den første dag, derefter 100 mg × 1 dagligt i 9 dage", note: "Undgå sollys (fotosensibilitet). Ikke til gravide og ammende.", tag: s.allergi ? "Anbefalet (penicillinallergi)" : "Ved penicillinallergi", rec: s.allergi });
+      r.rows.push({ key: "doxy-em", navn: "Doxycyclin", dosering: s.alder >= 12 && !(s.vaegt < 40) ? "100 mg × 2 dagligt i 10 dage" : boernetekst(s.vaegt, 4, 2, 100, "i 10 dage"), note: "Børn fra 8 år (maks. 100 mg pr. dosis). Dispergible tabletter à 100 mg kan deles.", tag: allergiTag, rec: s.allergi });
+    } else if (barn(s) && s.alder < 8) {
+      r.rows.push({ key: "azi-em", navn: "Azithromycin", dosering: boernetekst(s.vaegt, 10, 1, 500, "i 3 dage"), note: "Børn under 8 år (Region Hovedstaden).", tag: allergiTag, rec: s.allergi });
+    } else if (!barn(s) && !s.gravid) {
+      r.rows.push({ key: "doxy-em", navn: "Doxycyclin", dosering: "100 mg × 2 dagligt i 10 dage", note: "Undgå sollys (fotosensibilitet). Ikke til gravide og ammende.", tag: allergiTag, rec: s.allergi });
     }
-    if (s.allergi && !doxyOk) r.tekst.push(s.gravid ? "Gravid med penicillinallergi: doxycyclin er kontraindiceret — konferér med infektionsmedicinsk afdeling." : "Barn under 8 år med penicillinallergi: konferér med pædiatrisk afdeling.");
+    if (alderUkendt) r.tekst.push("<strong>Angiv alder</strong> — valget ved penicillinallergi afhænger af, om barnet er under eller over 8 år.");
+    if (s.allergi && s.gravid) r.tekst.push("Gravid med penicillinallergi: doxycyclin er kontraindiceret — konferér med infektionsmedicinsk afdeling.");
     r.noter.push("Multiple EM, feber, ledsmerter, facialisparese eller hovedpine/nakkestivhed: dissemineret eller neuroborreliose — henvis.");
     r.sikkerhed.push("Kontakt igen ved nye udslæt, ansigtslammelse, nerve- eller ledsmerter i de kommende uger.");
     return r;
@@ -134,22 +142,30 @@
     const b = checked("bid");
     const hoejRisiko = dyr !== "hund" || b.includes("risiko") || b.includes("immun");
     let r;
-    const amoxclav = (dage, tag, rec) =>
-      barn(s)
-        ? { key: `amoxclav${dage}`, navn: "Amoxicillin med clavulansyre", dosering: `Dosis efter vægt jf. produktresumé eller regionens børnetabel, i ${dage}. Hold clavulansyre under maksimum.`, note: "Mikstur til mindre børn.", tag, rec }
-        : { key: `amoxclav${dage}`, navn: "Amoxicillin med clavulansyre", dosering: `500/125 mg × 3 dagligt i ${dage}`, note: "Dækker Pasteurella, stafylokokker, streptokokker og anaerober.", tag, rec };
+    // Region Hovedstaden: penicillin V (+ dicloxacillin ved menneskebid); Lægehåndbogen: amoxicillin med clavulansyre.
+    const menneske = dyr === "menneske";
+    function regimer(dage, inficeret) {
+      if (s.allergi) {
+        if (barn(s)) return [{ key: "bid-allergi", navn: "Konferér", dosering: "Barn med penicillinallergi: konferér med pædiatrisk eller infektionsmedicinsk afdeling.", note: "", tag: "Penicillinallergi", rec: true }];
+        return [{ key: "moxi", navn: "Moxifloxacin", dosering: `400 mg × 1 dagligt i ${dage}`, note: `Region Hovedstaden ved penicillinallergi. Fluorokinolon — risiko for seneskade og aortaaneurisme.${s.gravid ? " Undgås under graviditet — konferér." : ""}`, tag: s.gravid ? "Konferér (graviditet)" : "Anbefalet (penicillinallergi)", rec: !s.gravid }];
+      }
+      if (barn(s)) return [{ key: "bid-barn", navn: "Penicillin V", dosering: `Dosis efter vægt jf. regionens børnetabel, i ${dage}${menneske ? " — ved menneskebid tillige dicloxacillin" : ""}.`, note: "Alternativt amoxicillin med clavulansyre efter vægt (hold clavulansyre under maksimum).", tag: "Anbefalet", rec: true }];
+      const rows = [{ key: "penv-bid", navn: menneske ? "Penicillin V + dicloxacillin" : "Penicillin V", dosering: `${menneske ? "Penicillin V 1 mio. IE × 4 + dicloxacillin 1 g × 4" : "1 mio. IE × 4"} dagligt i ${dage}${menneske && inficeret ? " — tillæg metronidazol 500 mg × 3" : ""}`, note: "Region Hovedstaden (2025).", tag: "Anbefalet", rec: true }];
+      rows.push({ key: "amoxclav-bid", navn: "Amoxicillin med clavulansyre", dosering: `500/125 mg × 3 dagligt i ${dage}`, note: "Lægehåndbogen — dækker også Pasteurella, stafylokokker og anaerober.", tag: "Alternativ", rec: false });
+      return rows;
+    }
     if (b.includes("inficeret")) {
-      r = res("Inficeret bidsår: behandl", "box-green", "Rens og revidér såret; podning før behandling.");
-      if (!s.allergi) r.rows = [amoxclav("5–10 dage", "Anbefalet", true)];
+      r = res("Inficeret bidsår: behandl i 10 dage", "box-green", "Rens og revidér såret; podning før behandling.");
+      r.rows = regimer("10 dage", true);
       r.ab = true;
     } else if (hoejRisiko) {
-      r = res("Højrisikobid: forebyggende antibiotika i 3 dage", "box-green", [dyr === "kat" ? "Kattebid giver dybe stiksår og inficeres ofte." : dyr === "menneske" ? "Menneskebid (også knoslag mod tænder) inficeres ofte." : "Hundebid med risikofaktorer.", "Rens grundigt; punktursår sutureres som regel ikke."]);
-      if (!s.allergi) r.rows = [amoxclav("3 dage", "Anbefalet", true)];
+      r = res("Højrisikobid: forebyggende antibiotika i 3 dage", "box-green", [dyr === "kat" ? "Kattebid giver dybe stiksår og inficeres ofte." : menneske ? "Menneskebid (også knoslag mod tænder) inficeres ofte." : "Hundebid med risikofaktorer.", "Rens grundigt; punktursår sutureres som regel ikke."]);
+      r.rows = regimer("3 dage", false);
       r.ab = true;
     } else {
       r = res("Hundebid uden risikofaktorer: sårrens, ingen antibiotika", "box-blue", ["Grundig rens og skylning. Forebyggende antibiotika er ikke nødvendigt ved overfladiske hundebid uden for hænder, fødder, led og ansigt hos raske.", "Kontrol ved tegn på infektion."]);
     }
-    if (s.allergi && r.ab) r.tekst.push("Penicillinallergi: konferér om alternativ (fx med infektionsmedicinsk afdeling) — makrolider alene dækker Pasteurella dårligt.");
+    if (s.allergi && r.ab) r.tekst.push("Penicillinallergi: makrolider alene dækker Pasteurella dårligt.");
     r.noter.push("Tetanus: vurdér vaccinationsstatus, og giv booster efter Statens Serum Instituts anbefalinger.");
     if (b.includes("udland")) r.noter.unshift("<strong>Rabies:</strong> dyrebid i udlandet eller flagermusbid — kontakt straks infektionsmedicinsk afdeling om rabiesprofylakse.");
     if (dyr === "menneske") r.noter.push("Menneskebid: overvej hepatitis B, hepatitis C og hiv efter situationen.");

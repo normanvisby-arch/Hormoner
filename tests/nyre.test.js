@@ -59,12 +59,16 @@ const DOSIS = process.env.BASE_DOSIS || CKD.replace('ckd.html', 'dosis.html');
   // Finerenon
   await go(CKD); await fill({ alder: 65, egfr: 50, uacr: 100, kalium: 4.5 }); await cb('syg', 't2d');
   check('C12 T2D uden ACE/ARB -> finerenon senere', (await out()).includes('Finerenon senere'));
-  await cb('med', 'acearb'); check('C13 T2D + ACE/ARB -> finerenon 10 mg', (await out()).includes('Finerenon overvej') && (await out()).includes('10 mg dagligt'));
+  await cb('med', 'acearb'); check('C13a T2D + ACE/ARB uden SGLT-2 -> finerenon senere, start SGLT-2 først', (await out()).includes('Finerenon senere') && (await out()).includes('Start SGLT-2-hæmmer først'));
+  await cb('med', 'sglt2'); check('C13 T2D + ACE/ARB + SGLT-2 -> finerenon 10 mg', (await out()).includes('Finerenon overvej') && (await out()).includes('10 mg dagligt'));
   await fill({ kalium: 5.2 }); check('C14 kalium 5,2 -> start ikke', (await out()).includes('Finerenon start ikke'));
   await fill({ kalium: 6.2 }); check('C15 kalium 6,2 -> akut', (await out()).includes('akut vurdering'));
   // Fald i eGFR
   await go(CKD); await fill({ alder: 60, egfr: 44, egfrFoer: 52, uacr: 20 });
   check('C16 fald 8 -> henvis', (await out()).includes('Hurtigt fald i eGFR: 8'));
+  await fill({ egfr: 95, egfrFoer: 102 }); o = await out();
+  check('C16b fald 7 ved normal eGFR -> gentag, ikke henvis', !o.includes('Henvis til nefrologisk') && o.includes('gentag eGFR'));
+  await fill({ egfr: 44, egfrFoer: 52 });
   await cb('med', 'nystart'); o = await out();
   check('C17 nystart -> forventet fald', o.includes('initialt fald på op til 30 %') && !o.includes('Hurtigt fald'));
   // Hæmaturi, BT, NSAID, advarsel
@@ -73,6 +77,8 @@ const DOSIS = process.env.BASE_DOSIS || CKD.replace('ckd.html', 'dosis.html');
   check('C19 BT over mål', o.includes('Blodtryk 142/84 mmHg over mål'));
   check('C20 NSAID -> stop', o.includes('NSAID stop'));
   await fill({ uacr: 2 }); check('C21 UACR 2 -> enhedsadvarsel', (await p.locator('#labWarning').innerText()).includes('mg/g'));
+  await go(CKD); await fill({ alder: 50, egfr: 95, uacr: 400 }); check('C21b G1A3 -> kontrol 3 gange (KDIGO 2024)', (await out()).includes('3 gange om året'));
+  await fill({ egfr: '' }); check('C21c uden eGFR -> ingen SGLT-2-anbefaling', !(await out()).includes('SGLT-2-hæmmer anbefales'));
   // Journal
   await go(CKD); await fill({ alder: 70, egfr: 40, uacr: 300 }); await cb('andet', 'bekraeftet'); await cb('syg', 't2d');
   n = await note(); console.log('---\n' + n + '\n---');
@@ -99,9 +105,13 @@ const DOSIS = process.env.BASE_DOSIS || CKD.replace('ckd.html', 'dosis.html');
   await p.uncheck('input[name="vis"][value="handling"]'); await p.fill('#sog', 'metf');
   check('D5 søgning', (await p.$$eval('#output tbody tr:not(.group-row)', (e) => e.length)) === 1);
   await p.fill('#sog', '');
+  check('D5b DOAK-række gælder atrieflimren', (await row('DOAK ved atrieflimren')).length > 0);
   n = await note(); check('D6 notat med relevante', n.includes('CrCl (Cockcroft-Gault) 27') && n.includes('- Metformin: justér') && n.includes('- Nitrofurantoin: kontraindiceret') && !n.includes('Linagliptin'), n);
   await fill({ egfr: 90, alder: '', vaegt: '', kreat: '' }); n = await note();
-  check('D7 eGFR 90 -> kun NSAID-forsigtighed', n.includes('NSAID') && !n.includes('Metformin'), n);
+  check('D7 eGFR 90 -> intet kræver justering', n.includes('Ingen af de viste lægemidler kræver dosisjustering'), n);
+  await fill({ egfr: 50 }); check('D8 metformin eGFR 50 -> maks. 2.000 mg', (await row('Metformin')).includes('Maks. 2.000 mg'));
+  await fill({ egfr: 30 }); check('D9 trimethoprim ved 30 -> halv dosis efter 3 dage', (await row('Trimethoprim')).includes('halv dosis'));
+  await fill({ egfr: 8 }); check('D10 tramadol < 10 -> anbefales ikke', (await row('Tramadol')).includes('Anbefales ikke'));
 
   const m = await ctx.newPage(); await m.setViewportSize({ width: 390, height: 844 });
   for (const u of [CKD, DOSIS]) {

@@ -162,8 +162,10 @@
     else {
       // Initialt fald (typisk 3–5, op til 30 %) efter opstart af SGLT-2-hæmmer eller ACE-hæmmer/ARB er forventet.
       const forventet = has(s.rf, "nystart") && fald > 5 && fald <= 0.3 * s.egfrFoer;
-      const bad = s.egfr < 30 || (fald > 5 && !forventet);
-      if (forventet) handling.push(`eGFR faldet ${Math.round(fald)} efter opstart af SGLT-2-hæmmer eller ACE-hæmmer/ARB: et initialt fald på op til 30 % er forventet og ikke grund til at stoppe — gentag eGFR om 3 måneder, og henvis ved fortsat fald.`);
+      // Hurtigt fald er henvisningskriterium ved allerede nedsat eGFR (DNS 2024).
+      const bad = s.egfr < 30 || (fald > 5 && !forventet && s.egfr < 60);
+      if (fald > 5 && !forventet && s.egfr >= 60) handling.push(`eGFR faldet ${Math.round(fald)} på ca. 1 år, men nyrefunktionen er normal: gentag eGFR, og henvis ved vedvarende fald.`);
+      if (forventet) handling.push(`eGFR faldet ${Math.round(fald)} efter opstart af SGLT-2-hæmmer eller ACE-hæmmer/ARB: et initialt fald på op til 30 % er forventet og ikke grund til at stoppe — gentag eGFR efter 1–3 måneder, og henvis ved fortsat fald.`);
       add("eGFR", `${Math.round(s.egfr)}${isNaN(fald) ? "" : ` (${fald > 0 ? "fald" : "stigning"} ${Math.abs(Math.round(fald))} på 1 år)`}`, "Årligt; fald < 5 pr. år", bad ? "Henvis" : s.egfr < 60 ? "Nedsat" : "Normal", bad ? "tag-warn" : s.egfr < 60 ? "tag-warn" : "tag-recommend");
       if (bad) handling.push(`Henvis til nefrolog: ${s.egfr < 30 ? "eGFR under 30" : `eGFR faldet ${Math.round(fald)} ml/min på et år (> 5)`}.`);
       if (s.egfr < 60) handling.push(`eGFR under 60: dosisjustér lægemidler (metformin, DPP-4-hæmmer) og undgå NSAID${has(s.rf, "sglt2") ? "; fortsæt SGLT-2-hæmmer (nyrebeskyttelse)" : ", og overvej SGLT-2-hæmmer for nyrebeskyttelse"}.`);
