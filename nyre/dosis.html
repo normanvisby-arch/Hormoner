@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dosis efter nyrefunktion</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#8a3a5c">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nyrer">
+</head>
+<body class="theme-nyre">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">💊</span>
+      <div>
+        <h1>Dosis efter nyrefunktion</h1>
+        <p class="subtitle">Almindelige lægemidler i almen praksis ved nedsat eGFR eller kreatininclearance — fortsæt, reducér eller undgå</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <a href="ckd.html">Kronisk nyresygdom</a>
+  <span aria-current="page">Dosis efter nyrefunktion</span>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Grænserne følger produktresuméerne, kontrolleret via sekundære kilder. Nogle produktresuméer bruger eGFR, andre kreatininclearance (Cockcroft-Gault) — værktøjet bruger den, præparatet er doseret efter. Tjek altid pro.medicin.dk før ordination; listen er ikke udtømmende.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se lægemidler ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Nyrefunktion" onsubmit="return false;">
+    <h2>1. Nyrefunktion</h2>
+
+    <div class="field">
+      <label for="egfr">eGFR (ml/min/1,73 m²)</label>
+      <input type="number" id="egfr" min="3" max="150" placeholder="fx 38">
+    </div>
+
+    <fieldset class="field">
+      <legend>Kreatininclearance (Cockcroft-Gault, valgfrit)</legend>
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="18" max="110" placeholder="fx 82">
+      <label for="vaegt" class="field-sublabel">Vægt (kg)</label>
+      <input type="number" id="vaegt" min="25" max="250" step="0.5" placeholder="fx 58">
+      <label for="kreat" class="field-sublabel">P-kreatinin (µmol/l)</label>
+      <input type="number" id="kreat" min="20" max="1500" placeholder="fx 128">
+      <p class="field-hint">Køn</p>
+      <label class="radio"><input type="radio" name="koen" value="mand" checked> Mand</label>
+      <label class="radio"><input type="radio" name="koen" value="kvinde"> Kvinde</label>
+      <span class="input-warning" id="labWarning" aria-live="polite"></span>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Visning</legend>
+      <label for="sog">Søg lægemiddel</label>
+      <input type="text" id="sog" placeholder="fx metformin">
+      <label class="checkbox"><input type="checkbox" name="vis" value="handling"> Vis kun lægemidler, der kræver handling</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Anbefaling" id="resultPanel">
+    <h2>2. Lægemidler</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér notat om relevante lægemidler</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér hele listen</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Produktresuméer (EMA og Lægemiddelstyrelsen), som gengivet på pro.medicin.dk og i sekundære kilder: metformin, SGLT-2-hæmmere, sitagliptin, linagliptin, GLP-1-receptoragonister, glimepirid, DOAK, rosuvastatin, gabapentin, pregabalin, tramadol, nitrofurantoin, trimethoprim, amoxicillin, ciprofloxacin, clarithromycin, valaciclovir, colchicin, methotrexat, alendronat, risedronat og metoclopramid</li>
+    <li>KDIGO 2024 — lægemiddelhåndtering ved kronisk nyresygdom (fortsæt ACE-hæmmer/ARB ved eGFR under 30, undgå langvarig NSAID)</li>
+    <li>Cockcroft DW, Gault MH. <em>Nephron</em> 1976 — kreatininclearance = (140 − alder) × vægt × 1,23 (mænd) eller 1,04 (kvinder) / P-kreatinin (µmol/l)</li>
+    <li>Region Hovedstaden — Antibiotikavejledning for primærsektoren (2025): nitrofurantoin kun ved GFR &gt; 45</li>  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra KDIGO, Lægemiddelstyrelsen eller EMA. Produktresuméerne på pro.medicin.dk kunne ikke tilgås direkte ved udviklingen; anbefalingerne er kontrolleret via sekundære kilder og skal verificeres i de gældende vejledninger. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="dosis.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

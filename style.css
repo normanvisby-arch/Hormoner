@@ -50,6 +50,14 @@ body.theme-diabetes {
   --color-primary: #9a4f0b;
   --color-primary-dark: #733a07;
 }
+body.theme-infektion {
+  --color-primary: #3f6212;
+  --color-primary-dark: #2c4a0c;
+}
+body.theme-nyre {
+  --color-primary: #8a3a5c;
+  --color-primary-dark: #6a2a45;
+}
 
 * { box-sizing: border-box; }
 
@@ -783,3 +791,16 @@ fieldset.field > label[for] { display: block; font-weight: 600; font-size: 0.88r
 /* Status "kræver handling" i tabeller */
 .tag-warn { background: var(--color-amber-bg); color: var(--color-amber-text); border: 1px solid var(--color-amber-border); }
 
+/* KDIGO-farvekort (nyre-appen) */
+.kdigo-map { border-collapse: collapse; width: 100%; font-size: 0.85rem; margin: 0.5rem 0; }
+.kdigo-map th, .kdigo-map td { border: 1px solid var(--color-border); padding: 0.35rem 0.4rem; text-align: center; }
+.kdigo-map th { background: var(--color-panel); font-weight: 600; }
+.kdigo-map td.risk-lav { background: #d6efd6; color: #1d4d1d; }
+.kdigo-map td.risk-moderat { background: #fbf0c2; color: #5a4a00; }
+.kdigo-map td.risk-hoej { background: #f9d3ad; color: #6a3208; }
+.kdigo-map td.risk-meget { background: #f3b6b6; color: #6d1414; }
+.kdigo-map td.aktuel { outline: 3px solid var(--color-text); outline-offset: -3px; font-weight: 700; }
+.risk-number { font-size: 1.6rem; font-weight: 700; line-height: 1.2; }
+.kfre-grid { display: flex; gap: 2rem; flex-wrap: wrap; margin: 0.5rem 0; }
+.tag-danger { background: var(--color-red-bg); color: var(--color-red-text); border: 1px solid var(--color-red-border); }
+.drug-table tr.group-row th { text-align: left; background: var(--color-bg); color: var(--color-primary-dark); font-size: 0.9rem; padding: 0.5rem 0.6rem; }

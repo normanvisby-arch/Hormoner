@@ -1,0 +1,150 @@
+const { chromium } = require('playwright');
+// Kør via tests/run_all.sh (starter en lokal server). BASE_URL kan pege på en anden server.
+// BASE/BASE_URINVEJE/BASE_HUD kan pege på byggede artifacts.
+const ROOT = process.env.BASE_URL || 'http://localhost:8795/';
+const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
+const LUFT = process.env.BASE || ROOT + 'infektion/luftveje.html';
+const URIN = process.env.BASE_URINVEJE || LUFT.replace('luftveje.html', 'urinveje.html');
+const HUD = process.env.BASE_HUD || LUFT.replace('luftveje.html', 'hud.html');
+(async () => {
+  const b = await chromium.launch({ executablePath: CHROMIUM });
+  const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(LUFT).origin });
+  const p = await ctx.newPage(); const errors = []; p.on('pageerror', (e) => errors.push(String(e)));
+  let fails = 0; const check = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + x : '')); if (!c) fails++; };
+  const go = async (u) => { await p.goto(u); await p.waitForTimeout(120); };
+  const out = async () => p.locator('#output').innerText();
+  const head = async (i = 0) => p.locator('#output .box h3').nth(i).innerText();
+  const r = (n, v) => p.check(`input[name="${n}"][value="${v}"]`);
+  const cb = (n, v) => p.check(`input[name="${n}"][value="${v}"]`);
+  const fill = async (o) => { for (const [k, v] of Object.entries(o)) await p.fill('#' + k, String(v)); };
+  const rec = async () => p.$$eval('#output tr', (trs) => trs.filter((tr) => tr.querySelector('.tag-recommend')).map((tr) => tr.cells[0].childNodes[0].textContent.trim() + ' | ' + tr.cells[1].textContent.trim()));
+  const note = async () => { await p.click('#copyBtn'); await p.waitForTimeout(150); return p.evaluate(() => navigator.clipboard.readText()); };
+  let o, n;
+
+  // ---------------- Luftveje ----------------
+  await go(LUFT);
+  check('L1 Centor 0 -> ingen antibiotika', (await head()).startsWith('Centor 0') && (await rec()).length === 0);
+  n = await note(); check('L1 journal ingen antibiotika', n.includes('Plan: ingen antibiotika'), n);
+  await fill({ alder: 34 }); for (const c of ['feber', 'belaeg', 'hoste']) await cb('centor', c);
+  check('L2 Centor 3 -> strep A-test', (await head()).includes('tag strep A-test'));
+  await r('strep', 'pos'); o = JSON.stringify(await rec());
+  check('L3 strep+ voksen -> penicillin V × 4 i 5 dage', (await head()).startsWith('Streptokok-tonsillitis') && o.includes('1 mio. IE (660 mg) eller 800 mg × 4 dagligt i 5 dage'), o);
+  n = await note(); check('L3 journal', n.includes('faryngo-tonsillitis') && n.includes('Centor 3/4, strep A-test positiv') && n.includes('Plan: Penicillin V'), n);
+  await p.check('#output input[name="valg"][value="clari"]'); n = await note();
+  check('L3b valgt clarithromycin i journal', n.includes('Valgt behandling: Clarithromycin') && !n.includes('Penicillin V —'), n);
+  await fill({ alder: 6, vaegt: 20 }); o = JSON.stringify(await rec());
+  check('L4 barn 20 kg -> 325 mg × 3 i 5 dage', o.includes('325 mg × 3 dagligt (50 mg/kg/døgn fordelt på 3 doser) i 5 dage'), o);
+  await fill({ vaegt: '' }); check('L4b barn uden vægt -> angiv vægt', (await out()).includes('Angiv vægt'));
+  await fill({ alder: 34 }); await cb('andet', 'allergi'); o = JSON.stringify(await rec());
+  check('L5 allergi -> clarithromycin anbefalet, roxithromycin alternativ', o.includes('Clarithromycin') && !o.includes('Penicillin') && (await out()).includes('Roxithromycin'), o);
+  await p.uncheck('input[name="andet"][value="allergi"]'); await r('strep', 'neg');
+  check('L6 strep negativ -> ingen antibiotika', (await head()).startsWith('Negativ strep A-test') && (await rec()).length === 0);
+  await cb('rf', 'absces'); check('L7 absces -> akut', (await head()).includes('peritonsillær absces'));
+  n = await note(); check('L7 journal akut henvisning', n.includes('Plan: akut henvisning'), n);
+  // Otitis
+  await go(LUFT); await r('diag', 'otitis'); await fill({ alder: 3, vaegt: 15 });
+  check('L8 otitis upåvirket -> observation', (await head()).startsWith('Ikke almen påvirket') && (await rec()).length === 0);
+  check('L8 felter skiftet', await p.locator('#fsOt').isVisible() && await p.locator('#fsTons').isHidden());
+  await cb('ot', 'paavirket'); o = JSON.stringify(await rec());
+  check('L9 otitis påvirket 15 kg -> 250 mg × 3', o.includes('250 mg × 3 dagligt'), o);
+  await cb('ot', 'svigt'); check('L10 svigt -> amoxicillin/clavulansyre', (await head()).includes('amoxicillin med clavulansyre') && JSON.stringify(await rec()).includes('clavulansyre'));
+  await p.uncheck('input[name="ot"][value="svigt"]'); await p.uncheck('input[name="ot"][value="paavirket"]'); await cb('ot', 'otore3');
+  check('L11 flåd > 3 dage upåvirket -> øredråber', JSON.stringify(await rec()).includes('øredråber'));
+  await cb('ot', 'mastoid'); check('L12 mastoiditis -> akut', (await head()).startsWith('Mistanke om mastoiditis'));
+  await go(LUFT); await r('diag', 'otitis'); await fill({ alder: 0.5, vaegt: 8 });
+  check('L12b under 1 år -> skærpet opmærksomhed', (await out()).includes('Under 1 år'));
+  // Sinuitis
+  await go(LUFT); await r('diag', 'sinuitis'); await fill({ alder: 45 }); await cb('sin', 'sekret'); await cb('sin', 'smerte'); await cb('sin', 'feber');
+  check('L13 under 10 dage -> viral', (await head()).startsWith('Under 10 dage') && (await rec()).length === 0);
+  await r('varighed', 'lang'); check('L14 ≥ 10 dage + 3 tegn -> penicillin', (await head()).includes('3 af 5 tegn') && JSON.stringify(await rec()).includes('i 5 dage'));
+  await p.uncheck('input[name="sin"][value="feber"]'); check('L15 2 tegn -> ingen antibiotika', (await head()).startsWith('2 af 5 tegn'));
+  await fill({ crp: 60 }); check('L16 CRP 60 tæller -> 3 tegn', (await head()).includes('3 af 5 tegn'));
+  await cb('rf', 'orbital'); check('L17 orbital -> akut', (await head()).includes('kompliceret sinuitis'));
+  // Pneumoni
+  await go(LUFT); await r('diag', 'pneumoni'); await fill({ alder: 70 }); await cb('pn', 'fokal');
+  check('L18 CRP mangler -> mål CRP', (await head()) === 'Mål CRP' && (await rec()).length === 0 && (await out()).includes('Hvis der behandles'));
+  await fill({ crp: 80 }); o = await out();
+  check('L19 CRP 80 -> behandl + CRB-65 1', (await head()).includes('Klinisk pneumoni med CRP 80') && o.includes('CRB-65 1:') && JSON.stringify(await rec()).includes('× 4 dagligt i 5 dage'), await head());
+  check('L19 KOL-link', o.includes('KOL-værktøjet'));
+  await fill({ crp: 30 }); check('L20 CRP 30 -> taler imod', (await head()).includes('taler imod') && (await rec()).length === 0);
+  await fill({ crp: 10 }); check('L21 CRP 10 -> usandsynlig', (await head()).startsWith('CRP under 20'));
+  await fill({ crp: 80 }); await cb('crb', 'konfus'); await cb('crb', 'rf30');
+  check('L22 CRB-65 3 -> indlæggelse', (await head()).startsWith('Akut indlæggelse — CRB-65 3'));
+  n = await note(); check('L22 journal', n.includes('CRB-65 3') && n.includes('Plan: akut henvisning'), n);
+  await go(LUFT); await r('diag', 'pneumoni'); await fill({ alder: 40, crp: 80, sat: 90 });
+  check('L23 SAT 90 -> indlæggelse', (await head()).includes('SAT 90'));
+  await go(LUFT); await r('diag', 'pneumoni'); await fill({ alder: 8, vaegt: 25, crp: 90 }); o = await out();
+  check('L24 barn 25 kg -> 425 mg × 3 og CRB-note', JSON.stringify(await rec()).includes('425 mg × 3') && o.includes('ikke valideret til børn'), JSON.stringify(await rec()));
+  // Bronkitis og spædbørn
+  await go(LUFT); await r('diag', 'bronkitis'); check('L25 bronkitis -> ingen antibiotika', (await head()).startsWith('Akut bronkitis') && (await rec()).length === 0);
+  await fill({ alder: 0.1 }); check('L26 spædbarn -> advarsel', (await p.locator('#alderWarning').innerText()).includes('3 måneder'));
+
+  // ---------------- Urinveje ----------------
+  await go(URIN);
+  o = JSON.stringify(await rec());
+  check('U1 ukompliceret -> pivmecillinam 3 dage', (await head()).startsWith('Akut ukompliceret cystitis') && o.includes('400 mg × 3 dagligt i 3 dage'), o);
+  await r('leuk', 'pos'); await r('nitrit', 'pos'); o = await out();
+  check('U2 stix ++ -> uden dyrkning', o.includes('uden forudgående dyrkning') && o.includes('Dyrkning ikke nødvendig'));
+  await r('leuk', 'neg'); await r('nitrit', 'neg'); check('U3 stix -- -> mindre sandsynlig', (await head()).startsWith('Negativ stix') && (await rec()).length === 0);
+  await r('leuk', 'pos'); await cb('andet', 'allergi');
+  check('U4 allergi -> nitrofurantoin 100 mg × 4', JSON.stringify(await rec()).includes('Nitrofurantoin | 100 mg × 4 dagligt i 3 dage'));
+  await fill({ egfr: 40 }); o = await out();
+  check('U5 eGFR 40 -> nitrofurantoin kontraindiceret', o.includes('Kontraindiceret ved eGFR 40') && (await rec()).length === 0);
+  n = await note(); check('U5 journal efter resistensbestemmelse', n.includes('Plan: antibiotika efter dyrkning og resistensbestemmelse') && n.includes('eGFR 40'), n);
+  await go(URIN); await cb('andet', 'gravid');
+  check('U6 gravid -> 5 dage', (await head()).startsWith('Cystitis hos gravid') && JSON.stringify(await rec()).includes('i 5 dage'));
+  await r('billede', 'feber'); check('U7 gravid feber -> indlæggelse', (await head()).startsWith('Pyelonefritis i graviditeten'));
+  await r('billede', 'asympt'); check('U8 gravid asymptomatisk -> behandl', (await head()).includes('behandl'));
+  await p.uncheck('input[name="andet"][value="gravid"]'); check('U9 asymptomatisk ikke-gravid -> ingen', (await head()).startsWith('Asymptomatisk bakteriuri: ingen'));
+  await go(URIN); await r('koen', 'mand');
+  check('U10 mand -> gravid-felt skjult', await p.locator('#gravidLabel').isHidden());
+  check('U10 mand cystitis -> 5 dage', (await head()).includes('mand') && JSON.stringify(await rec()).includes('i 5 dage'));
+  await r('billede', 'feber'); o = JSON.stringify(await rec());
+  check('U11 mand feber -> ciprofloxacin, prostatitis 2–4 uger', o.includes('Ciprofloxacin') && o.includes('2–4 uger'), o);
+  await fill({ egfr: 25 }); check('U12 eGFR 25 -> cipro 500 mg × 1', JSON.stringify(await rec()).includes('500 mg × 1'));
+  await go(URIN); await r('billede', 'feber'); o = await out();
+  check('U13 kvinde feber -> pyelonefritis pivmecillinam 7 dage', (await head()).startsWith('Akut pyelonefritis') && JSON.stringify(await rec()).includes('i 7 dage') && o.includes('Region Midtjylland'));
+  await cb('andet', 'sepsis'); check('U14 påvirket -> urosepsis', (await head()).startsWith('Mistanke om urosepsis'));
+  await go(URIN); await fill({ alder: 6, vaegt: 20 }); o = JSON.stringify(await rec());
+  check('U15 barn 20 kg -> pivmecillinam 125 mg × 3', o.includes('125 mg × 3 dagligt (20 mg/kg/døgn'), o);
+  await fill({ alder: 1, vaegt: 10 }); check('U16 barn 1 år -> konferér', (await out()).includes('under 2 år') && (await rec()).length === 0);
+  await r('billede', 'feber'); check('U17 barn feber -> akut pædiatri', (await head()).includes('barn'));
+  await go(URIN); await cb('andet', 'kateter'); o = await out();
+  check('U18 kateter -> kompliceret + skift kateter', (await head()).includes('Kompliceret cystitis') && o.includes('Skift kateteret'));
+
+  // ---------------- Hud ----------------
+  await go(HUD); await fill({ alder: 58 }); o = JSON.stringify(await rec());
+  check('H1 erysipelas voksen -> penicillin V 5–7 dage', (await head()).startsWith('Erysipelas') && o.includes('× 4 dagligt i 5–7 dage'), o);
+  await cb('andet', 'allergi'); check('H2 allergi -> roxithromycin', JSON.stringify(await rec()).includes('Roxithromycin'));
+  await go(HUD); await fill({ alder: 6, vaegt: 20 }); check('H3 barn 20 kg -> 325 mg × 3 i 7 dage', JSON.stringify(await rec()).includes('325 mg × 3 dagligt (50 mg/kg/døgn fordelt på 3 doser) i 7 dage'));
+  await go(HUD); await r('diag', 'cellulitis'); await fill({ alder: 50 });
+  check('H4 cellulitis -> dicloxacillin 1 g × 3 i 7 dage', JSON.stringify(await rec()).includes('Dicloxacillin | 1 g × 3 dagligt i 7 dage'));
+  await cb('cell', 'absces'); check('H5 absces uden omgivende -> drænage, ingen AB', (await head()).includes('incision og drænage') && (await rec()).length === 0);
+  await cb('cell', 'omgiv'); check('H6 absces + cellulitis -> dicloxacillin', (await head()).includes('drænage og dicloxacillin'));
+  await go(HUD); await r('diag', 'impetigo'); check('H7 impetigo lokal -> antiseptisk', (await head()).startsWith('Lokaliseret impetigo') && (await rec()).length === 0);
+  await r('udbred', 'udbredt'); await fill({ alder: 4, vaegt: 15 });
+  check('H8 udbredt barn 15 kg -> flucloxacillin 200 mg × 4', JSON.stringify(await rec()).includes('Flucloxacillin mikstur | 200 mg × 4'), JSON.stringify(await rec()));
+  await go(HUD); await r('diag', 'em'); await fill({ alder: 40 });
+  check('H9 EM voksen -> 1,5 mio. IE × 3 i 10 dage', JSON.stringify(await rec()).includes('1,5 mio. IE (990 mg) × 3 dagligt i 10 dage'));
+  await cb('andet', 'allergi'); check('H10 EM allergi -> doxycyclin', JSON.stringify(await rec()).includes('Doxycyclin | 100 mg × 2 den første dag'));
+  await cb('andet', 'gravid'); check('H11 EM gravid + allergi -> konferér', (await out()).includes('doxycyclin er kontraindiceret') && (await rec()).length === 0);
+  await go(HUD); await r('diag', 'em'); await fill({ alder: 6, vaegt: 20 }); check('H12 EM barn 20 kg -> 675 mg × 3', JSON.stringify(await rec()).includes('675 mg × 3'));
+  await fill({ alder: 10, vaegt: 30 }); await cb('andet', 'allergi'); check('H13 EM barn 10 år allergi -> doxycyclin 60 mg × 2', JSON.stringify(await rec()).includes('60 mg × 2'));
+  await go(HUD); await r('diag', 'bid'); await fill({ alder: 30 });
+  check('H14 hundebid uden risiko -> ingen AB', (await head()).startsWith('Hundebid uden risikofaktorer') && (await rec()).length === 0);
+  await r('dyr', 'kat'); check('H15 kattebid -> profylakse 3 dage', JSON.stringify(await rec()).includes('500/125 mg × 3 dagligt i 3 dage'));
+  await cb('bid', 'inficeret'); check('H16 inficeret -> 5–10 dage', JSON.stringify(await rec()).includes('5–10 dage'));
+  await cb('bid', 'udland'); check('H17 udland -> rabies', (await out()).includes('Rabies'));
+  await cb('rf', 'nekrose'); check('H18 nekrotiserende -> akut', (await head()).startsWith('Mistanke om nekrotiserende'));
+  n = await note(); check('H18 journal', n.includes('Plan: akut henvisning'), n);
+  await p.click('#resetBtn'); check('H19 reset', (await head()).startsWith('Erysipelas') && (await p.inputValue('#alder')) === '');
+
+  const m = await ctx.newPage(); await m.setViewportSize({ width: 390, height: 844 });
+  for (const u of [LUFT, URIN, HUD]) {
+    await m.goto(u); await m.waitForTimeout(150);
+    check('mobil uden vandret scroll ' + u.split('/').pop(), (await m.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+  }
+  check('JS errors', errors.length === 0, JSON.stringify(errors));
+  console.log('FAILS:', fails); await b.close();
+})();
