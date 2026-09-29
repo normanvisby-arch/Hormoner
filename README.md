@@ -117,12 +117,17 @@ kontrolleret via sekundære kilder og produktresuméer.
   triple ved eosinofile ≥ 0,1, ellers roflumilast/azithromycin; åndenød: LAMA + LABA, skift fra
   ICS + LABA uden ICS-indikation). DSAM's eosinofil-tærskler (≥ 0,3 indiceret, 0,10–0,29 tvivlsom,
   < 0,10 ikke indiceret). Rehabilitering, vaccination, iltvurdering (SAT ≤ 92 %), eksacerbation
-  (prednisolon 37,5 mg i 5 dage; amoxicillin 750 mg × 3 i 5 dage ved purulent ekspektorat).
+  (prednisolon 37,5 mg i 5 dage; amoxicillin 750 mg × 3 i 5 dage ved øget purulens sammen med øget
+  åndenød eller ekspektoratmængde, eller CRP > 50). Samtidig astma: altid ICS (ICS + LABA eller
+  triple). FEV1/FVC over 1 afvises, medmindre det er angivet i procent (20–100).
 - **`astma.html`** (≥ 12 år): GINA 2025 spor 1 — ICS-formoterol efter behov (trin 1–2), MART lav
   (trin 3) og medium (trin 4) med budesonid/formoterol 160/4,5 (Bufomix Easyhaler 1. valg på
   basislisten); trin 5 med LAMA og henvisning. Kontrol efter GINA's 4 spørgsmål og evt. ACT;
-  optrapning ved manglende kontrol eller ≥ 2 forværringer, nedtrapning efter ≥ 3 måneders kontrol
-  uden forværringer. ICS-dosistabel og akut forværring (prednisolon 37,5–50 mg i 5–7 dage).
+  optrapning ved manglende kontrol eller ≥ 2 forværringer (fast ICS-LABA på trin 4 skifter først til
+  MART medium), nedtrapning efter ≥ 3 måneders kontrol uden forværringer — ikke under graviditet.
+  Overskriften bruger det dårligste af GINA og ACT. Innovair kun som MART (maks. 8 pust/døgn).
+  Under 12 år vises ingen anbefaling. ICS-dosistabel og akut forværring (prednisolon 37,5–50 mg i
+  5–7 dage).
 - **`huskeskema.html`**: tolv principper, effekt i tal (IMPACT, SYGMA 1, Sobieraj 2018, Cochrane
   2016) og henvisningskriterier.
 
@@ -131,11 +136,14 @@ kontrolleret via sekundære kilder og produktresuméer.
 - **`hypothyreose.html`**: tolkning af TSH (laboratoriets øvre grænse, standard 4,0) og T4:
   manifest, subklinisk, mistanke om central hypothyreose, analyseinterferens. Subklinisk: bekræft
   efter 1–3 måneder; behandling ved TSH ≥ 10 under 70 år, forsøgsbehandling ved symptomer og TSH
-  < 10, ingen behandling over 70 år ved TSH < 10; altid ved graviditet. Startdosis: ca. 1,6 mikrog./kg
+  < 10, ingen behandling fra 70 år ved TSH < 10; altid ved graviditet (øvre grænse højst 3,5 i
+  graviditeten). Startdosis: ca. 1,6 mikrog./kg
   hos yngre raske (alternativt 50 mikrog. og optitrering), 25 mikrog. ved alder ≥ 60 eller iskæmisk
   hjertesygdom, 25–50 mikrog. ved subklinisk. I behandling: TSH-mål (op til 6 over 70 år; < 2,5 ved
   graviditet), justering med 12,5–25 mikrog. (25–50 ved TSH > 10), reduktion ved TSH < 0,3,
-  graviditet +20–30 %. Indtagelse, interaktioner og henvisning.
+  graviditet +20–30 % — kun når dosis ikke allerede er øget og TSH ≥ 0,1; ellers justering mod
+  TSH < 2,5 med kontrol hver 4. uge. Pause ved lavt TSH på 12,5 mikrog. Indtagelse, interaktioner
+  og henvisning.
 - **`huskeskema.html`**: tolv principper, tal til samtalen (TRUST 2017 m.fl.) og henvisning.
 
 ## Type 2-diabetes (`diabetes/`) — logik og datagrundlag
@@ -144,11 +152,16 @@ kontrolleret via sekundære kilder og produktresuméer.
   organbeskyttende indikation (hjerte-kar-sygdom, hjertesvigt, eGFR < 60, UACR ≥ 30, høj risiko)
   uafhængigt af HbA1c, og næste skridt: metformin → SGLT-2-hæmmer (organbeskyttelse fra eGFR 20;
   glykæmisk effekt fra 45) → GLP-1-receptoragonist → basalinsulin; DPP-4-hæmmer ved skrøbelighed/
-  hypoglykæmirisiko; sulfonylurinstof nedprioriteret (Medicinrådet 2026). eGFR-dosistabel,
+  hypoglykæmirisiko (hos skrøbelige før GLP-1); sulfonylurinstof nedprioriteret (Medicinrådet
+  2026); optitrering/prandial insulin eller henvisning, hvis patienten allerede får insulin.
+  Hjertesvigt eller nyresygdom giver SGLT-2-hæmmer, også hos patienter på GLP-1. Rybelsus i ny
+  formulering (1,5/4/9 mg fra september 2025). eGFR-dosistabel, advarsel ved manglende eGFR,
   GLP-1-tilskudsklausul (2024) og sygedagsregler.
 - **`aarskontrol.html`**: status mod mål for HbA1c, BT (< 130/80; < 140/85 fra 75 år), LDL (< 2,6;
-  < 1,8 ved albuminuri, nedsat nyrefunktion, høj risiko og hjerte-kar-sygdom), eGFR (henvis ved
-  < 30 eller fald > 5 pr. år), UACR (A1–A3; RAAS-blokade + SGLT-2-hæmmer ved albuminuri), fødder
+  < 1,8 ved albuminuri, nedsat nyrefunktion og høj risiko; < 1,4 ved hjerte-kar-sygdom som i
+  hjerte-kar-appen), eGFR (henvis ved < 30 eller fald > 5 pr. år — initialt fald op til 30 % efter
+  opstart af SGLT-2-hæmmer/ACE-hæmmer/ARB er forventet), UACR (A1–A3; RAAS-blokade + SGLT-2-hæmmer
+  ved albuminuri; henvisning ved A3), fødder
   (risikogruppe 1–4), øjne, rygning og BMI — med handlingsliste og journalnotat.
 - **`huskeskema.html`**: tolv principper, effekt i tal (SGLT-2-metaanalyser, FLOW, DiRECT) og
   henvisning.
@@ -461,6 +474,21 @@ en server. Konsekvenser af det valg:
 - Installér-knap på alle startsider (Chrome/Edge på computer og Android) og fælles "Andre apps"-
   links mellem de fem apps. `tools/mkicons.js` laver app-ikoner ud fra `icons/icon.svg`.
 - Service worker v7 (rod) og v4 (hjerte) pga. ændret `pwa.js`, `style.css` og startsider.
+- Rettelser efter uafhængig ekstern audit:
+  - KOL: samtidig astma giver altid ICS; FEV1/FVC valideres (procent 20–100 omregnes, ellers
+    afvist); rygning og mMRC har ingen forudfyldt værdi; antibiotika efter purulens/CRP.
+  - Astma: ingen nedtrapning under graviditet; Innovair kun ved MART (maks. 8 pust/døgn);
+    fast høj dosis ICS-LABA → MART medium før trin 5; journalen nævner LAMA og henvisning på
+    trin 5 og prednisolonkur ved akut start; ACT indgår i overskriften; ingen anbefaling under 12 år.
+  - Hypothyreose: gravide, der allerede har øget dosis, eller med TSH < 0,1, får ikke +25 %;
+    graviditetsgrænse for TSH (3,5); kontrol hver 4. uge og henvisning i journalen; pause ved lavt
+    TSH på laveste dosis; journalplan ved central hypothyreose; huskeskemaet angiver Alexander 2004
+    korrekt (gennemsnitlig øgning ca. 47 %; +29 % som startøgning).
+  - Type 2-diabetes: SGLT-2 ved hjertesvigt/nyresygdom også på GLP-1; optitrering ved insulin;
+    Rybelsus ny formulering (Lægemiddelstyrelsen 2025); advarsel ved manglende eGFR; samme mål-
+    grænse i målboks og næste skridt; DPP-4 før GLP-1 hos skrøbelige; fuld tilskudsklausul; LDL
+    < 1,4 ved hjerte-kar-sygdom i årskontrollen; diastolisk BT alene; forventet eGFR-fald efter
+    opstart; henvisning ved A3.
 
 **29. september 2026 — valg af behandling i klimakterie-, præventions- og osteoporoseguiden:**
 - Hver behandling i tabellerne har en "Vælg til journal"-knap (fælles `valg.js`). Journalnotatet

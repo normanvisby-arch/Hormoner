@@ -45,9 +45,32 @@ const BASE = process.env.BASE || ROOT + 'diabetes/behandling.html';
   check('7 lavt HbA1c på SU + hypo -> nedtrapning', (await out()).includes('Overvej nedtrapning'));
   await fresh(); await fill({ hba1c: 80 }); check('8 HbA1c 80 -> insulin/GAD-note', (await out()).includes('GAD-antistoffer'));
   await fill({ hba1c: 7 }); check('8b HbA1c 7 -> % advarsel', (await p.locator('#labWarning').innerText()).includes('%'));
+  // Audit V8: hjertesvigt på GLP-1 -> SGLT-2 alligevel
+  await fresh(); await cb('beh', 'metformin'); await cb('beh', 'glp1'); await cb('organ', 'hs'); await fill({ egfr: 70, hba1c: 50 });
+  check('8c HF på GLP-1 -> tilføj SGLT-2', (await head(2)).includes('SGLT-2-hæmmer (organbeskyttelse)'), await head(2));
+  await p.uncheck('input[name="organ"][value="hs"]'); await cb('organ', 'ascvd');
+  check('8d ASCVD på GLP-1 -> ikke tvungen SGLT-2', !(await head(2)).includes('organbeskyttelse'), await head(2));
+  // Audit V9: allerede insulin
+  await fresh(); for (const k of ['metformin', 'sglt2', 'glp1', 'insulin']) await cb('beh', k);
+  await fill({ hba1c: 70, egfr: 80 }); o = await out();
+  check('8e på insulin -> optitrér, ikke "tilføj basalinsulin"', (await head(2)).includes('Optitrér insulin') && !o.includes('Tilføj basalinsulin') && o.includes('prandial insulin'), await head(2));
+  // Audit V10: Rybelsus ny formulering
+  await fresh(); await cb('beh', 'metformin'); await cb('beh', 'sglt2'); await fill({ hba1c: 62, egfr: 80 });
+  check('8f Rybelsus 1,5 mg ny formulering', (await out()).includes('1,5 mg i 30 dage, derefter 4 mg'));
+  // Audit V11: eGFR mangler
+  await fresh(); check('8g eGFR mangler -> note', (await out()).includes('eGFR mangler'));
+  await fill({ egfr: 80 }); check('8g eGFR angivet -> ingen note', !(await out()).includes('eGFR mangler'));
+  // Audit V13: skrøbelig HbA1c 66 er i mål i både boks og næste skridt
+  await fresh(); await cb('beh', 'metformin'); await cb('forhold', 'skroebelig'); await fill({ hba1c: 66, egfr: 70 });
+  check('8h skrøbelig HbA1c 66 -> i mål begge steder', (await head()).includes('er i mål') && (await head(2)).includes('I mål'), (await head()) + ' / ' + (await head(2)));
+  await fill({ hba1c: 72 }); await cb('kan', 'sglt2');
+  check('8i skrøbelig over mål -> DPP-4 før GLP-1', (await head(2)).includes('DPP-4'), await head(2));
+  // Audit V3: journal nævner metformin og samtidig SGLT-2
+  await fresh(); await cb('organ', 'ascvd'); await fill({ egfr: 70 }); let n = await note();
+  check('8j journal metformin + samtidig SGLT-2', n.includes(': Metformin.') && n.includes(': Empagliflozin 10 mg.'), n);
   // Journal
   await fresh(); await cb('beh', 'metformin'); await fill({ alder: 63, hba1c: 60, egfr: 80, varighed: 8 });
-  let n = await note(); console.log('---\n' + n + '\n---');
+  n = await note(); console.log('---\n' + n + '\n---');
   check('9 journal', n.includes('HbA1c 60 mmol/mol') && n.includes('Aktuel behandling: metformin') && n.includes('Plan (tilføj sglt-2-hæmmer): Empagliflozin 10 mg'));
   await p.check('#output input[name="valg"][value="dapagliflozin"]'); n = await note();
   check('9b valgt dapagliflozin', n.includes('Valgt behandling: Dapagliflozin 10 mg') && !n.includes('Empagliflozin'), n);
@@ -72,6 +95,14 @@ const BASE = process.env.BASE || ROOT + 'diabetes/behandling.html';
   await fill({ alder: 80 }); check('16 80 år -> BT-mål 140/85', (await out()).includes('< 140/85'));
   n = await note(); console.log('---\n' + n + '\n---');
   check('17 årskontrol journal', n.includes('årskontrol') && n.includes('Plan (tilpas):') && n.includes('- Albuminuri'));
+  // Audit V12 og mindre punkter
+  await p.goto(A); await p.waitForTimeout(120); await cb('rf', 'ascvd'); await cb('rf', 'statin'); await fill({ ldl: '1.6' }); o = await out();
+  check('18 ASCVD LDL 1,6 -> over mål 1,4', o.includes('LDL 1,6 over målet (< 1,4'));
+  await fill({ dbp: 92 }); check('19 kun diastolisk 92 -> over mål', (await out()).includes('Blodtryk over mål'));
+  await fill({ egfr: 58, egfrFoer: 66 }); await cb('rf', 'nystart'); o = await out();
+  check('20 eGFR-fald efter opstart -> forventet, ikke henvis', o.includes('initialt fald på op til 30 %') && !o.includes('Henvis til nefrolog: eGFR faldet'));
+  await cb('rf', 'sglt2'); check('21 på SGLT-2 -> ikke "overvej SGLT-2"', !(await out()).includes('overvej SGLT-2-hæmmer for nyrebeskyttelse'));
+  await fill({ uacr: 400 }); check('22 A3 -> henvis nefrolog', (await out()).includes('A3): henvis til nefrolog'));
   check('JS errors', errors.length === 0, JSON.stringify(errors));
   console.log('FAILS:', fails); await b.close();
 })();

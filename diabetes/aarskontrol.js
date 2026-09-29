@@ -99,7 +99,7 @@
 
   function ldlMaal(s) {
     const alb = !isNaN(s.uacr) && s.uacr >= 30;
-    if (has(s.rf, "ascvd")) return { maal: 1.8, tekst: "< 1,8 (DSAM) — ESC 2023: < 1,4 ved hjerte-kar-sygdom", grund: "hjerte-kar-sygdom" };
+    if (has(s.rf, "ascvd")) return { maal: 1.4, tekst: "< 1,4 (ESC 2023; DSAM: < 1,8)", grund: "hjerte-kar-sygdom" };
     if (alb || has(s.rf, "risiko") || (!isNaN(s.egfr) && s.egfr < 60)) return { maal: 1.8, tekst: "< 1,8", grund: alb ? "albuminuri" : !isNaN(s.egfr) && s.egfr < 60 ? "nedsat nyrefunktion" : "høj risiko" };
     return { maal: 2.6, tekst: "< 2,6", grund: "type 2-diabetes uden yderligere risiko" };
   }
@@ -133,10 +133,10 @@
 
     // Blodtryk
     const bt = btMaal(s);
-    if (isNaN(s.sbp)) add("Blodtryk", "—", bt.tekst, "Ikke målt", "tag-alt");
+    if (isNaN(s.sbp) && isNaN(s.dbp)) add("Blodtryk", "—", bt.tekst, "Ikke målt", "tag-alt");
     else {
-      const over = s.sbp >= bt.s || (!isNaN(s.dbp) && s.dbp >= bt.d);
-      add("Blodtryk", `${s.sbp}${isNaN(s.dbp) ? "" : "/" + s.dbp} mmHg`, bt.tekst, over ? "Over mål" : "I mål", over ? "tag-warn" : "tag-recommend");
+      const over = (!isNaN(s.sbp) && s.sbp >= bt.s) || (!isNaN(s.dbp) && s.dbp >= bt.d);
+      add("Blodtryk", `${isNaN(s.sbp) ? "?" : s.sbp}${isNaN(s.dbp) ? "" : "/" + s.dbp} mmHg`, bt.tekst, over ? "Over mål" : "I mål", over ? "tag-warn" : "tag-recommend");
       if (over) handling.push(`Blodtryk over mål (${bt.tekst}): bekræft med hjemmeblodtryk, og intensivér — behandlingen skal indeholde ACE-hæmmer eller angiotensin II-receptorblokker${has(s.rf, "acearb") ? " (allerede i behandling — øg dosis eller tilføj calciumantagonist/thiazid)" : ""}.`);
     }
 
@@ -160,17 +160,20 @@
     const fald = !isNaN(s.egfr) && !isNaN(s.egfrFoer) ? s.egfrFoer - s.egfr : NaN;
     if (isNaN(s.egfr)) add("eGFR", "—", "Årligt; fald < 5 pr. år", "Ikke målt", "tag-alt");
     else {
-      const bad = s.egfr < 30 || fald > 5;
+      // Initialt fald (typisk 3–5, op til 30 %) efter opstart af SGLT-2-hæmmer eller ACE-hæmmer/ARB er forventet.
+      const forventet = has(s.rf, "nystart") && fald > 5 && fald <= 0.3 * s.egfrFoer;
+      const bad = s.egfr < 30 || (fald > 5 && !forventet);
+      if (forventet) handling.push(`eGFR faldet ${Math.round(fald)} efter opstart af SGLT-2-hæmmer eller ACE-hæmmer/ARB: et initialt fald på op til 30 % er forventet og ikke grund til at stoppe — gentag eGFR om 3 måneder, og henvis ved fortsat fald.`);
       add("eGFR", `${Math.round(s.egfr)}${isNaN(fald) ? "" : ` (${fald > 0 ? "fald" : "stigning"} ${Math.abs(Math.round(fald))} på 1 år)`}`, "Årligt; fald < 5 pr. år", bad ? "Henvis" : s.egfr < 60 ? "Nedsat" : "Normal", bad ? "tag-warn" : s.egfr < 60 ? "tag-warn" : "tag-recommend");
       if (bad) handling.push(`Henvis til nefrolog: ${s.egfr < 30 ? "eGFR under 30" : `eGFR faldet ${Math.round(fald)} ml/min på et år (> 5)`}.`);
-      if (s.egfr < 60) handling.push("eGFR under 60: dosisjustér lægemidler (metformin, DPP-4-hæmmer), undgå NSAID, og overvej SGLT-2-hæmmer for nyrebeskyttelse.");
+      if (s.egfr < 60) handling.push(`eGFR under 60: dosisjustér lægemidler (metformin, DPP-4-hæmmer) og undgå NSAID${has(s.rf, "sglt2") ? "; fortsæt SGLT-2-hæmmer (nyrebeskyttelse)" : ", og overvej SGLT-2-hæmmer for nyrebeskyttelse"}.`);
     }
     if (!ak) add("Albuminuri (UACR)", "—", "< 30 mg/g", "Ikke målt", "tag-alt");
     else {
       add("Albuminuri (UACR)", `${Math.round(s.uacr)} mg/g — ${ak.kat}`, "< 30 mg/g", ak.kat === "A1" ? "Normal" : "Forhøjet", ak.kat === "A1" ? "tag-recommend" : "tag-warn");
       if (ak.kat !== "A1") {
         handling.push(`Albuminuri ${ak.tekst}: bekræft med 2 af 3 prøver; ${has(s.rf, "acearb") ? "ACE-hæmmer/ARB i maksimalt tolereret dosis" : "start ACE-hæmmer eller ARB — også uden hypertension"}${has(s.rf, "sglt2") ? "" : ", og tilføj SGLT-2-hæmmer (nyrebeskyttelse)"}. Kontrollér kreatinin og kalium 1–2 uger efter opstart.`);
-        if (ak.kat === "A3") handling.push("UACR ≥ 300 mg/g: overvej henvisning til nefrolog, særligt ved stigende albuminuri trods behandling.");
+        if (ak.kat === "A3") handling.push("UACR ≥ 300 mg/g (A3): henvis til nefrolog (KDIGO).");
       }
     }
 

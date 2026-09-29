@@ -63,6 +63,7 @@
   };
   const checked = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map((el) => el.value);
   const has = (list, k) => list.includes(k);
+  const NAVN = { metformin: "metformin", sglt2: "SGLT-2-hæmmer", glp1: "GLP-1-receptoragonist", dpp4: "DPP-4-hæmmer", su: "sulfonylurinstof", insulin: "insulin" };
   const box = (cls, title, body) => `<div class="box ${cls}"><h3>${title}</h3>${body}</div>`;
   const collapsible = (cls, title, body) => `<div class="box ${cls} box-collapsible"><details><summary><h3>${title}</h3></summary>${body}</details></div>`;
   const ul = (items) => `<ul class="followup-list">${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
@@ -97,6 +98,9 @@
     return { maal: 53, tekst: "< 53 mmol/mol", grund: "de fleste med type 2-diabetes" };
   }
 
+  // Samme grænse i målboksen og ved næste skridt: skrøbelige (< 64–69) er først over målet ved 69.
+  const overMaal = (s, m) => !isNaN(s.hba1c) && s.hba1c >= m.maal + (m.maal === 64 ? 5 : 0);
+
   function ckd(s) {
     const lav = !isNaN(s.egfr) && s.egfr < 60;
     const alb = !isNaN(s.uacr) && s.uacr >= 30;
@@ -128,12 +132,14 @@
     metformin: (s) => ({ key: "metformin", navn: "Metformin", indhold: "Biguanid, tablet", dosering: metforminDosis(isNaN(s.egfr) ? 90 : s.egfr) + " Mål B12 ved langvarig brug." }),
     dapa: () => ({ key: "dapagliflozin", navn: "Dapagliflozin 10 mg", indhold: "SGLT-2-hæmmer (fx Forxiga)", dosering: "1 tablet dagligt. Opstart til organbeskyttelse fra eGFR 25. Genitale svampeinfektioner hyppige; pausér ved akut sygdom og 3 dage før operation (ketoacidose)." }),
     empa: () => ({ key: "empagliflozin", navn: "Empagliflozin 10 mg", indhold: "SGLT-2-hæmmer (fx Jardiance)", dosering: "1 tablet dagligt. Opstart til organbeskyttelse fra eGFR 20. Samme forholdsregler som dapagliflozin." }),
-    sema: () => ({ key: "semaglutid", navn: "Semaglutid s.c. (Ozempic)", indhold: "GLP-1-receptoragonist, ugentlig injektion", dosering: "0,25 mg ugentligt i 4 uger, derefter 0,5 mg; evt. 1 mg. Kvalme er hyppig i starten. Klausuleret tilskud — se nedenfor." }),
-    semaOral: () => ({ key: "semaglutid-oral", navn: "Semaglutid tablet (Rybelsus)", indhold: "GLP-1-receptoragonist, dagligt", dosering: "3 mg i 30 dage, derefter 7 mg, evt. 14 mg. Tages fastende med lidt vand 30 min. før morgenmad." }),
+    sema: () => ({ key: "semaglutid", navn: "Semaglutid s.c. (Ozempic)", indhold: "GLP-1-receptoragonist, ugentlig injektion", dosering: "0,25 mg ugentligt i 4 uger, derefter 0,5 mg; evt. 1 mg og 2 mg (øg tidligst efter 4 uger). Kvalme er hyppig i starten. Klausuleret tilskud — se nedenfor." }),
+    semaOral: () => ({ key: "semaglutid-oral", navn: "Semaglutid tablet (Rybelsus)", indhold: "GLP-1-receptoragonist, dagligt", dosering: "Ny formulering (fra september 2025): 1,5 mg i 30 dage, derefter 4 mg, evt. 9 mg. De tidligere 3, 7 og 14 mg-tabletter svarer hertil — skift aldrig mg for mg (risiko for overdosering). Tages fastende med lidt vand 30 min. før morgenmad." }),
     dula: () => ({ key: "dulaglutid", navn: "Dulaglutid 1,5 mg (Trulicity)", indhold: "GLP-1-receptoragonist, ugentlig injektion", dosering: "1,5 mg ugentligt (generelt klausuleret tilskud gælder kun 1,5 mg)." }),
     lina: () => ({ key: "linagliptin", navn: "Linagliptin 5 mg (Trajenta)", indhold: "DPP-4-hæmmer", dosering: "1 tablet dagligt — ingen dosisjustering ved nedsat nyrefunktion. Ingen hypoglykæmi alene. Kombineres ikke med GLP-1-receptoragonist." }),
     sita: (s) => ({ key: "sitagliptin", navn: `Sitagliptin ${s.egfr < 30 ? "25" : s.egfr < 45 ? "50" : "100"} mg`, indhold: "DPP-4-hæmmer", dosering: "1 tablet dagligt (100 mg; 50 mg ved eGFR 30–44; 25 mg under 30). Kombineres ikke med GLP-1-receptoragonist." }),
     insulin: () => ({ key: "basalinsulin", navn: "Basalinsulin (fx NPH/Insulatard eller glargin)", indhold: "Insulin, 1 gang dagligt", dosering: "Start 10 E (eller 0,1–0,2 E/kg) til natten; titrér med 2 E hver 3. dag til faste-P-glukose 5–7 mmol/l. Fortsæt metformin (og GLP-1/SGLT-2)." }),
+    insulinTitrer: () => ({ key: "insulin-titrering", navn: "Optitrering af basalinsulin", indhold: "Insulin", dosering: "Øg med 2 E hver 3. dag til faste-P-glukose 5–7 mmol/l; reducér ved hypoglykæmi. Ved høj basaldosis uden mål: overvej prandial insulin." }),
+    henvis: () => ({ key: "henvis-endo", navn: "Henvisning til endokrinologisk ambulatorium", indhold: "Kompliceret insulinbehandling", dosering: "Ved behov for prandial insulin, gentagne hypoglykæmier eller vedvarende høj HbA1c." }),
     su: () => ({ key: "glimepirid", navn: "Glimepirid 1 mg", indhold: "Sulfonylurinstof", dosering: "Nedprioriteret (Medicinrådet 2026) pga. hypoglykæmi — kun når andre muligheder ikke kan bruges. Start 1 mg; forsigtighed hos ældre og ved nedsat nyrefunktion." }),
   };
   const tag = (r, t, rec) => Object.assign(r, { tag: t, tagClass: rec ? "tag-recommend" : "tag-alt" });
@@ -153,8 +159,9 @@
     const b = (k) => has(s.beh, k);
     const kan = (k) => !has(s.kan, k);
     const egfr = isNaN(s.egfr) ? 90 : s.egfr;
-    const overMaal = !isNaN(s.hba1c) && s.hba1c >= m.maal + (m.maal === 64 ? 5 : 0);
+    const over = overMaal(s, m);
     const res = { titel: "", tekst: [], rows: [], noter: [] };
+    if (isNaN(s.egfr)) res.noter.push("<strong>eGFR mangler:</strong> angiv eGFR før opstart eller dosisøgning — metformin, SGLT-2-hæmmer og DPP-4-hæmmer doseres efter nyrefunktionen (forslagene antager normal nyrefunktion).");
 
     if (has(s.forhold, "symptomer") || s.hba1c >= 75) {
       res.noter.push("<strong>Symptomgivende eller meget høj glukose</strong> (HbA1c ≥ 75 eller vægttab): overvej insulin — midlertidigt eller varigt — og mål GAD-antistoffer ved mistanke om type 1-diabetes/LADA (slank, hurtig progression).");
@@ -174,14 +181,15 @@
     if (b("metformin") && egfr < 30) res.noter.push("<strong>eGFR under 30:</strong> seponér metformin.");
     else if (b("metformin") && egfr < 45) res.noter.push("<strong>eGFR 30–44:</strong> metformin maks. 1.000 mg dagligt.");
 
-    // 2. Organbeskyttelse uafhængigt af HbA1c.
-    if (oi.ja && !b("sglt2") && !b("glp1")) {
+    // 2. Organbeskyttelse uafhængigt af HbA1c. Ved hjertesvigt og nyresygdom tilføjes
+    // SGLT-2-hæmmer også hos patienter, der allerede får GLP-1-receptoragonist.
+    if (oi.ja && !b("sglt2") && (oi.sglt2Foretrukket || !b("glp1"))) {
       if (kan("sglt2") && egfr >= 20) {
         res.titel = "Tilføj SGLT-2-hæmmer (organbeskyttelse)";
         res.tekst.push(`Organbeskyttende indikation (${oi.grunde.join(", ")}): tilføj SGLT-2-hæmmer uanset HbA1c.${oi.sglt2Foretrukket ? " Ved hjertesvigt og nyresygdom er SGLT-2-hæmmer førstevalg." : ""}`);
         res.rows.push(tag(R.empa(), "Anbefalet", true), tag(R.dapa(), "Alternativ", false));
         if (has(s.organ, "ascvd") && kan("glp1")) res.rows.push(tag(R.sema(), "Hvis SGLT-2 ikke kan bruges", false));
-      } else if (kan("glp1")) {
+      } else if (kan("glp1") && !b("glp1")) {
         res.titel = "Tilføj GLP-1-receptoragonist (organbeskyttelse)";
         res.tekst.push(`Organbeskyttende indikation (${oi.grunde.join(", ")}), men SGLT-2-hæmmer kan ikke bruges${egfr < 20 ? " (eGFR under 20)" : ""}: GLP-1-receptoragonist (semaglutid har dokumenteret hjerte-kar- og nyrebeskyttelse).`);
         res.rows.push(tag(R.sema(), "Anbefalet", true), tag(R.semaOral(), "Alternativ", false));
@@ -195,7 +203,7 @@
       res.tekst.push("Angiv HbA1c for at vurdere, om behandlingen skal intensiveres.");
       return res;
     }
-    if (!overMaal) {
+    if (!over) {
       res.titel = "I mål — fortsæt";
       res.tekst.push(`HbA1c ${s.hba1c} mmol/mol er inden for målet (${m.tekst}). Fortsæt nuværende behandling.`);
       if ((b("su") || b("insulin")) && (has(s.forhold, "skroebelig") || has(s.forhold, "hypo")) && s.hba1c < 53) {
@@ -208,6 +216,13 @@
       res.titel = "Tilføj SGLT-2-hæmmer";
       res.tekst.push("SGLT-2-hæmmer før GLP-1-receptoragonist (Medicinrådet; tilskudsreglerne). Glukoseeffekten aftager under eGFR 45.");
       res.rows.push(tag(R.empa(), "Anbefalet", true), tag(R.dapa(), "Alternativ", false));
+      return res;
+    }
+    // Skrøbelige: DPP-4-hæmmer før GLP-1-receptoragonist (vægttab, kvalme).
+    if (has(s.forhold, "skroebelig") && !b("glp1") && !b("dpp4")) {
+      res.titel = "Tilføj DPP-4-hæmmer";
+      res.tekst.push("Skrøbelig: DPP-4-hæmmer tåles godt og giver ikke hypoglykæmi alene. GLP-1-receptoragonist giver vægttab og kvalme, som sjældent er ønsket hos skrøbelige.");
+      res.rows.push(tag(R.lina(), "Anbefalet", true), tag(R.sita(s), "Alternativ", false));
       return res;
     }
     if (!b("glp1") && kan("glp1")) {
@@ -225,8 +240,16 @@
         return res;
       }
     }
+    const brugt = ["metformin", "sglt2", "glp1", "dpp4", "su"].filter(b).map((k) => NAVN[k]);
+    const brugtTxt = brugt.length ? brugt.join(", ").replace(/, ([^,]*)$/, " og $1") : "den nuværende behandling";
+    if (b("insulin")) {
+      res.titel = "Optitrér insulin";
+      res.tekst.push(`Allerede i insulinbehandling og over målet trods ${brugtTxt} og insulin: kontrollér adhærens, injektionsteknik og hypoglykæmier; optitrér basalinsulin til faste-P-glukose 5–7 mmol/l. Er basaldosis over ca. 0,5 E/kg uden at nå målet, overvejes prandial insulin — eller henvisning til endokrinologisk ambulatorium.`);
+      res.rows.push(tag(R.insulinTitrer(), "Anbefalet", true), tag(R.henvis(), "Alternativ", false));
+      return res;
+    }
     res.titel = "Tilføj basalinsulin";
-    res.tekst.push("Utilstrækkelig effekt trods metformin, SGLT-2-hæmmer og GLP-1-receptoragonist: basalinsulin. Sulfonylurinstof er nedprioriteret (hypoglykæmi).");
+    res.tekst.push(`Utilstrækkelig effekt trods ${brugtTxt}: basalinsulin. Sulfonylurinstof er nedprioriteret (hypoglykæmi).`);
     res.rows.push(tag(R.insulin(), "Anbefalet", true));
     if (!b("su")) res.rows.push(tag(R.su(), "Nedprioriteret", false));
     if (!b("glp1") && !b("dpp4")) res.rows.push(tag(R.lina(), "Alternativ", false));
@@ -253,9 +276,10 @@
     let html = "";
 
     // Mål
-    const status = isNaN(s.hba1c) ? "" : s.hba1c < m.maal ? ` — HbA1c ${s.hba1c} er i mål` : ` — HbA1c ${s.hba1c} er over målet`;
+    const over = overMaal(s, m);
+    const status = isNaN(s.hba1c) ? "" : !over ? ` — HbA1c ${s.hba1c} er i mål` : ` — HbA1c ${s.hba1c} er over målet`;
     html += box(
-      isNaN(s.hba1c) ? "box-blue" : s.hba1c < m.maal ? "box-green" : "box-amber",
+      isNaN(s.hba1c) ? "box-blue" : !over ? "box-green" : "box-amber",
       `HbA1c-mål: ${m.tekst}${status}`,
       `<p>Begrundelse: ${m.grund}. Målet er individuelt og aftales med patienten — laveste HbA1c uden hypoglykæmi og uhensigtsmæssig polyfarmaci.</p>
       ${s.hba1c < 48 && (has(s.beh, "su") || has(s.beh, "insulin")) ? "<p><strong>Lavt HbA1c på sulfonylurinstof eller insulin:</strong> risiko for hypoglykæmi — overvej nedtrapning.</p>" : ""}`
@@ -269,7 +293,7 @@
       oi.ja
         ? `<p>${oi.grunde.join(", ").replace(/^./, (c) => c.toUpperCase())}: SGLT-2-hæmmer og/eller GLP-1-receptoragonist med dokumenteret effekt anbefales uafhængigt af HbA1c.${oi.sglt2Foretrukket ? " Ved hjertesvigt og kronisk nyresygdom foretrækkes SGLT-2-hæmmer." : " Ved aterosklerotisk sygdom har både SGLT-2-hæmmer og GLP-1-receptoragonist effekt — SGLT-2-hæmmer først jf. Medicinrådet og tilskudsreglerne."}</p>
           ${k.alb ? "<p>Albuminuri: ACE-hæmmer eller angiotensin II-receptorblokker i maksimalt tolereret dosis — også uden hypertension.</p>" : ""}
-          <p>Kombinationen af SGLT-2-hæmmer og GLP-1-receptoragonist har ikke dokumenteret ekstra organbeskyttelse (Medicinrådet 2026), men bruges ved behov for yderligere glukosesænkning.</p>`
+          <p>Kombinationen af SGLT-2-hæmmer og GLP-1-receptoragonist bruges ved behov for yderligere glukosesænkning og kan overvejes ved meget høj risiko — men der er ingen randomiserede studier af, om kombinationen giver ekstra organbeskyttelse.</p>`
         : "<p>Markér hjerte-kar-sygdom, hjertesvigt eller høj risiko, og angiv eGFR og UACR — det afgør, om SGLT-2-hæmmer eller GLP-1-receptoragonist skal bruges uanset HbA1c.</p>"
     );
 
@@ -302,8 +326,8 @@
       "box-blue",
       "Tilskud til GLP-1-receptoragonist",
       ul([
-        "Klausuleret tilskud (fra 25. november 2024) kræver som hovedregel, at SGLT-2-hæmmer er forsøgt — eller ikke kan bruges (bivirkninger, svært nedsat nyrefunktion) hos patienter med mindst 3 hjerte-kar-risikofaktorer og utilstrækkelig effekt af metformin.",
-        "Alternativt: utilstrækkelig effekt af alle relevante tabletbehandlinger inkl. SGLT-2-hæmmer.",
+        "Klausuleret tilskud (fra 25. november 2024), 1. del: SGLT-2-hæmmer kan ikke bruges (bivirkninger eller svært nedsat nyrefunktion) <strong>og</strong> patienten har hjerte-kar- eller nyresygdom eller mindst 3 risikofaktorer for hjerte-kar-sygdom <strong>og</strong> utilstrækkelig glykæmisk kontrol med metformin.",
+        "2. del: utilstrækkelig glykæmisk kontrol trods alle relevante tabletbehandlinger, inkl. SGLT-2-hæmmer.",
         "Ozempic og Rybelsus har klausuleret tilskud i alle styrker; Trulicity kun 1,5 mg; Victoza og Mounjaro har ikke generelt tilskud.",
         "Tjek den aktuelle klausul hos Lægemiddelstyrelsen, og skriv &quot;klausuleret tilskud&quot; på recepten.",
       ])
@@ -328,8 +352,6 @@
   // Journal
   // ---------------------------------------------------------------------
 
-  const NAVN = { metformin: "metformin", sglt2: "SGLT-2-hæmmer", glp1: "GLP-1-receptoragonist", dpp4: "DPP-4-hæmmer", su: "sulfonylurinstof", insulin: "insulin" };
-
   function buildJournalNote() {
     const { s, m, oi, n } = last;
     const lines = [`Type 2-diabetes — behandling ${new Date().toLocaleDateString("da-DK")}`];
@@ -343,11 +365,15 @@
     if (basis.length) lines.push(basis.join(", ").replace(/^./, (c) => c.toUpperCase()) + ".");
     lines.push(`Aktuel behandling: ${s.beh.length ? s.beh.map((k) => NAVN[k]).join(", ") : "ingen glukosesænkende"}.`);
     lines.push(`HbA1c-mål ${m.tekst} (${m.grund}).${oi.ja ? ` Organbeskyttende indikation: ${oi.grunde.join(", ")}.` : ""}`);
-    const row = valg.valgtRaekke() || (output.querySelector(".tag-recommend") || {}).closest?.("tr");
-    if (row) {
-      const r = Behandlingsvalg.raekkeTekst(row);
-      const label = valg.valgtRaekke() ? "Valgt behandling:" : `Plan (${n.titel.toLowerCase()}):`;
-      lines.push(`${label} ${r.navn}. ${r.celler[1]}`);
+    const valgt = valg.valgtRaekke();
+    // Uden valg nævnes alle anbefalede rækker (fx metformin og samtidig SGLT-2-hæmmer).
+    const rows = valgt ? [valgt] : Array.from(output.querySelectorAll(".tag-recommend")).map((t) => t.closest("tr")).filter(Boolean);
+    if (rows.length) {
+      rows.forEach((row) => {
+        const r = Behandlingsvalg.raekkeTekst(row);
+        const label = valgt ? "Valgt behandling:" : `Plan (${n.titel.toLowerCase()}):`;
+        lines.push(`${label} ${r.navn}. ${r.celler[1]}`);
+      });
     } else {
       lines.push(`Plan: ${n.titel}.`);
     }
