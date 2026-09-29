@@ -63,22 +63,29 @@
     const v = document.getElementById(id).value;
     return v === "" ? NaN : parseFloat(v.replace(",", "."));
   };
-  const radio = (name) => document.querySelector(`input[name="${name}"]:checked`).value;
+  const radio = (name) => (document.querySelector(`input[name="${name}"]:checked`) || {}).value;
+  const antal = (id) => (isNaN(num(id)) ? 0 : Math.max(0, Math.floor(num(id))));
   const checked = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map((el) => el.value);
 
   function getState() {
     let ratio = num("ratio");
-    // FEV1/FVC indtastet i procent (fx 62) omregnes til brøk.
-    if (ratio > 1 && ratio <= 100) ratio = ratio / 100;
+    // FEV1/FVC indtastet i procent (fx 62) omregnes til brøk; værdier mellem 1 og 20 er tastefejl.
+    let ratioFejl = false;
+    if (ratio >= 20 && ratio <= 100) ratio = ratio / 100;
+    else if (ratio > 1 || ratio < 0) {
+      ratioFejl = true;
+      ratio = NaN;
+    }
     return {
       alder: num("alder"),
       ryger: radio("ryger"),
       ratio,
+      ratioFejl,
       fev1: num("fev1pct"),
       mmrc: parseInt(radio("mmrc"), 10),
       cat: num("cat"),
-      eksModerat: isNaN(num("eksModerat")) ? 0 : num("eksModerat"),
-      eksIndl: isNaN(num("eksIndl")) ? 0 : num("eksIndl"),
+      eksModerat: antal("eksModerat"),
+      eksIndl: antal("eksIndl"),
       eos: num("eos"),
       beh: radio("beh"),
       andet: checked("andet"),
@@ -135,6 +142,9 @@
       { navn: "Anoro Ellipta (umeclidinium/vilanterol)", indhold: "LAMA + LABA, pulver 55/22 mikrog.", dosering: "1 inhalation × 1 dagligt." },
       { navn: "Ultibro Breezhaler (glycopyrronium/indacaterol)", indhold: "LAMA + LABA, pulver i kapsler", dosering: "1 kapsel inhaleres × 1 dagligt." },
     ],
+    icslaba: [
+      { navn: "Bufomix Easyhaler 320/9 (budesonid/formoterol)", indhold: "ICS + LABA, pulver", dosering: "1 inhalation × 2 dagligt. Skyl munden efter brug." },
+    ],
     triple: [
       { navn: "Trelegy Ellipta (fluticasonfuroat/umeclidinium/vilanterol)", indhold: "ICS + LAMA + LABA, pulver 92/55/22 mikrog.", dosering: "1 inhalation × 1 dagligt. Skyl munden efter brug." },
       { navn: "Trimbow (beclometason/formoterol/glycopyrronium)", indhold: "ICS + LABA + LAMA, spray 87/5/9 mikrog.", dosering: "2 pust × 2 dagligt, gerne med spacer. Skyl munden efter brug." },
@@ -145,7 +155,8 @@
   };
 
   function rows(klasse, tag) {
-    return P[klasse].map((p, i) => Object.assign({ key: `${klasse}|${p.navn}`, tag: i === 0 ? tag : "Alternativ", tagClass: i === 0 ? "tag-recommend" : "tag-alt" }, p));
+    const rec = /^Anbefalet|^Samtidig/.test(tag);
+    return P[klasse].map((p, i) => Object.assign({ key: `${klasse}|${p.navn}`, tag: i === 0 ? tag : "Alternativ", tagClass: i === 0 && rec ? "tag-recommend" : "tag-alt" }, p));
   }
 
   function drugTable(list) {
@@ -168,7 +179,21 @@
     const out = { titel: "", tekst: [], klasser: [], noter: [] };
     const eosUkendt = "Mål eosinofile i stabil fase — de afgør, om inhalationssteroid (ICS) skal med.";
 
-    if (astma) out.noter.push("<strong>Samtidig astma:</strong> behandl som astma — inhalationssteroid skal indgå, og LABA eller LAMA må ikke gives uden ICS.");
+    // Samtidig astma: ICS skal altid indgå — LABA eller LAMA uden ICS er kontraindiceret (GOLD/GINA).
+    if (astma) {
+      out.titel = "KOL med samtidig astma";
+      out.noter.push("<strong>Samtidig astma:</strong> inhalationssteroid skal indgå — LABA eller LAMA må aldrig gives uden ICS, og ICS seponeres ikke. Følg også astmavejledningen.");
+      if (s.beh === "triple") {
+        out.tekst.push("Allerede triple-behandling: fortsæt. Ved fortsatte symptomer eller forværringer: tjek teknik og adhærens, og henvis til lungemedicinsk vurdering.");
+      } else if (g.gruppe === "A" && (s.beh === "ingen" || s.beh === "icslaba") && e !== "hoej") {
+        out.tekst.push("Få symptomer og ingen eksacerbationer: ICS + LABA. Tilføj LAMA (triple) ved vedvarende åndenød eller eksacerbationer.");
+        out.klasser.push(["icslaba", "Anbefalet"], ["triple", "Ved behov for mere"]);
+      } else {
+        out.tekst.push("Symptomer eller eksacerbationer: LAMA + LABA + ICS (triple).");
+        out.klasser.push(["triple", "Anbefalet"], ["icslaba", "Hvis LAMA ikke tåles"]);
+      }
+      return out;
+    }
 
     if (s.beh === "ingen") {
       out.titel = `Opstart — gruppe ${g.gruppe}`;
@@ -192,7 +217,8 @@
     }
 
     // Opfølgning: eksacerbationer vejer tungest, ellers åndenød (GOLD 2025).
-    const eksDominerer = g.gruppe === "E";
+    // Også én moderat eksacerbation med høje eosinofile peger mod ICS (GOLD 2025).
+    const eksDominerer = g.gruppe === "E" || (s.eksModerat >= 1 && e === "hoej");
     if (!has(s.andet, "teknik")) out.noter.push("<strong>Først:</strong> kontrollér inhalationsteknik og adhærens — det er den hyppigste årsag til manglende effekt.");
 
     if (eksDominerer) {
@@ -267,7 +293,8 @@
     const s = getState();
     alderWarning.textContent = !isNaN(s.alder) && (s.alder < 18 || s.alder > 110) ? "Alder virker usædvanlig — tjek indtastningen." : "";
     const warn = [];
-    if (!isNaN(s.ratio) && (s.ratio < 0.2 || s.ratio > 1)) warn.push("FEV1/FVC skal være mellem 0,20 og 1,00.");
+    if (s.ratioFejl) warn.push("FEV1/FVC skal angives som brøk (0,20–1,00) eller procent (20–100) — værdien er ikke brugt.");
+    else if (!isNaN(s.ratio) && s.ratio < 0.2) warn.push("FEV1/FVC under 0,20 virker usædvanlig — tjek indtastningen.");
     if (!isNaN(s.fev1) && (s.fev1 < 5 || s.fev1 > 150)) warn.push("FEV1 % af forventet virker usædvanlig.");
     spiroWarning.textContent = warn.join(" ");
     last = { s, g: null, b: null, grad: null };
@@ -307,7 +334,7 @@
     html += box(
       g.gruppe === "E" ? "box-red" : g.gruppe === "B" ? "box-amber" : "box-green",
       `ABE-gruppe ${g.gruppe}${grad ? ` · GOLD ${grad.grad}` : ""}`,
-      `<p>${gruppeTxt}</p><p>mMRC ${s.mmrc}${catTxt}; eksacerbationer: ${s.eksModerat} moderat(e), ${s.eksIndl} indlæggelse(r).</p>
+      `<p>${gruppeTxt}</p>${isNaN(s.mmrc) && isNaN(s.cat) ? "<p><strong>Angiv mMRC eller CAT</strong> — gruppen er foreløbig beregnet uden symptomscore.</p>" : ""}<p>mMRC ${isNaN(s.mmrc) ? "ikke angivet" : s.mmrc}${catTxt}; eksacerbationer: ${s.eksModerat} moderat(e), ${s.eksIndl} indlæggelse(r).</p>
       ${diagBody.map((t) => `<p>${t}</p>`).join("")}`
     );
 
@@ -351,7 +378,7 @@
       "Eksacerbation — behandling i almen praksis",
       ul([
         "<strong>Prednisolon 37,5 mg × 1 dagligt i 5 dage</strong> — ingen udtrapning.",
-        "<strong>Antibiotika</strong> ved øget mængde og øget purulens af ekspektorat: amoxicillin 750 mg × 3 dagligt i 5 dage. Ved penicillinallergi: doxycyclin 200 mg første dag, derefter 100 mg dagligt i 4 dage. Ved let KOL og CRP &lt; 50 kan man ofte observere uden antibiotika.",
+        "<strong>Antibiotika</strong> ved øget purulens af ekspektorat sammen med øget åndenød eller ekspektoratmængde, eller ved CRP &gt; 50: amoxicillin 750 mg × 3 (eller 500 mg × 4) dagligt i 5 dage. Ved penicillinallergi: doxycyclin 200 mg første dag, derefter 100 mg dagligt i 4 dage. Ved let KOL og CRP &lt; 50 kan man ofte observere uden antibiotika.",
         "Øg korttidsvirkende bronkodilatator; tjek inhalationsteknik.",
         "<strong>Indlæggelse</strong> ved svær åndenød i hvile, SAT &lt; 90 % trods vanlig behandling, konfusion, nyopstået cyanose eller ødemer, eller manglende effekt af behandling.",
         "<strong>Kontrol efter 1–2 uger</strong> og revurdering af vedligeholdelsesbehandlingen — en eksacerbation flytter ofte patienten til gruppe E.",
@@ -386,7 +413,8 @@
     const lines = [`KOL — status ${new Date().toLocaleDateString("da-DK")}`];
     const basis = [];
     if (!isNaN(s.alder)) basis.push(`${s.alder} år`);
-    basis.push({ ryger: "ryger", tidligere: "tidligere ryger", aldrig: "aldrig røget" }[s.ryger]);
+    const rygTxt = { ryger: "ryger", tidligere: "tidligere ryger", aldrig: "aldrig røget" }[s.ryger];
+    if (rygTxt) basis.push(rygTxt);
     if (!isNaN(s.ratio)) basis.push(`FEV1/FVC ${fmt(s.ratio, 2)}`);
     if (!isNaN(s.fev1)) basis.push(`FEV1 ${fmt(s.fev1, 0)} % af forventet`);
     lines.push(basis.join(", ").replace(/^./, (c) => c.toUpperCase()) + ".");
@@ -394,7 +422,8 @@
       lines.push("Ingen obstruktion efter GOLD-kriteriet (FEV1/FVC ≥ 0,70) — KOL ikke påvist.");
       return lines.join("\n");
     }
-    lines.push(`mMRC ${s.mmrc}${isNaN(s.cat) ? "" : `, CAT ${s.cat}`}. Eksacerbationer seneste år: ${s.eksModerat} moderat(e), ${s.eksIndl} indlæggelse(r).${isNaN(s.eos) ? "" : ` Eosinofile ${fmt(s.eos, 2)} mia./l.`}`);
+    if (isNaN(s.ratio)) lines.push("KOL er ikke spirometrisk bekræftet (FEV1/FVC efter bronkodilatator mangler).");
+    lines.push(`mMRC ${isNaN(s.mmrc) ? "ikke angivet" : s.mmrc}${isNaN(s.cat) ? "" : `, CAT ${s.cat}`}. Eksacerbationer seneste år: ${s.eksModerat} moderat(e), ${s.eksIndl} indlæggelse(r).${isNaN(s.eos) ? "" : ` Eosinofile ${fmt(s.eos, 2)} mia./l.`}`);
     lines.push(`Vurdering: ABE-gruppe ${g.gruppe}${grad ? `, GOLD ${grad.grad}` : ""}. ${b.titel}.`);
     const row = valg.valgtRaekke();
     if (row) {
