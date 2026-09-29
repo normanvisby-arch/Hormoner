@@ -55,12 +55,12 @@
   // Status: ok = normal dosering, just = justér/forsigtighed, undgaa = undgås, ki = kontraindiceret.
   // trin: [nedre grænse, status, råd] — første trin, hvor værdien er ≥ grænsen, gælder.
   const MIDLER = [
-    { gruppe: "Diabetes", navn: "Metformin", maal: "eGFR", trin: [[45, "ok", "Fuld dosis."], [30, "just", "Maks. 1.000 mg dagligt. Overvej risikoen for laktacidose før opstart."], [U, "ki", "Kontraindiceret — seponér."]] },
+    { gruppe: "Diabetes", navn: "Metformin", maal: "eGFR", trin: [[45, "ok", "Fuld dosis."], [30, "just", "Maks. 1.000 mg dagligt. Overvej risikoen for laktacidose før opstart."], [U, "ki", "Seponér."]] },
     { gruppe: "Diabetes", navn: "SGLT-2-hæmmer (empagliflozin, dapagliflozin)", maal: "eGFR", trin: [[45, "ok", "Glukosesænkende og organbeskyttende."], [25, "ok", "Organbeskyttende; lille glukoseeffekt. Opstart muligt."], [20, "just", "Opstart kun empagliflozin (fra eGFR 20); igangværende behandling fortsættes."], [U, "just", "Start ikke. Igangværende behandling kan fortsætte til dialyse."]] },
     { gruppe: "Diabetes", navn: "Sitagliptin", maal: "eGFR", trin: [[45, "ok", "100 mg dagligt."], [30, "just", "50 mg dagligt."], [U, "just", "25 mg dagligt."]] },
     { gruppe: "Diabetes", navn: "Linagliptin", maal: "eGFR", trin: [[U, "ok", "5 mg dagligt — ingen dosisjustering."]] },
     { gruppe: "Diabetes", navn: "GLP-1-receptoragonist (semaglutid, dulaglutid, liraglutid)", maal: "eGFR", trin: [[15, "ok", "Ingen dosisjustering. Pas på dehydrering ved kvalme og opkastning."], [U, "undgaa", "Ikke anbefalet ved terminal nyresvigt."]] },
-    { gruppe: "Diabetes", navn: "Glimepirid (sulfonylurinstof)", maal: "eGFR", trin: [[60, "ok", "Hypoglykæmirisiko — start lavt."], [30, "just", "Øget hypoglykæmirisiko — lav dosis og tæt kontrol."], [U, "ki", "Kontraindiceret ved svært nedsat nyrefunktion."]] },
+    { gruppe: "Diabetes", navn: "Glimepirid (sulfonylurinstof)", maal: "eGFR", trin: [[60, "ok", "Hypoglykæmirisiko — start lavt."], [30, "just", "Øget hypoglykæmirisiko — lav dosis og tæt kontrol."], [U, "ki", "Ved svært nedsat nyrefunktion — vælg fx DPP-4-hæmmer eller insulin."]] },
     { gruppe: "Diabetes", navn: "Insulin", maal: "eGFR", trin: [[30, "ok", "Behovet falder med nyrefunktionen — revurdér dosis ved faldende eGFR."], [U, "just", "Øget hypoglykæmirisiko — reducér dosis efter målinger."]] },
 
     { gruppe: "Hjerte-kar", navn: "ACE-hæmmer eller ARB", maal: "eGFR", trin: [[30, "ok", "Fortsæt — nyrebeskyttende ved albuminuri. Kreatinin og kalium efter opstart og dosisøgning; acceptér eGFR-fald op til 30 %."], [U, "ok", "Kan fortsættes (KDIGO 2024) med tæt kontrol af kalium og kreatinin. Pausér ved dehydrering."]] },
@@ -78,7 +78,7 @@
     { gruppe: "Smerter", navn: "Gabapentin", maal: "CrCl", trin: [[80, "ok", "900–3.600 mg/døgn."], [50, "just", "600–1.800 mg/døgn."], [30, "just", "300–900 mg/døgn."], [15, "just", "150–600 mg/døgn."], [U, "just", "150–300 mg/døgn."]] },
     { gruppe: "Smerter", navn: "Pregabalin", maal: "CrCl", trin: [[60, "ok", "150–600 mg/døgn."], [30, "just", "75–300 mg/døgn."], [15, "just", "25–150 mg/døgn."], [U, "just", "25–75 mg/døgn."]] },
 
-    { gruppe: "Antibiotika og antivirale", navn: "Nitrofurantoin", maal: "eGFR", trin: [[45, "ok", "Normal dosering."], [U, "ki", "Kontraindiceret — virker ikke og ophobes."]], link: `<a href="../infektion/urinveje.html">Urinvejsinfektioner</a>` },
+    { gruppe: "Antibiotika og antivirale", navn: "Nitrofurantoin", maal: "eGFR", trin: [[45, "ok", "Normal dosering."], [U, "ki", "Virker ikke og ophobes — brug fx pivmecillinam."]], link: `<a href="../infektion/urinveje.html">Urinvejsinfektioner</a>` },
     { gruppe: "Antibiotika og antivirale", navn: "Pivmecillinam", maal: "eGFR", trin: [[U, "ok", "Ingen dosisjustering."]] },
     { gruppe: "Antibiotika og antivirale", navn: "Trimethoprim", maal: "CrCl", trin: [[30, "ok", "Normal dosering. Kan hæve kreatinin og kalium."], [15, "just", "Normal dosis i 3 dage, derefter halv dosis."], [U, "undgaa", "Undgås."]] },
     { gruppe: "Antibiotika og antivirale", navn: "Penicillin V, dicloxacillin", maal: "CrCl", trin: [[10, "ok", "Ingen dosisjustering ved almindelige doser."], [U, "just", "Konferér — dosisreduktion kan være nødvendig."]] },
@@ -88,8 +88,8 @@
     { gruppe: "Antibiotika og antivirale", navn: "Valaciclovir (herpes zoster)", maal: "CrCl", trin: [[50, "ok", "1 g × 3 dagligt."], [30, "just", "1 g × 2 dagligt."], [10, "just", "1 g × 1 dagligt."], [U, "just", "500 mg × 1 dagligt."]] },
 
     { gruppe: "Øvrige", navn: "Allopurinol", maal: "eGFR", trin: [[60, "ok", "Start 100 mg, og optitrér efter urat."], [30, "just", "Start 50–100 mg; optitrér langsomt efter urat og tolerance."], [U, "just", "Start 50 mg; optitrér langsomt."]] },
-    { gruppe: "Øvrige", navn: "Colchicin", maal: "CrCl", trin: [[60, "ok", "Normal dosering (obs. interaktioner, fx clarithromycin)."], [30, "just", "Reducér dosis eller forlæng intervallet — tæt kontrol."], [U, "ki", "Kontraindiceret ved svært nedsat nyrefunktion."]] },
-    { gruppe: "Øvrige", navn: "Methotrexat", maal: "CrCl", trin: [[60, "ok", "Normal ugentlig dosering."], [30, "just", "Reducér dosis (fx 50 %) — konferér med den behandlende specialist."], [U, "ki", "Kontraindiceret."]] },
+    { gruppe: "Øvrige", navn: "Colchicin", maal: "CrCl", trin: [[60, "ok", "Normal dosering (obs. interaktioner, fx clarithromycin)."], [30, "just", "Reducér dosis eller forlæng intervallet — tæt kontrol."], [U, "ki", "Ved svært nedsat nyrefunktion — brug fx prednisolon ved urinsyregigt."]] },
+    { gruppe: "Øvrige", navn: "Methotrexat", maal: "CrCl", trin: [[60, "ok", "Normal ugentlig dosering."], [30, "just", "Reducér dosis (fx 50 %) — konferér med den behandlende specialist."], [U, "ki", "Seponér — konferér med den behandlende specialist."]] },
     { gruppe: "Øvrige", navn: "Lithium", maal: "eGFR", trin: [[60, "ok", "Tæt kontrol af s-lithium og nyrefunktion."], [30, "just", "Konferér med psykiater — lavere dosis og tæt kontrol."], [U, "undgaa", "Undgås — konferér med psykiater."]] },
     { gruppe: "Øvrige", navn: "Alendronat, risedronat", maal: "CrCl", trin: [[35, "ok", "Normal dosering."], [30, "just", "Alendronat anbefales ikke under 35; risedronat kan bruges ned til 30."], [U, "undgaa", "Bisfosfonater undgås — overvej denosumab (obs. hypokalcæmi)."]] },
     { gruppe: "Øvrige", navn: "Metoclopramid", maal: "CrCl", trin: [[60, "ok", "Normal dosering."], [15, "just", "Halv dosis."], [U, "just", "Kvart dosis."]] },

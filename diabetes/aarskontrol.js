@@ -173,7 +173,8 @@
       add("Albuminuri (UACR)", `${Math.round(s.uacr)} mg/g — ${ak.kat}`, "< 30 mg/g", ak.kat === "A1" ? "Normal" : "Forhøjet", ak.kat === "A1" ? "tag-recommend" : "tag-warn");
       if (ak.kat !== "A1") {
         handling.push(`Albuminuri ${ak.tekst}: bekræft med 2 af 3 prøver; ${has(s.rf, "acearb") ? "ACE-hæmmer/ARB i maksimalt tolereret dosis" : "start ACE-hæmmer eller ARB — også uden hypertension"}${has(s.rf, "sglt2") ? "" : ", og tilføj SGLT-2-hæmmer (nyrebeskyttelse)"}. Kontrollér kreatinin og kalium 1–2 uger efter opstart.`);
-        if (ak.kat === "A3") handling.push("UACR ≥ 300 mg/g (A3): henvis til nefrolog (KDIGO).");
+        if (s.uacr > 700) handling.push(`UACR ${Math.round(s.uacr)} mg/g (over 700): henvis til nefrolog (DNS), medmindre patienten allerede følges i diabetesambulatorium for diabetisk nyresygdom.`);
+        else if (ak.kat === "A3") handling.push("UACR ≥ 300 mg/g (A3): overvej henvisning til nefrolog (KDIGO: fra 300 mg/g; DNS: over 700 mg/g). Beregn risiko for nyresvigt i <a href=\"../nyre/ckd.html\">nyre-appen</a>.");
       }
     }
 

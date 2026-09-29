@@ -1,9 +1,10 @@
 # Klinikværktøjer til almen praksis — arbejdsgang
 
-Danske beslutningsstøtteværktøjer til en praktiserende læge i fem selvstændige apps:
+Danske beslutningsstøtteværktøjer til en praktiserende læge i syv selvstændige apps:
 **kvindesundhed** (klimakterie/MHT, prævention, MRS-scoring, osteoporose — repoets rod),
-**hjerte-kar** (`hjerte/`), **lunger** (`lunge/`: KOL og astma), **hypothyreose** (`thyreoidea/`)
-og **type 2-diabetes** (`diabetes/`). Brugeren er læge; al tekst i værktøjerne og svar til brugeren er på
+**hjerte-kar** (`hjerte/`), **lunger** (`lunge/`: KOL og astma), **hypothyreose** (`thyreoidea/`),
+**type 2-diabetes** (`diabetes/`), **infektioner** (`infektion/`: antibiotika) og **nyrer**
+(`nyre/`: kronisk nyresygdom og dosis efter nyrefunktion). Brugeren er læge; al tekst i værktøjerne og svar til brugeren er på
 dansk. Klinisk indhold skal være korrekt, kildebelagt og ærligt om usikkerhed — hellere et interval
 eller "usikker" end et falsk præcist tal.
 
@@ -25,12 +26,17 @@ eller "usikker" end et falsk præcist tal.
   (lav PNG-ikoner med `node tools/mkicons.js MAPPE`), fælles `../style.css` (`body.theme-lunge`,
   `.theme-thyreoidea`, `.theme-diabetes`), `../valg.js` og `../pwa.js`. Startsiderne har en
   installér-knap (`data-install`, styres af `pwa.js`) og "Andre apps"-links — hold dem i sync.
+- `infektion/` (`luftveje.html`, `urinveje.html`, `hud.html`, `huskeskema.html`; fælles `ab.js`
+  med børnedosis efter vægt) og `nyre/` (`ckd.html` med KDIGO-farvekort og KFRE, `dosis.html`,
+  `huskeskema.html`) er bygget på samme måde (`body.theme-infektion`, `.theme-nyre`).
+  KFRE-koefficienterne er kontrolleret mod Python-pakken kfre (se `tests/nyre.test.js`) — ret dem
+  kun med en primærkilde.
 - `valg.js`: fælles "Vælg til journal"-knap i behandlingstabeller (klimakterie, prævention,
   osteoporose); journalnotatet bruger det valgte i stedet for førstevalget.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
   **Hæv `VERSION` i `sw.js`** og i den berørte apps `*/sw.js` (hjerte, lunge, thyreoidea,
-  diabetes), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
+  diabetes, infektion, nyre), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
   `valg.js`) caches af alle apps.
 - `README.md`: klinisk logik, datagrundlag og ændringslog (opdateres ved hver ændring).
 - `tests/`: Playwright-suiter. `tests/run_all.sh` kører dem alle mod en lokal server.
@@ -88,6 +94,13 @@ Tjek for nye eller reviderede anbefalinger og studier siden sidste gennemgang (s
 - **Type 2-diabetes (`diabetes/`):** DSAM/DES' vejledninger, Medicinrådets behandlingsvejledning,
   Lægemiddelstyrelsens tilskudsklausuler (GLP-1), ADA/EASD-konsensus, KDIGO, produktresuméer
   (eGFR-grænser), øjen- og fodscreening.
+- **Infektioner (`infektion/`):** DSAM's vejledning om akutte luftvejsinfektioner, regionernes
+  antibiotikavejledninger (Region Hovedstaden, Region Midtjylland m.fl.), Medicinrådets
+  vejledning om urinvejsinfektioner, Sundhedsstyrelsen (NKR/IRF), SSI og DANMAP (resistens),
+  EMA/Lægemiddelstyrelsen (sikkerhed, fx fluorokinoloner) og restordrer/udbud af antibiotika.
+- **Nyrer (`nyre/`):** KDIGO (CKD og diabetes-CKD), Dansk Nefrologisk Selskab, regionernes
+  forløbsbeskrivelser for kronisk nyresygdom, DSAM (evt. egen vejledning), Medicinrådet
+  (SGLT-2-hæmmer, finerenon), KFRE-opdateringer og produktresuméer (dosis efter nyrefunktion).
 
 Ret kun ved reel ny evidens eller fejl, og beskriv hver ændring med kilde i PR og ændringslog.
 Findes intet nyt, så sig det — lav ikke ændringer for ændringernes skyld.
