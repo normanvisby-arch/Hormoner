@@ -1,7 +1,9 @@
 # Hormoner — beslutningsstøtte for praktiserende læge
 
-> **To selvstændige apps:** kvindesundhed (repoets rod, startside `oversigt.html`) og
-> **hjerte-kar** (mappen `hjerte/`, startside `hjerte/index.html` — se afsnittet "Hjerte-kar").
+> **Fem selvstændige apps:** kvindesundhed (repoets rod, startside `oversigt.html`),
+> **hjerte-kar** (`hjerte/`), **lunger** (`lunge/` — KOL og astma), **hypothyreose** (`thyreoidea/`)
+> og **type 2-diabetes** (`diabetes/`). Hver app har egen startside `index.html`, manifest, ikon og
+> service worker og kan installeres som app på computer og telefon.
 
 Lette, statiske webapps der giver den praktiserende læge en hurtig, struktureret anbefaling
 til brug ved konsultationen — med konkrete eksempler på præparater der er tilgængelige i Danmark.
@@ -106,12 +108,64 @@ Selvstændig app med eget manifest, ikon og service worker (installeres fra
 **Forbehold:** DCS' NBV og EHRA-guiden kunne ikke tilgås direkte; tærskler og doseringsregler er
 kontrolleret via sekundære kilder og produktresuméer.
 
+## Lunger (`lunge/`) — logik og datagrundlag
+
+- **`kol.html`**: diagnose ved FEV1/FVC < 0,70 efter bronkodilatator (procent omregnes), GOLD-grad
+  1–4, ABE-gruppe (E ved ≥ 2 moderate eksacerbationer eller ≥ 1 indlæggelse; B ved mMRC ≥ 2 eller
+  CAT ≥ 10). Behandling efter GOLD 2025: opstart (A: LAMA eller LABA; B: LAMA + LABA; E: LAMA +
+  LABA, triple ved eosinofile ≥ 0,3) og opfølgning efter dominerende problem (eksacerbationer:
+  triple ved eosinofile ≥ 0,1, ellers roflumilast/azithromycin; åndenød: LAMA + LABA, skift fra
+  ICS + LABA uden ICS-indikation). DSAM's eosinofil-tærskler (≥ 0,3 indiceret, 0,10–0,29 tvivlsom,
+  < 0,10 ikke indiceret). Rehabilitering, vaccination, iltvurdering (SAT ≤ 92 %), eksacerbation
+  (prednisolon 37,5 mg i 5 dage; amoxicillin 750 mg × 3 i 5 dage ved purulent ekspektorat).
+- **`astma.html`** (≥ 12 år): GINA 2025 spor 1 — ICS-formoterol efter behov (trin 1–2), MART lav
+  (trin 3) og medium (trin 4) med budesonid/formoterol 160/4,5 (Bufomix Easyhaler 1. valg på
+  basislisten); trin 5 med LAMA og henvisning. Kontrol efter GINA's 4 spørgsmål og evt. ACT;
+  optrapning ved manglende kontrol eller ≥ 2 forværringer, nedtrapning efter ≥ 3 måneders kontrol
+  uden forværringer. ICS-dosistabel og akut forværring (prednisolon 37,5–50 mg i 5–7 dage).
+- **`huskeskema.html`**: tolv principper, effekt i tal (IMPACT, SYGMA 1, Sobieraj 2018, Cochrane
+  2016) og henvisningskriterier.
+
+## Hypothyreose (`thyreoidea/`) — logik og datagrundlag
+
+- **`hypothyreose.html`**: tolkning af TSH (laboratoriets øvre grænse, standard 4,0) og T4:
+  manifest, subklinisk, mistanke om central hypothyreose, analyseinterferens. Subklinisk: bekræft
+  efter 1–3 måneder; behandling ved TSH ≥ 10 under 70 år, forsøgsbehandling ved symptomer og TSH
+  < 10, ingen behandling over 70 år ved TSH < 10; altid ved graviditet. Startdosis: ca. 1,6 mikrog./kg
+  hos yngre raske (alternativt 50 mikrog. og optitrering), 25 mikrog. ved alder ≥ 60 eller iskæmisk
+  hjertesygdom, 25–50 mikrog. ved subklinisk. I behandling: TSH-mål (op til 6 over 70 år; < 2,5 ved
+  graviditet), justering med 12,5–25 mikrog. (25–50 ved TSH > 10), reduktion ved TSH < 0,3,
+  graviditet +20–30 %. Indtagelse, interaktioner og henvisning.
+- **`huskeskema.html`**: tolv principper, tal til samtalen (TRUST 2017 m.fl.) og henvisning.
+
+## Type 2-diabetes (`diabetes/`) — logik og datagrundlag
+
+- **`behandling.html`**: individuelt HbA1c-mål (DSAM: < 48 / < 53 / < 58 / < 64–69 mmol/mol),
+  organbeskyttende indikation (hjerte-kar-sygdom, hjertesvigt, eGFR < 60, UACR ≥ 30, høj risiko)
+  uafhængigt af HbA1c, og næste skridt: metformin → SGLT-2-hæmmer (organbeskyttelse fra eGFR 20;
+  glykæmisk effekt fra 45) → GLP-1-receptoragonist → basalinsulin; DPP-4-hæmmer ved skrøbelighed/
+  hypoglykæmirisiko; sulfonylurinstof nedprioriteret (Medicinrådet 2026). eGFR-dosistabel,
+  GLP-1-tilskudsklausul (2024) og sygedagsregler.
+- **`aarskontrol.html`**: status mod mål for HbA1c, BT (< 130/80; < 140/85 fra 75 år), LDL (< 2,6;
+  < 1,8 ved albuminuri, nedsat nyrefunktion, høj risiko og hjerte-kar-sygdom), eGFR (henvis ved
+  < 30 eller fald > 5 pr. år), UACR (A1–A3; RAAS-blokade + SGLT-2-hæmmer ved albuminuri), fødder
+  (risikogruppe 1–4), øjne, rygning og BMI — med handlingsliste og journalnotat.
+- **`huskeskema.html`**: tolv principper, effekt i tal (SGLT-2-metaanalyser, FLOW, DiRECT) og
+  henvisning.
+
+**Forbehold (alle tre):** DSAM's, DES' og Medicinrådets primærsider kunne ikke tilgås direkte;
+tærskler og doser er kontrolleret via sekundære kilder og produktresuméer.
+
 ## Installér som app
 
 Værktøjerne er en installerbar webapp (PWA) med eget ikon, som også virker uden internet:
 
 - **Adresse:** `https://normanvisby-arch.github.io/Hormoner/oversigt.html` (kræver at GitHub Pages
   er slået til: Settings → Pages → "Deploy from a branch" → `main` / `(root)`).
+- **Computer (Windows/Mac):** åbn adressen i Chrome eller Edge, og klik på "Installér som app" på
+  startsiden eller installér-ikonet i adresselinjen. Hver app får eget vindue og ikon. Adresser:
+  `…/Hormoner/oversigt.html`, `…/Hormoner/hjerte/`, `…/Hormoner/lunge/`, `…/Hormoner/thyreoidea/`
+  og `…/Hormoner/diabetes/`.
 - **iPhone:** åbn adressen i Safari → Del-ikonet → "Føj til hjemmeskærm".
 - **Android:** åbn adressen i Chrome → ⋮ → "Installer app" / "Føj til startskærm".
 - `manifest.webmanifest` beskriver appen (navn, ikon, startside `oversigt.html`); `sw.js` gemmer
@@ -398,6 +452,15 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**29. september 2026 — tre nye selvstændige apps: lunger, hypothyreose og type 2-diabetes:**
+- `lunge/` (KOL, astma, huskeskema), `thyreoidea/` (hypothyreose, huskeskema) og `diabetes/`
+  (glukosesænkende behandling, årskontrol, huskeskema), hver med egen startside, manifest, ikon og
+  offline-cache; "Vælg til journal" i behandlingstabellerne; testsuiter `kol`, `astma`,
+  `hypothyreose`, `diabetes` og `pwa-apps`.
+- Installér-knap på alle startsider (Chrome/Edge på computer og Android) og fælles "Andre apps"-
+  links mellem de fem apps. `tools/mkicons.js` laver app-ikoner ud fra `icons/icon.svg`.
+- Service worker v7 (rod) og v4 (hjerte) pga. ændret `pwa.js`, `style.css` og startsider.
 
 **29. september 2026 — valg af behandling i klimakterie-, præventions- og osteoporoseguiden:**
 - Hver behandling i tabellerne har en "Vælg til journal"-knap (fælles `valg.js`). Journalnotatet

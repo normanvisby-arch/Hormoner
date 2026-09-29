@@ -1,8 +1,9 @@
 # Klinikværktøjer til almen praksis — arbejdsgang
 
-Danske beslutningsstøtteværktøjer til en praktiserende læge i to selvstændige apps:
-**kvindesundhed** (klimakterie/MHT, prævention, MRS-scoring, osteoporose — repoets rod) og
-**hjerte-kar** (kardiovaskulær forebyggelse og atrieflimren — mappen `hjerte/`). Brugeren er læge; al tekst i værktøjerne og svar til brugeren er på
+Danske beslutningsstøtteværktøjer til en praktiserende læge i fem selvstændige apps:
+**kvindesundhed** (klimakterie/MHT, prævention, MRS-scoring, osteoporose — repoets rod),
+**hjerte-kar** (`hjerte/`), **lunger** (`lunge/`: KOL og astma), **hypothyreose** (`thyreoidea/`)
+og **type 2-diabetes** (`diabetes/`). Brugeren er læge; al tekst i værktøjerne og svar til brugeren er på
 dansk. Klinisk indhold skal være korrekt, kildebelagt og ærligt om usikkerhed — hellere et interval
 eller "usikker" end et falsk præcist tal.
 
@@ -18,12 +19,19 @@ eller "usikker" end et falsk præcist tal.
   `body.theme-hjerte`) og `../pwa.js`. SCORE2-koefficienterne er kontrolleret mod R-pakken
   RiskScorescvd og de publicerede regneeksempler (se `tests/cvrisiko.test.js`) — ret dem kun med
   en primærkilde.
+- `lunge/` (`kol.html`, `astma.html`, `huskeskema.html`), `thyreoidea/` (`hypothyreose.html`,
+  `huskeskema.html`) og `diabetes/` (`behandling.html`, `aarskontrol.html`, `huskeskema.html`) er
+  bygget som hjerte-appen: egen `index.html`, `manifest.webmanifest`, `sw.js` og `icons/`
+  (lav PNG-ikoner med `node tools/mkicons.js MAPPE`), fælles `../style.css` (`body.theme-lunge`,
+  `.theme-thyreoidea`, `.theme-diabetes`), `../valg.js` og `../pwa.js`. Startsiderne har en
+  installér-knap (`data-install`, styres af `pwa.js`) og "Andre apps"-links — hold dem i sync.
 - `valg.js`: fælles "Vælg til journal"-knap i behandlingstabeller (klimakterie, prævention,
   osteoporose); journalnotatet bruger det valgte i stedet for førstevalget.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
-  **Hæv `VERSION` i `sw.js`** (og `hjerte/sw.js` for hjerte-appen), når filer tilføjes, fjernes
-  eller ændres, så appen henter dem.
+  **Hæv `VERSION` i `sw.js`** og i den berørte apps `*/sw.js` (hjerte, lunge, thyreoidea,
+  diabetes), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
+  `valg.js`) caches af alle apps.
 - `README.md`: klinisk logik, datagrundlag og ændringslog (opdateres ved hver ændring).
 - `tests/`: Playwright-suiter. `tests/run_all.sh` kører dem alle mod en lokal server.
 - `tools/artifacts.json` + `tools/build_artifact.py`: byg de publicerede claude.ai-versioner.
@@ -71,6 +79,15 @@ Tjek for nye eller reviderede anbefalinger og studier siden sidste gennemgang (s
   opdateringer (forebyggelse, dyslipidæmi, hypertension, diabetes, atrieflimren), EHRA's
   NOAC-guide, produktresuméer for DOAK (dosis, nyregrænser, interaktioner), Medicinrådet/
   basislister (valg af statin og DOAK), nye SCORE2-kalibreringer.
+
+- **Lunger (`lunge/`):** GOLD- og GINA-rapporter (årlige), DSAM's vejledning "Astma og KOL i almen
+  praksis" (i høring 2026 — tjek endelig version), Dansk Lungemedicinsk Selskab, Medicinrådets
+  basisliste for astma/KOL, vaccinationsanbefalinger (RSV, pneumokok) og inhalatorudbud.
+- **Hypothyreose (`thyreoidea/`):** DES' NBV Hypothyroidisme, DSAM, NICE NG145, graviditet
+  (DSOG/ATA), levothyroxin-præparater og styrker.
+- **Type 2-diabetes (`diabetes/`):** DSAM/DES' vejledninger, Medicinrådets behandlingsvejledning,
+  Lægemiddelstyrelsens tilskudsklausuler (GLP-1), ADA/EASD-konsensus, KDIGO, produktresuméer
+  (eGFR-grænser), øjen- og fodscreening.
 
 Ret kun ved reel ny evidens eller fejl, og beskriv hver ændring med kilde i PR og ændringslog.
 Findes intet nyt, så sig det — lav ikke ændringer for ændringernes skyld.
