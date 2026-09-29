@@ -9,5 +9,9 @@
   "osteoporose.html": { "url": "https://claude.ai/artifact/Ts6p7AJ4CrGqeZAAhK4jwy", "mode": "tool" },
   "fraktur.html": { "url": "https://claude.ai/artifact/4K2j9dCrJPkY84FLRwuGFp", "mode": "tool" },
   "osteoplan.html": { "url": "https://claude.ai/artifact/LJxgTqb7W5MhMY6H5mjoUT", "mode": "tool" },
-  "osteohuskeskema.html": { "url": "https://claude.ai/artifact/QGofiJpPddCkp4oX4tfTAj", "mode": "standalone" }
+  "osteohuskeskema.html": { "url": "https://claude.ai/artifact/QGofiJpPddCkp4oX4tfTAj", "mode": "standalone" },
+  "hjerte/index.html": { "url": "https://claude.ai/artifact/XKN6nykM6YPEeLv4AbgLHP", "mode": "standalone", "title": "Hjerte-kar i almen praksis" },
+  "hjerte/cvrisiko.html": { "url": "https://claude.ai/artifact/PZ9AdGJSAoZg4sTspQMFcg", "mode": "tool", "title": "CV-risiko — SCORE2" },
+  "hjerte/af.html": { "url": "https://claude.ai/artifact/2nGFCKz6mPxesZpGM7qZdm", "mode": "tool", "title": "Atrieflimren — antikoagulation" },
+  "hjerte/huskeskema.html": { "url": "https://claude.ai/artifact/V2AuSDq28JWHLgWBRFGwvW", "mode": "standalone", "title": "Hjerte-kar-huskeskema" }
 }
