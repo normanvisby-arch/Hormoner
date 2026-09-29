@@ -162,8 +162,10 @@
     else {
       // Initialt fald (typisk 3–5, op til 30 %) efter opstart af SGLT-2-hæmmer eller ACE-hæmmer/ARB er forventet.
       const forventet = has(s.rf, "nystart") && fald > 5 && fald <= 0.3 * s.egfrFoer;
-      const bad = s.egfr < 30 || (fald > 5 && !forventet);
-      if (forventet) handling.push(`eGFR faldet ${Math.round(fald)} efter opstart af SGLT-2-hæmmer eller ACE-hæmmer/ARB: et initialt fald på op til 30 % er forventet og ikke grund til at stoppe — gentag eGFR om 3 måneder, og henvis ved fortsat fald.`);
+      // Hurtigt fald er henvisningskriterium ved allerede nedsat eGFR (DNS 2024).
+      const bad = s.egfr < 30 || (fald > 5 && !forventet && s.egfr < 60);
+      if (fald > 5 && !forventet && s.egfr >= 60) handling.push(`eGFR faldet ${Math.round(fald)} på ca. 1 år, men nyrefunktionen er normal: gentag eGFR, og henvis ved vedvarende fald.`);
+      if (forventet) handling.push(`eGFR faldet ${Math.round(fald)} efter opstart af SGLT-2-hæmmer eller ACE-hæmmer/ARB: et initialt fald på op til 30 % er forventet og ikke grund til at stoppe — gentag eGFR efter 1–3 måneder, og henvis ved fortsat fald.`);
       add("eGFR", `${Math.round(s.egfr)}${isNaN(fald) ? "" : ` (${fald > 0 ? "fald" : "stigning"} ${Math.abs(Math.round(fald))} på 1 år)`}`, "Årligt; fald < 5 pr. år", bad ? "Henvis" : s.egfr < 60 ? "Nedsat" : "Normal", bad ? "tag-warn" : s.egfr < 60 ? "tag-warn" : "tag-recommend");
       if (bad) handling.push(`Henvis til nefrolog: ${s.egfr < 30 ? "eGFR under 30" : `eGFR faldet ${Math.round(fald)} ml/min på et år (> 5)`}.`);
       if (s.egfr < 60) handling.push(`eGFR under 60: dosisjustér lægemidler (metformin, DPP-4-hæmmer) og undgå NSAID${has(s.rf, "sglt2") ? "; fortsæt SGLT-2-hæmmer (nyrebeskyttelse)" : ", og overvej SGLT-2-hæmmer for nyrebeskyttelse"}.`);
@@ -173,7 +175,8 @@
       add("Albuminuri (UACR)", `${Math.round(s.uacr)} mg/g — ${ak.kat}`, "< 30 mg/g", ak.kat === "A1" ? "Normal" : "Forhøjet", ak.kat === "A1" ? "tag-recommend" : "tag-warn");
       if (ak.kat !== "A1") {
         handling.push(`Albuminuri ${ak.tekst}: bekræft med 2 af 3 prøver; ${has(s.rf, "acearb") ? "ACE-hæmmer/ARB i maksimalt tolereret dosis" : "start ACE-hæmmer eller ARB — også uden hypertension"}${has(s.rf, "sglt2") ? "" : ", og tilføj SGLT-2-hæmmer (nyrebeskyttelse)"}. Kontrollér kreatinin og kalium 1–2 uger efter opstart.`);
-        if (ak.kat === "A3") handling.push("UACR ≥ 300 mg/g (A3): henvis til nefrolog (KDIGO).");
+        if (s.uacr > 700) handling.push(`UACR ${Math.round(s.uacr)} mg/g (over 700): henvis til nefrolog (DNS), medmindre patienten allerede følges i diabetesambulatorium for diabetisk nyresygdom.`);
+        else if (ak.kat === "A3") handling.push("UACR ≥ 300 mg/g (A3): overvej henvisning til nefrolog (KDIGO: fra 300 mg/g; DNS: over 700 mg/g). Beregn risiko for nyresvigt i <a href=\"../nyre/ckd.html\">nyre-appen</a>.");
       }
     }
 

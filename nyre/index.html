@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Type 2-diabetes i almen praksis</title>
+<title>Nyrer i almen praksis</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#9a4f0b">
+<meta name="theme-color" content="#8a3a5c">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Type 2-diabetes">
+<meta name="apple-mobile-web-app-title" content="Nyrer">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
@@ -21,11 +21,11 @@
     --border: #dbe2dc;
     --text: #1c2624;
     --muted: #5c6b64;
-    --primary: #9a4f0b;
-    --primary-dark: #733a07;
+    --primary: #8a3a5c;
+    --primary-dark: #6a2a45;
     --on-primary: #ffffff;
-    --chip-bg: #f8ebdd;
-    --chip-text: #733a07;
+    --chip-bg: #f5e4eb;
+    --chip-text: #6a2a45;
     --note-bg: #eaf2fa;
     --note-border: #a9c9e6;
     --note-text: #1c4a72;
@@ -37,8 +37,8 @@
     :root:not([data-theme="light"]) {
       --bg: #101615; --surface: #1a2321; --border: #2c3835;
       --text: #e7ece9; --muted: #9bb0a8;
-      --primary: #e8a35f; --primary-dark: #cc8540; --on-primary: #06120f;
-      --chip-bg: #3a2a18; --chip-text: #f2d2ad;
+      --primary: #e08bb0; --primary-dark: #c86b94; --on-primary: #06120f;
+      --chip-bg: #3a1f2c; --chip-text: #f2c6d8;
       --note-bg: #16273a; --note-border: #35608a; --note-text: #bcd9f5;
       color-scheme: dark;
     }
@@ -46,8 +46,8 @@
   :root[data-theme="dark"] {
     --bg: #101615; --surface: #1a2321; --border: #2c3835;
     --text: #e7ece9; --muted: #9bb0a8;
-    --primary: #e8a35f; --primary-dark: #cc8540; --on-primary: #06120f;
-    --chip-bg: #3a2a18; --chip-text: #f2d2ad;
+    --primary: #e08bb0; --primary-dark: #c86b94; --on-primary: #06120f;
+    --chip-bg: #3a1f2c; --chip-text: #f2c6d8;
     --note-bg: #16273a; --note-border: #35608a; --note-text: #bcd9f5;
     color-scheme: dark;
   }
@@ -171,40 +171,40 @@
 <div class="wrap">
   <header>
     <p class="eyebrow">Almen praksis · danske forhold</p>
-    <h1>Type 2-diabetes i almen praksis</h1>
-    <p class="lede">Tre små webapps til konsultationen — type 2-diabetes. De kører direkte i browseren, og intet sendes nogen steder hen.</p>
+    <h1>Nyrer i almen praksis</h1>
+    <p class="lede">Tre små webapps til konsultationen — kronisk nyresygdom hos voksne og lægemidler ved nedsat nyrefunktion. De kører direkte i browseren, og intet sendes nogen steder hen.</p>
   </header>
 
   <div class="grid">
     <article class="tool">
       <div class="tool-head"><span class="kind">Beslutningsstøtte</span><span class="who">Til lægen</span></div>
-      <h2>Glukosesænkende behandling</h2>
-      <p class="use">Individuelt HbA1c-mål, næste behandlingsskridt ud fra hjerte-kar-sygdom, hjertesvigt, nyrefunktion og albuminuri, dosis efter eGFR og tilskudsregler for GLP-1.</p>
-      <p class="basis">DSAM/DES · Medicinrådet 2026 · Lægemiddelstyrelsen</p>
+      <h2>Kronisk nyresygdom</h2>
+      <p class="use">KDIGO-stadie ud fra eGFR og albuminuri, 2- og 5-års risiko for nyresvigt (KFRE), kontrolhyppighed, henvisningskriterier og nyrebeskyttende behandling (blodtryk, ACE-hæmmer/ARB, SGLT-2-hæmmer, finerenon, statin).</p>
+      <p class="basis">KDIGO 2024 · Dansk Nefrologisk Selskab 2024 · Tangri 2016</p>
       <div class="actions">
-        <a class="btn btn-open" href="behandling.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-0" data-url="behandling.html">Kopiér link</button>
+        <a class="btn btn-open" href="ckd.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-0" data-url="ckd.html">Kopiér link</button>
         <span class="copied" aria-live="polite"></span>
       </div>
       <span class="url"></span>
     </article>
     <article class="tool">
-      <div class="tool-head"><span class="kind">Kontrol</span><span class="who">Til lægen</span></div>
-      <h2>Årskontrol</h2>
-      <p class="use">Tjekliste med behandlingsmål for blodtryk, LDL og albuminuri, nyrefunktion, øjne, fødder og livsstil — med journalnotat.</p>
-      <p class="basis">DSAM · DES NBV · Dansk Nefrologisk Selskab</p>
+      <div class="tool-head"><span class="kind">Opslag</span><span class="who">Til lægen</span></div>
+      <h2>Dosis efter nyrefunktion</h2>
+      <p class="use">Almindelige lægemidler i almen praksis ved nedsat eGFR eller kreatininclearance (Cockcroft-Gault): fortsæt, reducér eller undgå.</p>
+      <p class="basis">Produktresuméer · KDIGO 2024</p>
       <div class="actions">
-        <a class="btn btn-open" href="aarskontrol.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-1" data-url="aarskontrol.html">Kopiér link</button>
+        <a class="btn btn-open" href="dosis.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-1" data-url="dosis.html">Kopiér link</button>
         <span class="copied" aria-live="polite"></span>
       </div>
       <span class="url"></span>
     </article>
     <article class="tool tool-wide">
       <div class="tool-head"><span class="kind">Huskeskema</span><span class="who">Til lægen</span></div>
-      <h2>Diabetes-huskeskema</h2>
-      <p class="use">Tolv principper for behandling og opfølgning af type 2-diabetes, effekt i tal og hvornår man henviser.</p>
-      <p class="basis">DSAM/DES · Medicinrådet · ADA/EASD</p>
+      <h2>Nyre-huskeskema</h2>
+      <p class="use">Tolv principper for opsporing, behandling og opfølgning af kronisk nyresygdom, effekt i tal og hvornår man henviser.</p>
+      <p class="basis">KDIGO 2024 · DNS 2024 · DAPA-CKD · EMPA-KIDNEY</p>
       <div class="actions">
         <a class="btn btn-open" href="huskeskema.html">Åbn</a>
         <button class="btn btn-copy" type="button" id="copy-2" data-url="huskeskema.html">Kopiér link</button>
@@ -220,15 +220,15 @@
   </div>
 
   <div class="note" role="note">
-    <p><strong>Andre apps i samme serie:</strong> <a href="../oversigt.html">Kvindesundhed</a> (klimakterie, prævention, MRS og osteoporose) · <a href="../hjerte/index.html">Hjerte-kar</a> (SCORE2 og atrieflimren) · <a href="../lunge/index.html">Lunger</a> (KOL og astma) · <a href="../thyreoidea/index.html">Hypothyreose</a> (TSH, T4 og levothyroxin) · <a href="../infektion/index.html">Infektioner</a> (antibiotika ved luftvejs-, urinvejs- og hudinfektioner) · <a href="../nyre/index.html">Nyrer</a> (kronisk nyresygdom og dosis efter nyrefunktion).</p>
+    <p><strong>Andre apps i samme serie:</strong> <a href="../oversigt.html">Kvindesundhed</a> (klimakterie, prævention, MRS og osteoporose) · <a href="../hjerte/index.html">Hjerte-kar</a> (SCORE2 og atrieflimren) · <a href="../lunge/index.html">Lunger</a> (KOL og astma) · <a href="../thyreoidea/index.html">Hypothyreose</a> (TSH, T4 og levothyroxin) · <a href="../diabetes/index.html">Type 2-diabetes</a> (behandling og årskontrol) · <a href="../infektion/index.html">Infektioner</a> (antibiotika ved luftvejs-, urinvejs- og hudinfektioner).</p>
   </div>
 
   <div class="note" role="note">
-    <p><strong>Til kolleger:</strong> Værktøjerne er hurtige huskesedler til brug i konsultationen. De erstatter ikke den kliniske vurdering, DSAM's og Dansk Endokrinologisk Selskabs vejledninger eller opslag på pro.medicin.dk før ordination.</p>
+    <p><strong>Til kolleger:</strong> Værktøjerne er hurtige huskesedler til brug i konsultationen. De erstatter ikke den kliniske vurdering, regionens forløbsbeskrivelse for kronisk nyresygdom eller opslag på pro.medicin.dk før ordination.</p>
     <p>Der indtastes ingen personhenførbare oplysninger, og intet gemmes eller sendes.</p>
   </div>
 
-  <footer>Uafhængige hjælpeværktøjer — ikke officielle publikationer fra DSAM, Dansk Endokrinologisk Selskab, Medicinrådet eller øvrige nævnte kilder. Senest opdateret 29. september 2026.</footer>
+  <footer>Uafhængige hjælpeværktøjer — ikke officielle publikationer fra KDIGO, Dansk Nefrologisk Selskab eller øvrige nævnte kilder. Senest opdateret 29. september 2026.</footer>
 </div>
 
 <script>

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urinvejsinfektioner — antibiotika</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#3f6212">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Infektioner">
+</head>
+<body class="theme-infektion">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">💧</span>
+      <div>
+        <h1>Urinvejsinfektioner — antibiotika</h1>
+        <p class="subtitle">Ukompliceret og kompliceret cystitis, gravide, mænd, børn, pyelonefritis og asymptomatisk bakteriuri — præparat, dosis og varighed, også ved nedsat nyrefunktion</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <a href="luftveje.html">Luftveje</a>
+  <span aria-current="page">Urinveje</span>
+  <a href="hud.html">Hud</a>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Følger Region Hovedstadens antibiotikavejledning for primærsektoren (2025), Medicinrådets behandlingsvejledning for urinvejsinfektioner, Region Midtjyllands "Infektioner i almen praksis" (2025) og Lægehåndbogen. Regionernes vejledninger kan afvige i detaljer — følg din regions vejledning, og tjek dosis på pro.medicin.dk.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se anbefaling ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patient og symptomer</h2>
+
+    <fieldset class="field">
+      <legend>Køn</legend>
+      <label class="radio"><input type="radio" name="koen" value="kvinde" checked> Kvinde</label>
+      <label class="radio"><input type="radio" name="koen" value="mand"> Mand</label>
+    </fieldset>
+
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="0" max="110" step="1" placeholder="fx 34">
+      <label for="vaegt" class="field-sublabel">Vægt (kg) — nødvendig til børn</label>
+      <input type="number" id="vaegt" min="2" max="250" step="0.5" placeholder="fx 22">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+
+    <fieldset class="field">
+      <legend>Klinisk billede</legend>
+      <label class="radio"><input type="radio" name="billede" value="cystitis" checked> Blærebetændelse (svie, hyppig vandladning, uden feber)</label>
+      <label class="radio"><input type="radio" name="billede" value="feber"> Feber over 38 °C og/eller flankesmerter eller -ømhed</label>
+      <label class="radio"><input type="radio" name="billede" value="asympt"> Bakterier i urinen uden symptomer</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="sepsis"> Påvirket almentilstand (kulderystelser, lavt BT, høj puls, konfusion)</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Urinstix</legend>
+      <p class="field-hint">Leukocytter</p>
+      <label class="radio"><input type="radio" name="leuk" value="ukendt" checked> Ikke udført</label>
+      <label class="radio"><input type="radio" name="leuk" value="pos"> Positiv</label>
+      <label class="radio"><input type="radio" name="leuk" value="neg"> Negativ</label>
+      <p class="field-hint">Nitrit</p>
+      <label class="radio"><input type="radio" name="nitrit" value="ukendt" checked> Ikke udført</label>
+      <label class="radio"><input type="radio" name="nitrit" value="pos"> Positiv</label>
+      <label class="radio"><input type="radio" name="nitrit" value="neg"> Negativ</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Forhold</legend>
+      <label class="checkbox" id="gravidLabel"><input type="checkbox" name="andet" value="gravid"> Gravid</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="allergi"> Penicillinallergi</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="kateter"> Blærekateter</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="recidiv"> Gentagne infektioner (3 eller flere det seneste år)</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="kompl"> Komplicerende forhold (sten, misdannelse, dårlig blæretømning, immunsuppression)</label>
+    </fieldset>
+
+    <div class="field">
+      <label for="egfr">eGFR (ml/min/1,73 m², valgfrit)</label>
+      <input type="number" id="egfr" min="3" max="150" placeholder="fx 72">
+    </div>
+  </form>
+
+  <section class="panel result-panel" aria-label="Anbefaling" id="resultPanel">
+    <h2>2. Vurdering og anbefaling</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <p class="field-hint valg-hint" id="valgHint" hidden>Tryk "Vælg til journal" ved en behandling, så nævner journalnotatet den i stedet for værktøjets førstevalg.</p>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld anbefaling</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Region Hovedstaden — Antibiotikavejledning for primærsektoren (opdateret 15.05.2025 og 25.11.2025): ukompliceret cystitis pivmecillinam 400 mg × 3 i 3 dage; ved penicillinallergi nitrofurantoin 100 mg × 4 eller trimethoprim 200 mg × 2 i 3 dage; kompliceret cystitis og gravide 5 dage; nitrofurantoin kun ved GFR &gt; 45; stix med positiv leukocytter og nitrit kræver ikke dyrkning før behandling; recidiverende ukompliceret cystitis hos kvinder har eget forløb; profylakse med trimethoprim 100 mg, pivmecillinam 200 mg eller nitrofurantoin 50 mg</li>
+    <li>Medicinrådet — behandlingsvejledning vedrørende urinvejsinfektioner: pivmecillinam 400 mg × 3 i 3 dage ved cystitis; pyelonefritis i almen praksis pivmecillinam 400 mg × 4 i 7–10 dage eller ciprofloxacin 500 mg × 2 i 7 dage</li>
+    <li>Region Midtjylland — Infektioner i almen praksis, version 4 (2025): let ukompliceret pyelonefritis pivmecillinam 400 mg × 3 i 7 dage; børn, gravide og kompliceret pyelonefritis henvises</li>
+    <li>Lægehåndbogen — nedre urinvejsinfektion hos mænd (pivmecillinam 400 mg × 3 i 5 døgn) og akut prostatitis (ciprofloxacin 500 mg × 2 i 2–4 uger); Region Hovedstaden — feber-UVI hos mænd ciprofloxacin 500 mg × 2 i 14 dage (kvinder 7 dage); Lafaurie m.fl. (PROSTASHORT), <em>Clin Infect Dis</em> 2023 — 7 dage ringere end 14 dage hos mænd; pro.medicin.dk — kompliceret cystitis hos børn over 2 år (pivmecillinam 20 mg/kg/døgn fordelt på 3 doser i 5 dage)</li>
+    <li>EMA/Lægemiddelstyrelsen (2018) — fluorokinoloner: begrænset brug pga. sjældne, alvorlige og langvarige bivirkninger</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra regionerne eller Medicinrådet. Regionernes, Medicinrådets og pro.medicin.dk's sider kunne ikke tilgås direkte ved udviklingen; anbefalingerne er kontrolleret via sekundære kilder og skal verificeres i de gældende vejledninger. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="../valg.js"></script>
+<script src="ab.js"></script>
+<script src="urinveje.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

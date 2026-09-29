@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kronisk nyresygdom — stadie, risiko og behandling</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#8a3a5c">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Nyrer">
+</head>
+<body class="theme-nyre">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🫘</span>
+      <div>
+        <h1>Kronisk nyresygdom — stadie, risiko og behandling</h1>
+        <p class="subtitle">KDIGO-stadie ud fra eGFR og albuminuri, risiko for nyresvigt (KFRE), kontrolhyppighed, henvisning og nyrebeskyttende behandling</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <span aria-current="page">Kronisk nyresygdom</span>
+  <a href="dosis.html">Dosis efter nyrefunktion</a>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Følger KDIGO 2024 og Dansk Nefrologisk Selskabs rekommendationer (2024). DSAM har ikke tilsluttet sig DNS' vejledning, og regionernes forløbsbeskrivelser for kronisk nyresygdom har forskellige henvisningsgrænser — følg din regions forløbsbeskrivelse.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se anbefaling ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patientens data</h2>
+
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="18" max="110" placeholder="fx 68">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+    <fieldset class="field">
+      <legend>Køn</legend>
+      <label class="radio"><input type="radio" name="koen" value="mand" checked> Mand</label>
+      <label class="radio"><input type="radio" name="koen" value="kvinde"> Kvinde</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Nyrefunktion</legend>
+      <label for="egfr">eGFR nu (ml/min/1,73 m²)</label>
+      <input type="number" id="egfr" min="3" max="150" placeholder="fx 42">
+      <label for="egfrFoer" class="field-sublabel">eGFR for ca. 1 år siden (valgfrit)</label>
+      <input type="number" id="egfrFoer" min="3" max="150" placeholder="fx 49">
+      <label for="uacr" class="field-sublabel">Urin-albumin/kreatinin-ratio, UACR (mg/g)</label>
+      <input type="number" id="uacr" min="0" max="10000" placeholder="fx 180">
+      <span class="input-warning" id="labWarning" aria-live="polite"></span>
+      <label class="checkbox"><input type="checkbox" name="andet" value="bekraeftet"> Fundet er bekræftet over mindst 3 måneder</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Blodtryk og kalium (valgfrit)</legend>
+      <label for="sbp">Systolisk BT (mmHg)</label>
+      <input type="number" id="sbp" min="70" max="260" placeholder="fx 142">
+      <label for="dbp" class="field-sublabel">Diastolisk BT (mmHg)</label>
+      <input type="number" id="dbp" min="30" max="160" placeholder="fx 84">
+      <label for="kalium" class="field-sublabel">P-kalium (mmol/l)</label>
+      <input type="number" id="kalium" min="2" max="8" step="0.1" placeholder="fx 4,6">
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Sygdomme</legend>
+      <label class="checkbox"><input type="checkbox" name="syg" value="t2d"> Type 2-diabetes</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="hypertension"> Hypertension</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="hs"> Hjertesvigt</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="ascvd"> Aterosklerotisk hjerte-kar-sygdom</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="pkd"> Polycystisk nyresygdom</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="immun"> Immunsuppressiv behandling for nyresygdom eller nyretransplanteret</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="haematuri"> Vedvarende, uforklaret hæmaturi</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="arvelig"> Arvelig nyresygdom i familien</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="resistent"> Hypertension trods 4 præparater</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Nuværende behandling</legend>
+      <label class="checkbox"><input type="checkbox" name="med" value="acearb"> ACE-hæmmer eller angiotensin II-receptorblokker</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="sglt2"> SGLT-2-hæmmer</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="statin"> Statin</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="finerenon"> Finerenon</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="nsaid"> NSAID fast eller ofte</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="nystart"> ACE-hæmmer/ARB eller SGLT-2-hæmmer startet inden for 3 måneder</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Anbefaling" id="resultPanel">
+    <h2>2. Vurdering og anbefaling</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld vurdering</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>KDIGO 2024 Clinical Practice Guideline for the Evaluation and Management of CKD (<em>Kidney Int</em> 2024): stadieinddeling G1–G5 og A1–A3, farvekort og kontrolhyppighed, KFRE til risikovurdering (henvisning ved 5-års risiko 3–5 %), SGLT-2-hæmmer ved eGFR ≥ 20 og UACR ≥ 200 mg/g eller hjertesvigt (og overvej ved eGFR 20–45 uanset albuminuri), finerenon ved type 2-diabetes, statin fra 50 år ved eGFR &lt; 60, systolisk BT &lt; 120 mmHg, hvis tolereret</li>
+    <li>Dansk Nefrologisk Selskab m.fl. — Rekommendationer vedr. kronisk nyresygdom (2024) og DNS' konsensus om SGLT-2-hæmmere; regionale forløbsbeskrivelser og Lægehåndbogen: henvisning ved eGFR &lt; 30, fald &gt; 5 ml/min/1,73 m² pr. år, UACR &gt; 700 mg/g, uforklaret hæmaturi med albuminuri og svær hypertension</li>
+    <li>Tangri m.fl., <em>JAMA</em> 2016 — Kidney Failure Risk Equation, 4 variable, kalibreret til lande uden for Nordamerika (koefficienter kontrolleret mod Python-pakken kfre)</li>
+    <li>Produktresumé for finerenon (Kerendia): eGFR ≥ 25, kalium ≤ 4,8 mmol/l ved opstart; 10 mg (eGFR 25–59) eller 20 mg (eGFR ≥ 60)</li>
+    <li>DAPA-CKD (<em>NEJM</em> 2020) og EMPA-KIDNEY (<em>NEJM</em> 2023)</li>  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra KDIGO, Dansk Nefrologisk Selskab eller regionerne. DNS' og regionernes sider kunne ikke tilgås direkte ved udviklingen; anbefalingerne er kontrolleret via sekundære kilder og skal verificeres i de gældende vejledninger. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="ckd.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

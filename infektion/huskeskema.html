@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Antibiotika-huskeskema</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#3f6212">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Infektioner">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f6f3;
+    --surface: #ffffff;
+    --surface-2: #eef1ee;
+    --border: #dbe2dc;
+    --text: #1c2624;
+    --text-muted: #5c6b64;
+    --primary: #3f6212;
+    --primary-dark: #2c4a0c;
+    --primary-contrast: #ffffff;
+    --accent: #2f6fa3;
+
+    --red-bg: #fdecec;    --red-border: #e0a0a0; --red-text: #7c1f1f;
+    --amber-bg: #fff6e0;  --amber-border: #e0c46f; --amber-text: #5c4404;
+    --green-bg: #e7f5ee;  --green-border: #9ad2b8; --green-text: #0b5c47;
+    --blue-bg: #eaf2fa;   --blue-border: #a9c9e6; --blue-text: #1c4a72;
+
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101615;
+      --surface: #1a2321;
+      --surface-2: #202b28;
+      --border: #2c3835;
+      --text: #e7ece9;
+      --text-muted: #9bb0a8;
+      --primary: #9ccf5f;
+      --primary-dark: #7fb043;
+      --primary-contrast: #06120f;
+      --accent: #7db1e0;
+      --red-bg: #3a1f1f;   --red-border: #7c3b3b; --red-text: #f2b6b6;
+      --amber-bg: #3a2f10; --amber-border: #7d611f; --amber-text: #f2da98;
+      --green-bg: #12332a; --green-border: #2f6b56; --green-text: #a9e6cd;
+      --blue-bg: #16273a;  --blue-border: #35608a; --blue-text: #bcd9f5;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101615;
+    --surface: #1a2321;
+    --surface-2: #202b28;
+    --border: #2c3835;
+    --text: #e7ece9;
+    --text-muted: #9bb0a8;
+    --primary: #9ccf5f;
+    --primary-dark: #7fb043;
+    --primary-contrast: #06120f;
+    --accent: #7db1e0;
+    --red-bg: #3a1f1f;   --red-border: #7c3b3b; --red-text: #f2b6b6;
+    --amber-bg: #3a2f10; --amber-border: #7d611f; --amber-text: #f2da98;
+    --green-bg: #12332a; --green-border: #2f6b56; --green-text: #a9e6cd;
+    --blue-bg: #16273a;  --blue-border: #35608a; --blue-text: #bcd9f5;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.5;
+    font-size: 15.5px;
+  }
+  h1, h2, h3 { text-wrap: balance; }
+
+  .topbar {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: var(--primary-contrast);
+    padding: 1.1rem 1.25rem;
+  }
+  .topbar-inner { max-width: 1160px; margin: 0 auto; display: flex; align-items: center; gap: 0.8rem; }
+  .brand-mark {
+    width: 2.4rem; height: 2.4rem; flex-shrink: 0; border-radius: 10px;
+    background: color-mix(in srgb, var(--primary-contrast) 16%, transparent);
+    display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700;
+  }
+  .topbar h1 { margin: 0; font-size: 1.28rem; font-weight: 700; letter-spacing: -0.01em; }
+  .topbar p { margin: 0.15rem 0 0; font-size: 0.85rem; opacity: 0.92; }
+
+  .wrap { max-width: 1160px; margin: 0 auto; padding-inline: 1.1rem; }
+
+  .tool-nav { display: flex; gap: 0.4rem 0.8rem; flex-wrap: wrap; font-size: 0.83rem; margin-top: 0.6rem; }
+  .tool-nav a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .tool-nav a:hover { text-decoration: underline; }
+  .tool-nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  .tool-nav span { color: var(--text-muted); font-weight: 600; }
+
+  .lead {
+    margin: 1rem 0 0; padding: 0.75rem 1.1rem; border-radius: 9px;
+    background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-text); font-size: 0.9rem;
+  }
+
+  .groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.1rem; }
+  @media (max-width: 820px) { .groups { grid-template-columns: minmax(0, 1fr); } }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem 0.4rem; }
+  .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 0.2rem; }
+  .panel h2 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--primary-dark); }
+  .phase { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+
+  .rules { list-style: none; margin: 0; padding: 0; }
+  .rule { display: grid; grid-template-columns: 1.9rem minmax(0, 1fr); gap: 0.2rem 0.6rem; padding: 0.65rem 0; border-bottom: 1px solid var(--border); }
+  .rule:last-child { border-bottom: none; }
+  .num {
+    grid-row: span 2; width: 1.75rem; height: 1.75rem; border-radius: 50%;
+    background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.8rem; font-weight: 600;
+  }
+  .rule strong { font-size: 0.95rem; }
+  .why { font-size: 0.85rem; color: var(--text-muted); }
+  .fig {
+    display: inline-block; margin-left: 0.3rem; padding: 0.02rem 0.45rem; border-radius: 999px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.74rem; font-weight: 600; white-space: nowrap;
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+  }
+  .tradeoff {
+    display: block; margin: 0.45rem 0 0; padding: 0.45rem 0.65rem; border-radius: 7px; font-size: 0.83rem;
+    background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber-text);
+  }
+
+  .section { margin-top: 1rem; }
+  .tradeoff a { color: inherit; font-weight: 600; }
+  .intro { margin: 0.6rem 0 0.2rem; font-size: 0.9rem; max-width: 75ch; }
+  .compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; margin: 0.8rem 0; }
+  @media (max-width: 720px) { .compare { grid-template-columns: minmax(0, 1fr); } }
+  .opt { border-radius: 10px; padding: 0.75rem 0.9rem; border: 1px solid; }
+  .opt-cont { background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); }
+  .opt-seq { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); }
+  .opt h3 { margin: 0 0 0.35rem; font-size: 0.95rem; }
+  .opt ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.25rem; font-size: 0.87rem; }
+  .opt .tag { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.85; margin-left: 0.35rem; }
+  .ev { font-size: 0.8rem; color: var(--text-muted); }
+  .mirena { margin: 0 0 0.8rem; padding: 0.6rem 0.8rem; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border); font-size: 0.86rem; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+  th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-2); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
+  td.effect { font-variant-numeric: tabular-nums; }
+  td.src { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; }
+  .down { color: var(--green-text); font-weight: 700; }
+  .up { color: var(--red-text); font-weight: 700; }
+  @media (max-width: 640px) {
+    thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+    tr { padding: 0.45rem 0; border-bottom: 1px solid var(--border); }
+    td { border: none; padding: 0.12rem 0.2rem; }
+    td:first-child { font-weight: 600; }
+    td.src { white-space: normal; }
+  }
+  .table-note { font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0 0.6rem; }
+  .table-note a { color: var(--accent); font-weight: 600; }
+
+  .alert { margin-top: 1rem; border-radius: 12px; padding: 1rem 1.1rem; background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red-text); }
+  .alert h2 { margin: 0 0 0.5rem; font-size: 1rem; }
+  .alert ul { margin: 0; padding-left: 1.15rem; display: grid; gap: 0.35rem; font-size: 0.9rem; }
+
+  footer { margin: 1.4rem auto 2.2rem; color: var(--text-muted); font-size: 0.82rem; }
+  footer h2 { font-size: 0.92rem; color: var(--text); margin: 0 0 0.4rem; }
+  footer ul { padding-left: 1.15rem; margin: 0 0 0.6rem; }
+  footer li { margin-bottom: 0.2rem; }
+  .fineprint { font-style: italic; font-size: 0.78rem; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <span class="brand-mark" aria-hidden="true">✓</span>
+    <div>
+      <h1>Antibiotika-huskeskema</h1>
+      <p>Tolv principper for rationel antibiotikabrug ved de hyppigste infektioner i almen praksis</p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="tool-nav" aria-label="Værktøjer">
+    <a href="index.html">Oversigt</a>
+    <a href="luftveje.html">Luftveje</a>
+    <a href="urinveje.html">Urinveje</a>
+    <a href="hud.html">Hud</a>
+    <span>Huskeskema</span>
+  </nav>
+
+  <p class="lead">Brug skemaet som tjekliste, før der udskrives antibiotika — og som støtte i samtalen med patienten.</p>
+
+  <div class="groups">
+    <section class="panel" aria-labelledby="g1">
+      <div class="panel-head"><h2 id="g1">Hvornår</h2><span class="phase">Indikation</span></div>
+      <ol class="rules">
+        <li class="rule"><span class="num">1</span><strong>De fleste luftvejsinfektioner går over af sig selv</strong><span class="why">Forkølelse, bronkitis og de fleste tilfælde af ondt i halsen, mellemørebetændelse og bihulebetændelse er virale eller selvbegrænsende. Giv et sikkerhedsnet i stedet for en recept.</span></li>
+        <li class="rule"><span class="num">2</span><strong>Brug de objektive redskaber</strong><span class="why">Centor og strep A-test ved ondt i halsen (test ved ≥ 2 kriterier), CRP ved mistanke om pneumoni og rhinosinuitis, urinstix og dyrkning ved urinvejsinfektion.</span></li>
+        <li class="rule"><span class="num">3</span><strong>Behandl ikke fund uden symptomer</strong><span class="why">Asymptomatisk bakteriuri behandles ikke — heller ikke hos ældre, diabetikere eller kateterbærere. Undtagelse: gravide.</span></li>
+      </ol>
+    </section>
+    <section class="panel" aria-labelledby="g2">
+      <div class="panel-head"><h2 id="g2">Hvilket</h2><span class="phase">Præparat</span></div>
+      <ol class="rules" start="4">
+        <li class="rule"><span class="num">4</span><strong>Smalspektret først</strong><span class="why">Penicillin V til luftveje og erysipelas, pivmecillinam til urinveje, dicloxacillin til stafylokokker. Bredspektrede midler øger resistens og C. difficile.</span></li>
+        <li class="rule"><span class="num">5</span><strong>Fluorokinoloner kun når andre ikke kan bruges</strong><span class="why">Ciprofloxacin er forbeholdt febril UVI hos mænd, resistens og allergi — risiko for seneskade, neuropati og aortaaneurisme.</span></li>
+        <li class="rule"><span class="num">6</span><strong>Tjek penicillinallergien</strong><span class="why">Hovedparten af dem, der er mærket penicillinallergiske, tåler penicillin. Henvis til udredning ved tvivl — makrolider er dårligere og giver flere interaktioner.</span></li>
+      </ol>
+    </section>
+    <section class="panel" aria-labelledby="g3">
+      <div class="panel-head"><h2 id="g3">Hvordan</h2><span class="phase">Dosis og varighed</span></div>
+      <ol class="rules" start="7">
+        <li class="rule"><span class="num">7</span><strong>Kort behandling er nok</strong><span class="why">Penicillin V i 5 dage ved tonsillitis, otitis, rhinosinuitis og pneumoni (DSAM 2024); pivmecillinam i 3 dage ved ukompliceret cystitis, 5 dage ved kompliceret.</span></li>
+        <li class="rule"><span class="num">8</span><strong>Penicillin V × 4 til voksne, × 3 til børn</strong><span class="why">Voksne: 1 mio. IE eller 800 mg × 4 med ca. 6 timers mellemrum. Børn: 50 mg/kg/døgn fordelt på 3 doser — aldrig over voksendosis.</span></li>
+        <li class="rule"><span class="num">9</span><strong>Dosér efter vægt og nyrefunktion</strong><span class="why">Børn under 40 kg doseres efter vægt. Nitrofurantoin er kontraindiceret ved eGFR under 45; trimethoprim og ciprofloxacin reduceres ved svært nedsat nyrefunktion.</span></li>
+      </ol>
+    </section>
+    <section class="panel" aria-labelledby="g4">
+      <div class="panel-head"><h2 id="g4">Sikkerhed</h2><span class="phase">Opfølgning</span></div>
+      <ol class="rules" start="10">
+        <li class="rule"><span class="num">10</span><strong>Kend alarmtegnene</strong><span class="why">Truet luftvej, peritonsillær absces, mastoiditis, orbital cellulitis, sepsis og nekrotiserende fasciitis: akut indlæggelse.</span></li>
+        <li class="rule"><span class="num">11</span><strong>Dyrk ved kompliceret infektion</strong><span class="why">Mænd, gravide, børn, kateter, gentagne infektioner, pyelonefritis og behandlingssvigt: dyrkning og resistensbestemmelse før behandling.</span></li>
+        <li class="rule"><span class="num">12</span><strong>Sikkerhedsnet og revurdering</strong><span class="why">Aftal, hvornår patienten skal henvende sig igen — typisk ved forværring eller ingen bedring efter 2–3 dage.</span></li>
+      </ol>
+    </section>
+  </div>
+
+  <section class="panel section" aria-labelledby="t1">
+    <div class="panel-head"><h2 id="t1">Tal til samtalen</h2><span class="phase">Studier og vejledninger</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Situation</th><th>Tal</th><th>Kilde</th></tr></thead>
+        <tbody>
+          <tr><td>Ondt i halsen uden antibiotika</td><td class="effect">Halvdelen er symptomfri efter 3 dage og <span class="down">9 ud af 10</span> efter 7 dage</td><td class="src">DSAM 2024</td></tr>
+          <tr><td>Akut mellemørebetændelse hos børn</td><td class="effect">Ca. <span class="down">60 %</span> har det bedre inden for 24 timer uden antibiotika</td><td class="src">DSAM 2024 / Cochrane</td></tr>
+          <tr><td>Penicillin V × 4 i 5 dage mod × 3 i 10 dage ved streptokok-tonsillitis</td><td class="effect">Ikke ringere klinisk effekt — med halvt så mange dages behandling</td><td class="src">Skoog Ståhlgren, <em>BMJ</em> 2019</td></tr>
+          <tr><td>Positiv stix for leukocytter og nitrit hos kvinde med typiske symptomer</td><td class="effect">Ca. <span class="up">90 %</span> sandsynlighed for urinvejsinfektion</td><td class="src">Region Hovedstaden 2025</td></tr>
+          <tr><td>Resistens hos E. coli fra urin i almen praksis</td><td class="effect">Lav for nitrofurantoin og mecillinam, ca. <span class="up">25–30 %</span> for trimethoprim og sulfamethizol</td><td class="src">DANMAP / Medicinrådet</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">Tallene er afrundede og kontrolleret via vejledninger og sekundære kilder.</p>
+  </section>
+
+  <section class="alert" aria-labelledby="a1">
+    <h2 id="a1">Henvis ved</h2>
+    <ul>
+      <li><strong>Luftveje:</strong> stridor, savlen, peritonsillær absces, mastoiditis, orbital eller intrakraniel komplikation til sinuitis, CRB-65 ≥ 3 eller SAT &lt; 92 %.</li>
+      <li><strong>Urinveje:</strong> urosepsis, pyelonefritis hos gravide og børn, og manglende bedring efter 48–72 timer.</li>
+      <li><strong>Hud:</strong> mistanke om nekrotiserende fasciitis, sepsis, periorbital cellulitis, bid over led eller sener, og rabiesrisiko.</li>
+      <li><strong>Spædbørn under 3 måneder med feber</strong> — altid akut pædiatrisk vurdering.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <h2>Kilder</h2>
+    <ul>
+      <li>DSAM — Akutte luftvejsinfektioner og rationel antibiotikabehandling i almen praksis (2024)</li>
+      <li>Region Hovedstaden — Antibiotikavejledning for primærsektoren (2025); Region Midtjylland — Infektioner i almen praksis, version 4 (2025)</li>
+      <li>Medicinrådet — behandlingsvejledning vedrørende urinvejsinfektioner; Sundhedsstyrelsen — NKR/IRF om impetigo (2017)</li>
+      <li>Skoog Ståhlgren m.fl., <em>BMJ</em> 2019; EMA/Lægemiddelstyrelsen om fluorokinoloner (2018)</li>
+    </ul>
+    <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra de nævnte kilder og erstatter ikke den kliniske vurdering. Tallene er afrundede og kontrolleret via vejledninger og sekundære kilder.</p>
+  </footer>
+</div>
+<script src="../pwa.js"></script>
+</body>
+</html>
