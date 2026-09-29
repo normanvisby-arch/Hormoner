@@ -156,6 +156,20 @@ const BASE = process.env.BASE || ROOT + 'index.html';
   const full = await page.evaluate(() => navigator.clipboard.readText());
   check('15 full text includes collapsed risk content', full.includes('MHRA 2019'));
   check('15 full text includes dose table', full.includes('Standard — 50 mikrog.'));
+  check('15 full text: tag kept apart, no "Vælg"', !full.includes('Vælg til journal') && /Utrogestan \(Anbefalet \(transdermal\)\)/.test(full));
+  // 15v: choose an alternative -> note names only the chosen treatment
+  check('15v hint shown', await page.locator('#valgHint').isVisible());
+  const radios = page.locator('#output input[name="valg"]');
+  check('15v radios on treatment rows', (await radios.count()) >= 2);
+  const alt = page.locator('#output tr', { hasText: 'Alternativ' }).first().locator('input[name="valg"]');
+  const altName = (await page.locator('#output tr', { hasText: 'Alternativ' }).first().locator('td').first().evaluate((td) => Array.from(td.childNodes).filter((n) => !(n.nodeType === 1 && (n.classList.contains('tag') || n.classList.contains('valg-radio')))).map((n) => n.textContent).join('').trim()));
+  await alt.check(); await page.click('#copyBtn'); await page.waitForTimeout(200);
+  const vnote = await page.evaluate(() => navigator.clipboard.readText());
+  check('15v note: valgt behandling instead of førstevalg', vnote.includes('Valgt behandling: ' + altName) && !vnote.includes('Førstevalg:'), altName + ' :: ' + vnote.split('\n').find((l) => l.includes('behandling') || l.includes('Førstevalg')));
+  await page.fill('#bmiInput', '31'); await page.waitForTimeout(100);
+  check('15v choice kept after new input', await page.locator('#output input[name="valg"]:checked').count() === 1);
+  await page.click('#resetBtn'); await page.fill('#alder', '53'); await setStatus('post'); await page.waitForTimeout(100);
+  check('15v reset clears choice', await page.locator('#output input[name="valg"]:checked').count() === 0);
 
   // 16 prevention page no warning on load
   await page.goto(ROOT + 'praevention.html'); await page.waitForTimeout(150);

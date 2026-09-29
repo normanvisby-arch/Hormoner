@@ -12,6 +12,9 @@
 
   const form = document.querySelector(".form-panel");
   const output = document.getElementById("output");
+  // Lægens valg af behandling til journalnotatet (valg.js).
+  const valg = Behandlingsvalg(output);
+  const kanVaelges = (r) => !(r.tag && /^(Frarådes|Kontraindiceret)/.test(r.tag));
   const copyBtn = document.getElementById("copyBtn");
   const copyFullBtn = document.getElementById("copyFullBtn");
   const copyStatus = document.getElementById("copyStatus");
@@ -55,6 +58,7 @@
 
   resetBtn.addEventListener("click", () => {
     form.reset();
+    valg.nulstil();
     // form.reset() does not fire "input"/"change", so re-sync dependent UI.
     checkAlderRange();
     nodTimingWrap.hidden = !nodCheckbox.checked;
@@ -150,7 +154,7 @@
     const h = ["Metode/præparat (DK)", "Indhold", "Bemærkning"];
     let html = `<div class="drug-table-wrap"><table class="drug-table stack-mobile"><thead><tr>${h.map((x) => `<th>${x}</th>`).join("")}</tr></thead><tbody>`;
     rows.forEach((r) => {
-      html += `<tr><td>${r.navn}${r.tag ? `<span class="tag ${r.tagClass || "tag-alt"}">${r.tag}</span>` : ""}</td><td data-label="${h[1]}">${r.indhold}</td><td data-label="${h[2]}">${r.dosering}</td></tr>`;
+      html += `<tr><td>${r.navn}${r.tag ? `<span class="tag ${r.tagClass || "tag-alt"}">${r.tag}</span>` : ""}${kanVaelges(r) ? valg.radio(`${r.navn}|${r.indhold}`) : ""}</td><td data-label="${h[1]}">${r.indhold}</td><td data-label="${h[2]}">${r.dosering}</td></tr>`;
     });
     html += `</tbody></table></div>`;
     return html;
@@ -542,16 +546,13 @@
   // Journaltekst
   // ---------------------------------------------------------------------
 
+  function rowText(tr) {
+    const r = Behandlingsvalg.raekkeTekst(tr);
+    return `${r.navn} (${r.celler[0]}) — ${r.celler[1]}`;
+  }
   function recommendedRowText() {
     const tag = output.querySelector(".tag-recommend");
-    if (!tag) return null;
-    const cells = tag.closest("tr").querySelectorAll("td");
-    const navn = Array.from(cells[0].childNodes)
-      .filter((n) => !(n.nodeType === 1 && n.classList.contains("tag")))
-      .map((n) => n.textContent)
-      .join("")
-      .trim();
-    return `${navn} (${cells[1].textContent.trim()}) — ${cells[2].textContent.trim()}`;
+    return tag ? rowText(tag.closest("tr")) : null;
   }
 
   // Kort, redigerbart journalnotat bygget af input + den viste anbefaling.
@@ -583,8 +584,10 @@
     }
     const heading = output.querySelector(".box-red h3, .box-green h3");
     if (heading) lines.push(`Vurdering: ${heading.textContent.replace("⚠", "").replace(/^Anbefaling:\s*/, "").trim()}.`);
-    const rec = recommendedRowText();
-    if (rec) lines.push(`Førstevalg: ${rec}`);
+    // Lægens valg i tabellerne har forrang for værktøjets førstevalg.
+    const valgtRow = valg.valgtRaekke();
+    const rec = valgtRow ? rowText(valgtRow) : recommendedRowText();
+    if (rec) lines.push(`${valgtRow ? "Valgt behandling" : "Førstevalg"}: ${rec}`);
     lines.push(s.nodPraevention
       ? "Plan (tilpas): graviditetstest efter 3 uger ved udebleven menstruation; fast prævention drøftet."
       : "Plan (tilpas): information om brug, bivirkninger og ekstra beskyttelse ved opstart. Kondom ved STI-risiko. Kontrol ca. 3 mdr.");
@@ -606,7 +609,7 @@
             el.querySelectorAll("li").forEach((li) => lines.push("- " + li.textContent.trim().replace(/\s+/g, " ")));
           } else {
             el.querySelectorAll("tbody tr").forEach((tr) => {
-              const cells = Array.from(tr.querySelectorAll("td")).map((td) => td.textContent.trim());
+              const cells = Array.from(tr.querySelectorAll("td")).map(Behandlingsvalg.cellText);
               lines.push("  * " + cells.join(" — "));
             });
           }

@@ -399,6 +399,15 @@ en server. Konsekvenser af det valg:
 
 ## Ændringslog
 
+**29. september 2026 — valg af behandling i klimakterie-, præventions- og osteoporoseguiden:**
+- Hver behandling i tabellerne har en "Vælg til journal"-knap (fælles `valg.js`). Journalnotatet
+  skriver så "Valgt behandling: …" i stedet for værktøjets førstevalg; uden valg er notatet som
+  før. Frarådede metoder kan ikke vælges. Osteoporoseguiden kan også notere, at medicinsk
+  behandling er fravalgt efter drøftelse.
+- Valget huskes ved ny indtastning, så længe behandlingen stadig vises, og nulstilles ellers.
+- "Kopiér fuld anbefaling" holder nu tag (fx "Anbefalet") adskilt fra præparatnavnet.
+- Service worker v6 (ny fil `valg.js`), hjerte-appens v3 (ændret `style.css`).
+
 **29. september 2026 — valg af behandling til journalnotatet (hjerte-kar):**
 - Atrieflimren: under DOAK-tabellen vælges den aftalte behandling (mulige DOAK-doser, ved
   dabigatran i "overvej"-gruppen både 150 og 110 mg, samt warfarin eller fravalg af AK).

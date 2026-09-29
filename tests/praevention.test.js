@@ -96,8 +96,12 @@ const ORIGIN = new URL(BASE).origin;
   console.log('--- regular note ---\n' + note);
   check('18 note first choice Mirabella', note.includes('Førstevalg: Mirabella (Levonorgestrel 100'));
   check('18 note BMI comma', note.includes('BMI 24,5'));
+  await page.check('#output tr:has-text("NuvaRing") input[name="valg"]'); await page.click('#copyBtn'); await page.waitForTimeout(150);
+  const vnote = await page.evaluate(() => navigator.clipboard.readText());
+  check('18v chosen NuvaRing replaces førstevalg', vnote.includes('Valgt behandling: NuvaRing / Evra (Vaginalring') && !vnote.includes('Mirabella') && !vnote.includes('Førstevalg'), vnote);
   await page.click('#copyFullBtn'); await page.waitForTimeout(150);
   const full = await page.evaluate(() => navigator.clipboard.readText());
+  check('18v full text without "Vælg"', !full.includes('Vælg til journal'));
   check('18 full text includes collapsed content', full.includes('EMA 2013') && full.includes('FSRH'));
 
   await fresh(); await page.fill('#alder', '150'); await page.click('#resetBtn');
