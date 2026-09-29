@@ -229,5 +229,73 @@
     return lines.join("\n");
   }
 
+  // ---------------------------------------------------------------------
+  // Udfyld fra journaltekst (../udfyld.js)
+  // ---------------------------------------------------------------------
+
+  if (window.Udfyld) {
+    const chk = (name, value, r, label, on) => (r && r.status ? { type: "check", name, value, on: on === undefined ? r.status === "ja" : on, label, kilde: r.kilde } : null);
+    Udfyld.init(
+      (L) => {
+        const u = [];
+        const E = L.E;
+        const diag = L.vaelg([
+          { value: "em", staerk: "erythema migrans|borreli|flåtbid|skovflåt|flåt" },
+          { value: "bid", staerk: `hundebid|kattebid|menneskebid|bidsår|bidt${E}|bid${E}` },
+          { value: "impetigo", staerk: "impetigo|børnesår" },
+          { value: "cellulitis", staerk: "cellulit|absces|byld|sårinfektion|inficeret sår|furunkel" },
+          { value: "erysipelas", staerk: "erysipelas|rosen" },
+        ]);
+        const d = diag ? diag.value : "erysipelas";
+        if (diag) {
+          u.push({ type: "radio", name: "diag", value: d, label: "Problemstilling", kilde: diag.kilde });
+          if (diag.flere) u.push({ type: "note", tekst: `Flere problemstillinger nævnt (${diag.flere.join(", ")}) — ${d} er valgt. Skift, hvis det er forkert.` });
+        } else u.push({ type: "note", tekst: "Problemstillingen kunne ikke genkendes — vælg den selv." });
+        const a = L.alder();
+        if (a) u.push({ type: "num", id: "alder", v: a.v, label: "Alder (år)", kilde: a.kilde, note: a.note });
+        const w = L.vaegt();
+        if (w) u.push({ type: "num", id: "vaegt", v: w.v, label: "Vægt (kg)", kilde: w.kilde });
+        u.push(chk("andet", "allergi", L.allergi(), "Penicillinallergi"));
+        u.push(chk("andet", "gravid", L.gravid(), "Gravid"));
+        const sep = L.term("septisk|sepsis|påvirket almentilstand|almen påvirket|almenpåvirket|kulderystelser|konfus");
+        if (sep.status === "ja") u.push(chk("rf", "sepsis", sep, "Påvirket almentilstand"));
+        const nek = L.term("nekros|nekrot|krepitation|smerter ude af proportion|bullae|bulløs|hurtigt progredierende|hurtig spredning");
+        if (nek.status === "ja") u.push(chk("rf", "nekrose", nek, "Tegn på nekrotiserende infektion"));
+        const ans = L.term("periorbital|omkring øjet|orbital");
+        if (ans.status === "ja") u.push(chk("rf", "ansigt", ans, "Periorbital/ansigt"));
+        if (d === "cellulitis") {
+          const abs = L.term("absces|byld|fluktuer");
+          if (abs.status === "ja") u.push(chk("cell", "absces", abs, "Byld"));
+          const om = L.term("omgivende rødme|cellulit|feber|lymfangit");
+          if (om.status === "ja") u.push(chk("cell", "omgiv", om, "Omgivende rødme/feber"));
+        }
+        if (d === "impetigo") {
+          const ud = L.term("udbredt|mange elementer|flere steder|spredt|generaliseret|ingen effekt af");
+          const lok = L.term("lokaliseret|få elementer|enkelt element|enkelte elementer");
+          if (ud.status === "ja") u.push({ type: "radio", name: "udbred", value: "udbredt", label: "Udbredning", kilde: ud.kilde });
+          else if (lok.status === "ja") u.push({ type: "radio", name: "udbred", value: "lokal", label: "Udbredning", kilde: lok.kilde });
+        }
+        if (d === "bid") {
+          const dyr = L.vaelg([
+            { value: "menneske", staerk: "menneskebid|menneske|knytnæve|knoslag" },
+            { value: "kat", staerk: `kattebid|kat${E}|katte` },
+            { value: "hund", staerk: "hundebid|hund" },
+          ]);
+          if (dyr) u.push({ type: "radio", name: "dyr", value: dyr.value, label: "Bidt af", kilde: dyr.kilde });
+          const inf = L.term("inficeret|pus|purulent|lymfangit|rødme og hævelse|hævelse og rødme");
+          if (inf.status === "ja") u.push(chk("bid", "inficeret", inf, "Tegn på infektion"));
+          const ris = L.term(`hånd|hånden|finger|fingre|fod|foden|fødder|led${E}|over led|ansigt|dybt|punktur|kønsorgan`);
+          if (ris.status === "ja") u.push(chk("bid", "risiko", ris, "Risikolokalisation/dybt sår"));
+          const imm = L.term("diabetes|immunsuppr|miltløs|splenektom|levercirrose");
+          if (imm.status === "ja") u.push(chk("bid", "immun", imm, "Nedsat immunforsvar"));
+          const udl = L.term("udlandet|rabies|flagermus");
+          if (udl.status === "ja") u.push(chk("bid", "udland", udl, "Udland/flagermus (rabies)"));
+        }
+        return u;
+      },
+      { vigtige: [["diag", "problemstilling"], ["alder", "alder"]], eksempel: "Fx: 58-årig mand med skarpt afgrænset rødme på højre underben siden i går, feber 38,7. Ikke påvirket. Fodsvamp. Penicillinallergi: nej." }
+    );
+  }
+
   update();
 })();

@@ -72,6 +72,8 @@
       <label for="sog">Søg lægemiddel</label>
       <input type="text" id="sog" placeholder="fx metformin">
       <label class="checkbox"><input type="checkbox" name="vis" value="handling"> Vis kun lægemidler, der kræver handling</label>
+      <label class="checkbox" id="naevnteLabel" hidden><input type="checkbox" name="vis" value="naevnte"> Vis kun lægemidler nævnt i journalteksten</label>
+      <input type="hidden" id="naevnte" value="">
     </fieldset>
   </form>
 
@@ -97,6 +99,7 @@
   <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra KDIGO, Lægemiddelstyrelsen eller EMA. Produktresuméerne på pro.medicin.dk kunne ikke tilgås direkte ved udviklingen; anbefalingerne er kontrolleret via sekundære kilder og skal verificeres i de gældende vejledninger. Ingen patientdata gemmes eller sendes.</p>
 </footer>
 
+<script src="../udfyld.js"></script>
 <script src="dosis.js"></script>
 <script src="../pwa.js"></script>
 </body>

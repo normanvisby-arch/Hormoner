@@ -96,6 +96,46 @@
     { gruppe: "Øvrige", navn: "Magnesiumoxid (afføringsmiddel)", maal: "eGFR", trin: [[30, "ok", "Forsigtighed ved langvarig brug."], [U, "undgaa", "Undgås (hypermagnesiæmi) — brug fx makrogol."]] },
     { gruppe: "Øvrige", navn: "Kaliumtilskud", maal: "eGFR", trin: [[45, "ok", "Kontrol af kalium."], [30, "just", "Forsigtighed — tæt kaliumkontrol."], [U, "undgaa", "Undgås som hovedregel."]] },
   ];
+  // Navne i journaltekst (generiske navne og hyppige handelsnavne) — bruges af "Udfyld fra journaltekst".
+  const SYNONYMER = {
+    "Metformin": "metformin|glucophage|metformax",
+    "SGLT-2-hæmmer (empagliflozin, dapagliflozin)": "sglt-?2|empagliflozin|dapagliflozin|jardiance|forxiga|synjardy|xigduo",
+    "Sitagliptin": "sitagliptin|januvia|janumet",
+    "Linagliptin": "linagliptin|trajenta",
+    "GLP-1-receptoragonist (semaglutid, dulaglutid, liraglutid)": "glp-?1|semaglutid|dulaglutid|liraglutid|ozempic|rybelsus|trulicity|victoza|wegovy|tirzepatid|mounjaro",
+    "Glimepirid (sulfonylurinstof)": "glimepirid|gliclazid|glipizid|sulfonylurinstof|amaryl",
+    "Insulin": "insulin|lantus|levemir|tresiba|toujeo|insulatard|novorapid|humalog|abasaglar|semglee",
+    "ACE-hæmmer eller ARB": "ace-?hæmmer|enalapril|lisinopril|ramipril|perindopril|captopril|losartan|candesartan|valsartan|irbesartan|telmisartan|olmesartan|cozaar|atacand|diovan",
+    "Spironolakton eller eplerenon": "spironolakton|eplerenon|spirix|inspra",
+    "Thiazid (bendroflumethiazid, hydrochlorthiazid)": "thiazid|bendroflumethiazid|hydrochlorthiazid|centyl|chlorthalidon|indapamid",
+    "DOAK ved atrieflimren (apixaban, rivaroxaban, edoxaban, dabigatran)": "doak|noak|apixaban|rivaroxaban|edoxaban|dabigatran|eliquis|xarelto|lixiana|pradaxa",
+    "Statin": "statin|atorvastatin|simvastatin|rosuvastatin|pravastatin|lipitor|zarator|crestor|zocor",
+    "Digoxin": "digoxin|lanoxin",
+    "Paracetamol": "paracetamol|panodil|pamol|pinex",
+    "NSAID (ibuprofen, naproxen, diclofenac m.fl.)": "nsaid|ibuprofen|naproxen|diclofenac|etoricoxib|celecoxib|ipren|ibumetin|voltaren|arcoxia",
+    "Morfin": "morfin|contalgin|oramorph",
+    "Oxycodon": "oxycodon|oxycontin|oxynorm|targin",
+    "Tramadol": "tramadol|tradolan|nobligan",
+    "Gabapentin": "gabapentin|neurontin",
+    "Pregabalin": "pregabalin|lyrica",
+    "Nitrofurantoin": "nitrofurantoin|furadantin",
+    "Pivmecillinam": "pivmecillinam|selexid",
+    "Trimethoprim": "trimethoprim",
+    "Penicillin V, dicloxacillin": "penicillin v|phenoxymethylpenicillin|dicloxacillin|diclocil",
+    "Amoxicillin (også med clavulansyre)": "amoxicillin|amoxiclav|bioclavid|spektramox",
+    "Ciprofloxacin": "ciprofloxacin|ciproxin",
+    "Clarithromycin": "clarithromycin|klacid",
+    "Valaciclovir (herpes zoster)": "valaciclovir|valtrex|aciclovir",
+    "Allopurinol": "allopurinol|apurin",
+    "Colchicin": "colchicin",
+    "Methotrexat": "methotrexat|metex|ebetrex",
+    "Lithium": "lithium|litarex",
+    "Alendronat, risedronat": "alendronat|risedronat|fosamax|optinate|bisfosfonat",
+    "Metoclopramid": "metoclopramid|primperan",
+    "Magnesiumoxid (afføringsmiddel)": "magnesiumoxid|magnesia|mablet",
+    "Kaliumtilskud": "kaliumklorid|kaliumtilskud|kaleorid|kalium retard",
+  };
+
   const STATUS = { ok: ["Normal dosering", "tag-recommend"], just: ["Justér", "tag-warn"], undgaa: ["Undgå", "tag-danger"], ki: ["Kontraindiceret", "tag-danger"] };
 
   function getState() {
@@ -105,7 +145,10 @@
     const koen = radio("koen");
     let crcl = NaN;
     if (alder > 0 && vaegt > 0 && kreat > 0) crcl = ((140 - alder) * vaegt * (koen === "mand" ? 1.23 : 1.04)) / kreat;
-    return { egfr: num("egfr"), alder, vaegt, kreat, koen, crcl, sog: document.getElementById("sog").value.trim().toLowerCase(), kunHandling: document.querySelector('input[name="vis"]:checked') !== null };
+    const naevnte = document.getElementById("naevnte").value ? document.getElementById("naevnte").value.split("|") : [];
+    document.getElementById("naevnteLabel").hidden = !naevnte.length;
+    const vis = Array.from(document.querySelectorAll('input[name="vis"]:checked')).map((el) => el.value);
+    return { egfr: num("egfr"), alder, vaegt, kreat, koen, crcl, sog: document.getElementById("sog").value.trim().toLowerCase(), kunHandling: vis.includes("handling"), naevnte, kunNaevnte: vis.includes("naevnte") && naevnte.length > 0 };
   }
 
   // Værdien, et lægemiddel vurderes efter; CrCl erstattes af eGFR, hvis den mangler.
@@ -146,6 +189,7 @@
     const relevante = [];
     MIDLER.forEach((m) => {
       if (s.sog && !m.navn.toLowerCase().includes(s.sog) && !m.gruppe.toLowerCase().includes(s.sog)) return;
+      if (s.kunNaevnte && !s.naevnte.includes(m.navn)) return;
       const val = vaerdi(m, s);
       const t = val ? trinFor(m, val.v) : null;
       if (s.kunHandling && (!t || t[1] === "ok")) return;
@@ -189,6 +233,36 @@
     list.forEach(({ m, t }) => lines.push(`- ${m.navn}: ${STATUS[t[1]][0].toLowerCase()} — ${t[2]}`));
     if (kunRelevante && !relevante.length) lines.push("Ingen af de viste lægemidler kræver dosisjustering ved den angivne nyrefunktion.");
     return lines.join("\n");
+  }
+
+  // ---------------------------------------------------------------------
+  // Udfyld fra journaltekst (../udfyld.js)
+  // ---------------------------------------------------------------------
+
+  if (window.Udfyld) {
+    Udfyld.init(
+      (L) => {
+        const u = [];
+        const e = L.egfr({ alle: true });
+        if (e.length) u.push({ type: "num", id: "egfr", v: e[0].v, label: "eGFR", kilde: e[0].kilde, note: e.length > 1 ? `flere eGFR-værdier (${e.map((x) => x.v).join(", ")}) — den første er brugt` : e[0].op ? `angivet som ${e[0].op} ${e[0].v}` : "" });
+        const a = L.alder();
+        if (a) u.push({ type: "num", id: "alder", v: a.v, label: "Alder (år)", kilde: a.kilde });
+        const w = L.vaegt();
+        if (w) u.push({ type: "num", id: "vaegt", v: w.v, label: "Vægt (kg)", kilde: w.kilde });
+        L.uacr();
+        const kr = L.kreat();
+        if (kr) u.push({ type: "num", id: "kreat", v: kr.v, label: "P-kreatinin (µmol/l)", kilde: kr.kilde });
+        const k = L.koen();
+        if (k) u.push({ type: "radio", name: "koen", value: k.v, label: "Køn", kilde: k.kilde });
+        const fundne = MIDLER.filter((m) => SYNONYMER[m.navn] && L.term(SYNONYMER[m.navn]).status === "ja");
+        if (fundne.length) {
+          u.push({ type: "hidden", id: "naevnte", v: fundne.map((m) => m.navn).join("|"), label: "Lægemidler nævnt", vis: fundne.map((m) => m.navn.split(" (")[0]).join(", ") });
+          u.push({ type: "check", name: "vis", value: "naevnte", on: true, label: "Vis kun nævnte lægemidler" });
+        }
+        return u;
+      },
+      { vigtige: [["egfr", "eGFR"]], eksempel: "Fx: 82-årig kvinde, 58 kg, kreatinin 128, eGFR 38. Fast medicin: metformin 1 g × 2, Eliquis 5 mg × 2, gabapentin 300 mg × 3, Pinex." }
+    );
   }
 
   update();
