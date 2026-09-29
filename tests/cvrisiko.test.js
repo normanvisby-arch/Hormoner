@@ -32,7 +32,7 @@ const BASE = process.env.BASE || ROOT + 'hjerte/cvrisiko.html';
   o = await out(); check('5 diabetes requires extra fields', o.includes('alder ved diabetesdiagnose, HbA1c, eGFR'));
   await fill({ dmAlder: 60, hba1c: 50, egfr: 90 });
   check('5 SCORE2-Diabetes -> 8,4 %', (await head()) === '10-års risiko: 8,4 % (SCORE2-Diabetes)', await head());
-  o = await out(); check('5 ESC 2023 moderat', o.includes('Moderat risiko (ESC 2023)') && o.includes('Statin bør overvejes'));
+  o = await out(); check('5 ESC 2023 moderat', o.includes('Moderat risiko (ESC 2023)') && o.includes('praktisk talt alle med type 2-diabetes over 40 år') && o.includes('LDL < 2,6 mmol/l (moderat risiko'));
   await p.check('input[name="organ"]'); o = await out(); check('6 organ damage -> no SCORE2, LDL <1,8', (await head()) === 'Høj risiko uden beregning' && o.includes('LDL < 1,8'));
   // Udelad
   await fresh(); await p.check('input[name="udelad"][value="ascvd"]'); o = await out();
@@ -56,10 +56,28 @@ const BASE = process.env.BASE || ROOT + 'hjerte/cvrisiko.html';
   await r('statin', 'hoej'); await fill({ bpdrop: 10 }); o = await out();
   const rr2 = Math.pow(0.78, 2) * Math.pow(0.9, 2); check('11 høj + BT -10 NNT', o.includes(`NNT ≈ ${rn(100 / (risk * (1 - rr2)))}`), o.match(/NNT ≈ \d+/)?.[0]);
   await r('statin', 'ingen'); await fill({ bpdrop: 0 }); o = await out(); check('12 no treatment -> no effect card', !o.includes('Effekt af behandling over 10 år'));
-  await r('statin', 'moderat'); await p.fill('#ldl', ''); o = await out(); check('13 no LDL -> assumed 1 mmol/l', o.includes('beregnet med 1 mmol/l LDL-reduktion'));
+  await r('statin', 'moderat'); await p.fill('#ldl', ''); o = await out();
+  // non-HDL 6,5 − 1,1 = 5,4 → LDL-skøn 4,7; moderat: −1,6 mmol/l
+  check('13 no LDL -> skøn fra non-HDL', o.includes('skønnet til ca. 4,7 mmol/l') && o.includes('LDL −1,6 mmol/l, skønnet'), o.match(/LDL −[\d,]+ mmol\/l[^)]*/)?.[0]);
+  await r('statin', 'hoej'); o = await out(); check('13b skøn skelner intensitet', o.includes('LDL −2,4 mmol/l, skønnet'));
+  await r('statin', 'moderat'); await fill({ bpdrop: -10 }); o = await out(); check('13c negativ BT-sænkning ignoreres', !o.includes('blodtryk −-'));
   // Validering
   await fresh(); await fill({ alder: 30, sbp: 120, tchol: 5, hdl: 1.2 }); o = await out(); check('14 age 30 -> warning + prompt', (await p.locator('#alderWarning').innerText()).includes('40–89') && (await head()) === 'Indtast patientens data');
   await fill({ alder: 55, hdl: 6 }); o = await out(); check('15 HDL > TC -> error', o.includes('HDL kan ikke være større end totalkolesterol'));
+  await fresh(); await fill({ alder: 55, sbp: 14, tchol: 5, hdl: 1.2 }); o = await out(); check('15b SBP 14 -> plausibilitetsfejl', (await head()) === 'Indtast patientens data' && o.includes('uden for det plausible område'));
+  await fill({ sbp: 140, tchol: 220 }); o = await out(); check('15c kolesterol i mg/dl -> fejl', o.includes('Totalkolesterol 220 mmol/l er uden for det plausible område'));
+  // Diabetes ≥ 70: SCORE2-OP med diabetes, statin som udgangspunkt
+  await fresh(); await fill({ alder: 72, sbp: 140, tchol: 5, hdl: 1.3 }); await r('diabetes', 'ja'); o = await out();
+  check('15d diabetes 72 år -> SCORE2-OP + note', (await head()).includes('SCORE2-OP') && o.includes('SCORE2-Diabetes gælder kun 40–69 år'));
+  // Hypertension-indikation uanset risiko
+  await fresh(); await fill({ alder: 45, sbp: 150, tchol: 5, hdl: 1.5 }); o = await p.locator('#output').textContent();
+  check('15e hypertension -> behandling uanset risiko', o.includes('medicinsk behandling anbefales uanset beregnet risiko') && o.includes('bekræft med hjemme- eller døgnblodtryk'));
+  // Enkeltfaktor lipid -> LDL-mål < 1,8
+  await fresh(); await fill({ alder: 45, sbp: 120, tchol: 8.5, hdl: 1.3, ldl: 5.2 }); o = await out();
+  check('15f LDL > 4,9 -> LDL-mål < 1,8', o.includes('LDL < 1,8 mmol/l og mindst 50 % reduktion'));
+  check('15g uden for skemaernes område -> ekstrapolationsnote', o.includes('modellen ekstrapolerer'));
+  // Organskade + CKD-noter
+  await fresh(); await p.check('input[name="udelad"][value="ckd"]'); o = await out(); check('15h CKD -> note om eGFR < 30', o.includes('eGFR under 30'));
   // Journal
   await fresh(); await r('koen', 'mand'); await r('ryger', 'ja'); await fill({ alder: 50, sbp: 140, tchol: 6.3, hdl: 1.4, ldl: 4.2 });
   await p.click('#copyBtn'); await p.waitForTimeout(150); const note = await p.evaluate(() => navigator.clipboard.readText()); console.log('---\n' + note + '\n---');

@@ -69,7 +69,7 @@
     <div class="field">
       <label for="sbp">Systolisk blodtryk (mmHg)</label>
       <input type="number" id="sbp" min="80" max="260" placeholder="fx 142">
-      <p class="field-hint">SCORE2 er udviklet på klinikblodtryk. Ved hjemme-/dagtidsblodtryk lægges ca. 5 mmHg til.</p>
+      <p class="field-hint">SCORE2 er udviklet på klinikblodtryk. Ved hjemme-, dagtids- eller uobserveret automatisk blodtryk lægges ca. 5 mmHg til (mere ved høje værdier).</p>
     </div>
 
     <div class="field">
@@ -106,7 +106,7 @@
       </div>
       <fieldset class="field">
         <legend>Organskade ved diabetes</legend>
-        <label class="checkbox"><input type="checkbox" name="organ" value="organ"> Albuminuri, retinopati eller neuropati (svær organskade)</label>
+        <label class="checkbox"><input type="checkbox" name="organ" value="organ"> Organskade: albuminuri, retinopati eller neuropati</label>
       </fieldset>
     </div>
 
@@ -114,7 +114,7 @@
       <legend>Forhold hvor SCORE2 ikke bruges</legend>
       <label class="checkbox"><input type="checkbox" name="udelad" value="ascvd"> Kendt hjerte-kar-sygdom (AMI, apopleksi/TCI, perifer arteriesygdom, revaskularisering)</label>
       <label class="checkbox"><input type="checkbox" name="udelad" value="fh"> Familiær hyperkolesterolæmi (kendt eller mistænkt)</label>
-      <label class="checkbox"><input type="checkbox" name="udelad" value="ckd"> Kronisk nyresygdom (eGFR &lt; 60 eller albuminuri)</label>
+      <label class="checkbox"><input type="checkbox" name="udelad" value="ckd"> Kronisk nyresygdom (eGFR &lt; 60 ml/min eller albuminuri i mindst 3 måneder)</label>
     </fieldset>
 
     <h2>2. Planlagt behandling</h2>
@@ -147,7 +147,8 @@
   <ul>
     <li>SCORE2 Working Group og ESC Cardiovascular Risk Collaboration, <em>Eur Heart J</em> 2021 — SCORE2 (40–69 år); SCORE2-OP Working Group, <em>Eur Heart J</em> 2021 — SCORE2-OP (70 år og derover); SCORE2-Diabetes Working Group, <em>Eur Heart J</em> 2023 — koefficienter og kalibrering for lavrisikoregionen</li>
     <li>Dansk Cardiologisk Selskab — NBV Forebyggelse af hjertesygdom, Dyslipidæmi og Arteriel hypertension: behandlingstærskler efter alder, LDL-mål og blodtryksmål</li>
-    <li>ESC 2021 (forebyggelse) og ESC 2023 (diabetes) — risikokategorier</li>
+    <li>Dansk Endokrinologisk Selskab og DSAM — type 2-diabetes: statin til praktisk talt alle over 40 år</li>
+    <li>ESC 2021 (forebyggelse) og ESC 2023 (diabetes) — risikokategorier og LDL-mål ved diabetes og kronisk nyresygdom; ESC 2024 (hypertension)</li>
     <li>Cholesterol Treatment Trialists' Collaboration (<em>Lancet</em> 2010/2012) — ca. 22 % færre større karhændelser pr. 1 mmol/l lavere LDL</li>
     <li>Blood Pressure Lowering Treatment Trialists' Collaboration (<em>Lancet</em> 2021) — ca. 10 % færre større hjerte-kar-hændelser pr. 5 mmHg lavere systolisk blodtryk</li>
   </ul>

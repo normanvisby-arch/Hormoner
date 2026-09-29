@@ -89,8 +89,11 @@ Selvstændig app med eget manifest, ikon og service worker (installeres fra
   medicin ofte indiceret ved > 5 % (40–59 år), > 7,5 % (60–69), > 10 % (70–75), individuelt
   over 75; ESC-kategorien vises til orientering. Bruges ikke ved kendt hjerte-kar-sygdom,
   familiær hyperkolesterolæmi, kronisk nyresygdom eller diabetes med organskade. Effekt: CTT
-  (RR 0,78 pr. mmol/l LDL; moderat statin −35 %, høj −50 %) × BPLTTC (RR 0,90 pr. 5 mmHg) →
-  NNT over 10 år og 1.000-personers figur.
+  (RR 0,78 pr. mmol/l LDL; moderat statin −35 %, høj −50 %; uden målt LDL skønnes LDL som
+  totalkolesterol − HDL − 0,7) × BPLTTC (RR 0,90 pr. 5 mmHg) → NNT over 10 år og
+  1.000-personers figur. Type 2-diabetes: statin til praktisk talt alle over 40 år (DES/DSAM,
+  DCS), LDL-mål efter ESC 2023-kategori. Hypertension (hjemme ≥ 135/85) behandles uanset risiko.
+  Plausibilitetsgrænser stopper beregningen ved sandsynlige tastefejl.
 - **`af.html`**: CHA₂DS₂-VA (ESC 2024/DCS; ≥ 2 anbefales, 1 overvejes), CHA₂DS₂-VASc til
   sammenligning, HAS-BLED som støtte (ikke grund til at undlade AK), kreatininclearance
   (Cockcroft-Gault), dosis og status for apixaban, rivaroxaban, edoxaban og dabigatran efter
@@ -400,6 +403,23 @@ en server. Konsekvenser af det valg:
   atrieflimren (CHA₂DS₂-VA, DOAK-dosis, interaktioner, kontrol) og huskeskema; egen startside,
   manifest, ikon og offline-cache; testsuiter `cvrisiko`, `af` og `pwa-hjerte`.
 - Byggeværktøjet håndterer nu sider i undermapper og faste artifact-titler.
+- Uafhængig ekstern audit før udgivelse; rettet:
+  - AF: journalnotatet skelner nu mulige DOAK fra frarådede/kontraindicerede (før stod fx
+    "Dabigatran kontraindiceret" blandt doserne); interaktioner er opdelt pr. stof efter
+    produktresuméerne (klaritromycin reducerer ikke edoxaban; voriconazol/posaconazol er ikke
+    kontraindiceret for dabigatran; tacrolimus og glecaprevir tilføjet); en alvorligere status kan
+    ikke længere overskrives af en mildere; kreatinin > 200 tæller i HAS-BLED; kontrolinterval
+    ved clearance ≤ 60; ingen anbefaling uden alder ved score < 2; note om Cockcroft-Gault ved
+    vægt > 120 kg og om labilt INR ved VKA.
+  - CV-risiko: plausibilitetsgrænser for blodtryk, lipider, HbA1c og eGFR (fanger fx mg/dl);
+    type 2-diabetes: statin til praktisk talt alle over 40 år (DES/DSAM, DCS) og LDL-mål efter
+    ESC 2023-kategori; hypertension (≥ 135/85 hjemme) behandles uanset SCORE2; LDL-mål "og mindst
+    50 % reduktion" også ved høj risiko; enkeltfaktor-lipider giver mål < 1,8; tærsklen
+    sammenlignes med den viste, afrundede risiko; note ved diabetes ≥ 70 år, kronisk nyresygdom
+    og værdier uden for SCORE2-skemaernes område; manglende LDL skønnes ud fra non-HDL, så
+    statinintensiteten får betydning; ensartede statindoser.
+  - Huskeskema: GI-blødning +25 % ved DOAK (Ruff 2014), definition af kronisk nyresygdom,
+    hypertension som selvstændig indikation, præciseret kontrolinterval.
 
 **28. september 2026 — kvartalsvis opdatering og testinfrastruktur:**
 - Testsuiterne ligger nu i `tests/` med `run_all.sh`; byggeværktøj til de publicerede versioner i

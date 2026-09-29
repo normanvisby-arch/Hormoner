@@ -82,7 +82,7 @@
       organ: diabetes && checked("organ").length > 0,
       udelad: checked("udelad"),
       statin: radio("statin"),
-      bpdrop: isNaN(num("bpdrop")) ? 0 : num("bpdrop"),
+      bpdrop: isNaN(num("bpdrop")) ? 0 : Math.max(0, num("bpdrop")),
     };
   }
 
@@ -179,6 +179,18 @@
       if (isNaN(s.egfr)) mangler.push("eGFR");
     }
     const fejl = [];
+    // Plausible intervaller: værdier uden for dem er næsten altid tastefejl
+    // (fx mmol/l og mg/dl forvekslet) og giver meningsløse modelresultater.
+    const graenser = [
+      ["sbp", "Systolisk blodtryk", 70, 270, "mmHg"],
+      ["tchol", "Totalkolesterol", 1.5, 20, "mmol/l"],
+      ["hdl", "HDL", 0.2, 5, "mmol/l"],
+      ["ldl", "LDL", 0.2, 15, "mmol/l"],
+    ];
+    if (s.diabetes) graenser.push(["hba1c", "HbA1c", 20, 200, "mmol/mol"], ["egfr", "eGFR", 5, 200, "ml/min/1,73 m²"], ["dmAlder", "Alder ved diabetesdiagnose", 10, 100, "år"]);
+    graenser.forEach(([k, navn, lo, hi, enhed]) => {
+      if (!isNaN(s[k]) && (s[k] < lo || s[k] > hi)) fejl.push(`${navn} ${String(s[k]).replace(".", ",")} ${enhed} er uden for det plausible område (${String(lo).replace(".", ",")}–${hi}) — tjek værdi og enhed.`);
+    });
     if (!isNaN(s.hdl) && !isNaN(s.tchol) && s.hdl >= s.tchol) fejl.push("HDL kan ikke være større end totalkolesterol.");
     if (s.diabetes && !isNaN(s.dmAlder) && !isNaN(s.alder) && s.dmAlder > s.alder) fejl.push("Alder ved diabetesdiagnose kan ikke være højere end alderen.");
     return { mangler, fejl, gyldig: !mangler.length && !fejl.length && s.alder >= 40 && s.alder <= 89 };
@@ -194,12 +206,14 @@
   function effekt(s, risk) {
     const pct = { ingen: 0, moderat: 0.35, hoej: 0.5 }[s.statin];
     const ldlKendt = !isNaN(s.ldl);
-    const dLdl = pct ? (ldlKendt ? s.ldl * pct : 1) : 0;
+    // Uden målt LDL skønnes den ud fra non-HDL (Friedewald med triglycerid ca. 1,5 mmol/l).
+    const ldlSkoen = Math.max(1, s.tchol - s.hdl - 0.7);
+    const dLdl = pct ? (ldlKendt ? s.ldl : ldlSkoen) * pct : 0;
     const rrStatin = Math.pow(0.78, dLdl);
     const rrBt = Math.pow(0.9, s.bpdrop / 5);
     const rr = rrStatin * rrBt;
     const prevented = risk * (1 - rr);
-    return { pct, ldlKendt, dLdl, rrStatin, rrBt, rr, treated: risk * rr, prevented, nnt: prevented > 0 ? 100 / prevented : Infinity };
+    return { pct, ldlKendt, ldlSkoen, dLdl, rrStatin, rrBt, rr, treated: risk * rr, prevented, nnt: prevented > 0 ? 100 / prevented : Infinity };
   }
 
   function iconArray(treated, prevented) {
@@ -226,7 +240,9 @@
 
   function ldlMaal(s, gruppe) {
     if (gruppe === "ascvd") return "LDL &lt; 1,4 mmol/l og mindst 50 % reduktion";
-    if (gruppe === "hoej") return "LDL &lt; 1,8 mmol/l";
+    if (gruppe === "meget") return "LDL &lt; 1,4 mmol/l og mindst 50 % reduktion (meget høj risiko, ESC 2023)";
+    if (gruppe === "hoej") return "LDL &lt; 1,8 mmol/l og mindst 50 % reduktion";
+    if (gruppe === "moderat") return "LDL &lt; 2,6 mmol/l (moderat risiko, ESC 2023)";
     return "LDL &lt; 2,6 mmol/l og mindst 50 % reduktion";
   }
 
@@ -234,7 +250,9 @@
     const items = [];
     if (s.sbp >= 180) items.push("<strong>Systolisk blodtryk ≥ 180 mmHg:</strong> medicinsk behandling uanset beregnet risiko.");
     items.push(`<strong>Behandlingsmål:</strong> ${!isNaN(s.alder) && s.alder >= 80 ? "systolisk 130–144 mmHg (80 år og derover)" : "120–135/70–85 mmHg (18–80 år)"} — målt som uobserveret automatisk klinik-, hjemme- eller døgnblodtryk (DCS).`);
+    items.push("<strong>Hypertension</strong> (hjemme-/dagtidsblodtryk ≥ 135/85 mmHg, klinikblodtryk ≥ 140/90): medicinsk behandling anbefales uanset beregnet risiko — ved lav risiko efter et kort forsøg med livsstilsændringer.");
     items.push("<strong>Let forhøjet blodtryk</strong> (hjemme/dagtid 130–134/80–84): medicin anbefales, hvis SCORE2 ≥ 10 % / SCORE2-OP ≥ 15 %, og livsstilsændringer ikke har normaliseret blodtrykket.");
+    if (s.sbp >= 140 && s.sbp < 180) items.push("<strong>Denne patient:</strong> systolisk " + s.sbp + " mmHg — bekræft med hjemme- eller døgnblodtryk; ved hypertension er der indikation for behandling uanset SCORE2.");
     if (res && res.risk >= (s.alder >= 70 ? 15 : 10)) items.push(`<strong>Denne patient:</strong> ${res.model} ${fmt1(res.risk)} % — over grænsen for medicin ved let forhøjet blodtryk.`);
     if (s.diabetes) items.push("<strong>Diabetes:</strong> ACE-hæmmer eller angiotensin II-receptorblokker skal indgå i behandlingen.");
     return `<div class="box box-blue box-collapsible"><details><summary><h3>Blodtryk</h3></summary><ul class="followup-list">${items.map((i) => `<li>${i}</li>`).join("")}</ul></details></div>`;
@@ -267,6 +285,8 @@
         <ul class="followup-list">
           <li><strong>LDL-mål (DCS):</strong> ${ldlMaal(s, ascvd ? "ascvd" : "hoej")}. Statin i høj intensitet; tilføj ezetimib ved utilstrækkelig effekt.</li>
           ${ascvd ? "<li>Trombocythæmmer, blodtryksbehandling og hjerterehabilitering efter NBV for den aktuelle sygdom.</li>" : ""}
+          ${s.udelad.includes("ckd") ? "<li><strong>Kronisk nyresygdom:</strong> eGFR 30–59 ml/min (eller albuminuri) giver høj risiko; eGFR under 30 — eller 30–44 med albuminuri — giver meget høj risiko med LDL-mål under 1,4 mmol/l og mindst 50 % reduktion (ESC 2021).</li>" : ""}
+          ${s.diabetes && s.organ ? "<li><strong>Diabetes med organskade:</strong> ESC 2023 regner svær organskade (fx eGFR under 45, eller albuminuri kombineret med retinopati/neuropati) som meget høj risiko — LDL under 1,4 mmol/l.</li>" : ""}
           ${s.udelad.includes("fh") ? "<li>Mistanke om familiær hyperkolesterolæmi: henvis til lipidklinik mhp. genetisk udredning og kaskadescreening af familien.</li>" : ""}
         </ul>`
       );
@@ -292,17 +312,23 @@
     let indikation;
     let cls;
     const taerskel = dcsTaerskel(s.alder);
+    const vist = Math.round(res.risk * 10) / 10; // sammenlign med den viste, afrundede risiko
     if (res.model === "SCORE2-Diabetes") {
       kategori = `${dmKategori(res.risk)} risiko (ESC 2023)`;
-      indikation = res.risk >= 10 ? "Statin anbefales (høj eller meget høj risiko)." : res.risk >= 5 ? "Statin bør overvejes (moderat risiko)." : "Livsstil; statin efter individuel vurdering.";
-      cls = res.risk >= 10 ? "box-red" : res.risk >= 5 ? "box-amber" : "box-green";
+      indikation = "Statin anbefales til praktisk talt alle med type 2-diabetes over 40 år (DES/DSAM, DCS)" +
+        (res.risk >= 10 ? " — her med skærpet LDL-mål pga. høj risiko." : res.risk >= 5 ? "." : ". Ved lav beregnet risiko kan starten afgøres ved fælles beslutning (ESC 2023).");
+      cls = res.risk >= 10 ? "box-red" : "box-amber";
     } else {
       const esc = escKategori(s.alder, res.risk);
       kategori = `ESC 2021-kategori: ${esc} risiko`;
-      if (taerskel === null) {
+      if (s.diabetes) {
+        // SCORE2-Diabetes gælder kun 40–69 år; fra 70 år indgår diabetes i SCORE2-OP.
+        indikation = "Type 2-diabetes: statin anbefales som udgangspunkt (DES/DSAM, DCS) — over 75 år efter individuel vurdering. Risikoen er beregnet med SCORE2-OP, hvor diabetes indgår som risikofaktor (SCORE2-Diabetes gælder kun 40–69 år).";
+        cls = "box-amber";
+      } else if (taerskel === null) {
         indikation = "Over 75 år har DCS ingen fast tærskel — behandling afgøres individuelt ud fra gevinst, bivirkninger, skrøbelighed og forventet restlevetid.";
         cls = "box-amber";
-      } else if (res.risk > taerskel) {
+      } else if (vist > taerskel) {
         indikation = `Over DCS' tærskel for ${s.alder < 60 ? "40–59" : s.alder < 70 ? "60–69" : "70–75"} år (${fmt1(taerskel)} %) — der er ofte indikation for medicinsk behandling ud over livsstilsændringer.`;
         cls = "box-red";
       } else {
@@ -324,13 +350,14 @@
       `<p>${indikation}</p>
       <p><em>${kategori[0].toUpperCase() + kategori.slice(1)}.</em></p>
       ${enkelt.length ? `<ul>${enkelt.map((e) => `<li><strong>Enkeltfaktor:</strong> ${e}.</li>`).join("")}</ul>` : ""}
+      ${s.sbp < 100 || s.sbp >= 180 || s.tchol - s.hdl < 3 || s.tchol - s.hdl >= 7 ? "<p><em>Blodtryk eller non-HDL-kolesterol ligger uden for SCORE2-skemaernes område (systolisk 100–179 mmHg, non-HDL 3,0–6,9 mmol/l) — modellen ekstrapolerer, og tallet er mere usikkert.</em></p>" : ""}
       ${utenRyg ? `<p><strong>Ved rygestop:</strong> ca. ${fmt1(utenRyg.risk)} % (modelberegnet som ikke-ryger — gevinsten indtræder gradvist).</p>` : ""}
       <p>Svarer til ca. <strong>${Math.round(res.risk * 10)} af 1.000</strong> personer med samme risikoprofil, som får hjerte-kar-død, AMI eller apopleksi inden for 10 år.</p>`
     );
 
     // Effekt af behandling
     const beh = [];
-    if (eff.pct) beh.push(`${s.statin === "hoej" ? "statin i høj intensitet" : "statin i moderat intensitet"} (LDL −${fmt1(eff.dLdl)} mmol/l${eff.ldlKendt ? "" : ", antaget"})`);
+    if (eff.pct) beh.push(`${s.statin === "hoej" ? "statin i høj intensitet" : "statin i moderat intensitet"} (LDL −${fmt1(eff.dLdl)} mmol/l${eff.ldlKendt ? "" : ", skønnet"})`);
     if (s.bpdrop) beh.push(`blodtryk −${s.bpdrop} mmHg`);
     if (beh.length) {
       html += `<div class="box box-blue risk-card">
@@ -338,20 +365,22 @@
         <div class="nnh"><span class="nnh-num">NNT ≈ ${fmtInt(roundNnt(eff.nnt))}</span><span class="nnh-txt">Behandles ca. ${fmtInt(roundNnt(eff.nnt))} personer i 10 år med ${beh.join(" og ")}, undgår 1 en hjerte-kar-hændelse.</span></div>
         <p>Uden behandling: ca. <strong>${Math.round(res.risk * 10)} af 1.000</strong>. Med behandling: ca. <strong>${Math.round(eff.treated * 10)} af 1.000</strong> — ca. <strong>${Math.round(eff.prevented * 10)} hændelser forebygges</strong>.</p>
         ${iconArray(eff.treated, eff.prevented)}
-        ${!eff.ldlKendt && eff.pct ? "<p>LDL er ikke indtastet — beregnet med 1 mmol/l LDL-reduktion. Indtast LDL for et mere præcist skøn.</p>" : ""}
+        ${!eff.ldlKendt && eff.pct ? `<p>LDL er ikke indtastet — skønnet til ca. ${fmt1(eff.ldlSkoen)} mmol/l ud fra totalkolesterol minus HDL minus 0,7 (antager normale triglycerider). Indtast LDL for et mere præcist skøn.</p>` : ""}
       </div>`;
     }
 
     // Lipider
-    const hoejGruppe = s.diabetes && res.risk >= 10;
-    const maal = ldlMaal(s, hoejGruppe ? "hoej" : "primaer");
+    const dm = res.model === "SCORE2-Diabetes";
+    const enkeltLipid = s.tchol > 8 || s.ldl > 4.9;
+    const gruppe = dm && res.risk >= 20 ? "meget" : (dm && res.risk >= 10) || enkeltLipid ? "hoej" : dm ? "moderat" : "primaer";
+    const maal = ldlMaal(s, gruppe);
     const opnaaet = eff.ldlKendt && eff.pct ? ` Forventet LDL med valgt statin: ca. ${fmt1(s.ldl * (1 - eff.pct))} mmol/l.` : "";
     html += box(
       "box-blue",
       "Lipidsænkende behandling",
       `<ul class="followup-list">
         <li><strong>LDL-mål ved behandling (DCS):</strong> ${maal}.${opnaaet}</li>
-        <li><strong>Førstevalg:</strong> atorvastatin 20–40 mg (eller simvastatin 40 mg). Tilføj ezetimib 10 mg, hvis målet ikke nås på maksimalt tolereret statin.</li>
+        <li><strong>Førstevalg:</strong> atorvastatin — 10–20 mg (moderat intensitet, LDL ca. −35–45 %) eller 40–80 mg (høj intensitet, ca. −50 %), når LDL skal mindst halveres. Simvastatin 40 mg er et alternativ i moderat intensitet. Tilføj ezetimib 10 mg, hvis målet ikke nås på maksimalt tolereret statin.</li>
         <li><strong>Kontrol:</strong> lipider og ALAT efter 6–12 uger; muskelgener vurderes — de fleste kan fortsætte på anden statin eller lavere dosis.</li>
       </ul>`
     );

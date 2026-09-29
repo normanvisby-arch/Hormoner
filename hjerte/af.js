@@ -92,7 +92,7 @@
   function hasBled(s) {
     const items = [];
     if (has(s.bl, "bt")) items.push("ukontrolleret blodtryk");
-    if (has(s.bl, "nyre")) items.push("nyresygdom");
+    if (has(s.bl, "nyre") || s.krea > 200) items.push("nyresygdom");
     if (has(s.bl, "lever")) items.push("leversygdom");
     if (has(s.cha, "s")) items.push("tidligere apopleksi");
     if (has(s.bl, "bloed")) items.push("blødning/anæmi");
@@ -106,66 +106,89 @@
   // DOAK: dosis og status pr. præparat
   // ---------------------------------------------------------------------
 
+  // Alvorlighed: den højeste status vinder, så fx en kontraindikation aldrig
+  // overskrives af en senere "frarådes".
+  const RANK = { ok: 0, overvej: 1, reduceret: 2, frarådes: 3, kontraindiceret: 4 };
+  function drug(navn, dosis) {
+    return {
+      navn,
+      dosis,
+      status: "ok",
+      noter: [],
+      set(status, dosis, note) {
+        if (RANK[status] > RANK[this.status]) {
+          this.status = status;
+          if (dosis) this.dosis = dosis;
+          else if (RANK[status] >= RANK.frarådes) this.dosis = status === "kontraindiceret" ? "Kontraindiceret" : "Anbefales ikke";
+        }
+        if (note) this.noter.push(note);
+        return this;
+      },
+    };
+  }
+
   function doak(s, cl) {
     const m = (k) => has(s.med, k);
     const induktor = m("induktor");
+    const staerkAzol = m("ketoconazol") || m("azol");
     const res = [];
 
     // Apixaban
     {
-      const r = { navn: "Apixaban", dosis: "5 mg × 2 dagligt", status: "ok", noter: [] };
+      const r = drug("Apixaban", "5 mg × 2 dagligt");
       const kriterier = [s.alder >= 80 && "alder ≥ 80", s.vaegt <= 60 && "vægt ≤ 60 kg", s.krea >= 133 && "kreatinin ≥ 133 µmol/l"].filter(Boolean);
-      if (cl < 15) Object.assign(r, { status: "frarådes", dosis: "Anbefales ikke", noter: ["kreatininclearance < 15 ml/min"] });
-      else if (cl < 30) Object.assign(r, { status: "reduceret", dosis: "2,5 mg × 2 dagligt", noter: ["kreatininclearance 15–29 ml/min"] });
-      else if (kriterier.length >= 2) Object.assign(r, { status: "reduceret", dosis: "2,5 mg × 2 dagligt", noter: [`mindst 2 af 3 kriterier: ${kriterier.join(", ")}`] });
+      if (cl < 15) r.set("frarådes", "Anbefales ikke", "kreatininclearance < 15 ml/min");
+      else if (cl < 30) r.set("reduceret", "2,5 mg × 2 dagligt", "kreatininclearance 15–29 ml/min");
+      else if (kriterier.length >= 2) r.set("reduceret", "2,5 mg × 2 dagligt", `mindst 2 af 3 kriterier: ${kriterier.join(", ")}`);
       else if (kriterier.length === 1) r.noter.push(`kun 1 af 3 reduktionskriterier (${kriterier[0]}) — fuld dosis`);
-      if (m("azol") || m("hiv")) Object.assign(r, { status: "frarådes", noter: r.noter.concat("stærk CYP3A4- og P-gp-hæmmer (azol/HIV-proteasehæmmer)") });
-      if (induktor) Object.assign(r, { status: "frarådes", noter: r.noter.concat("enzyminduktor nedsætter effekten") });
+      if (staerkAzol || m("hiv")) r.set("frarådes", null, "stærk CYP3A4- og P-gp-hæmmer (azol-svampemiddel/HIV-proteasehæmmer)");
+      if (induktor) r.set("frarådes", null, "enzyminduktor nedsætter effekten (EHRA: undgås; produktresumé: forsigtighed)");
       res.push(r);
     }
     // Rivaroxaban
     {
-      const r = { navn: "Rivaroxaban", dosis: "20 mg × 1 dagligt med mad", status: "ok", noter: [] };
-      if (cl < 15) Object.assign(r, { status: "frarådes", dosis: "Anbefales ikke", noter: ["kreatininclearance < 15 ml/min"] });
-      else if (cl < 50) Object.assign(r, { status: "reduceret", dosis: "15 mg × 1 dagligt med mad", noter: ["kreatininclearance 15–49 ml/min"] });
-      if (m("azol") || m("hiv")) Object.assign(r, { status: "frarådes", noter: r.noter.concat("stærk CYP3A4- og P-gp-hæmmer (azol/HIV-proteasehæmmer)") });
-      if (m("dronedaron")) Object.assign(r, { status: "frarådes", noter: r.noter.concat("dronedaron (ingen data — undgås)") });
-      if (induktor) Object.assign(r, { status: "frarådes", noter: r.noter.concat("enzyminduktor nedsætter effekten") });
+      const r = drug("Rivaroxaban", "20 mg × 1 dagligt med mad");
+      if (cl < 15) r.set("frarådes", "Anbefales ikke", "kreatininclearance < 15 ml/min");
+      else if (cl < 50) r.set("reduceret", "15 mg × 1 dagligt med mad", "kreatininclearance 15–49 ml/min");
+      if (staerkAzol || m("hiv")) r.set("frarådes", null, "stærk CYP3A4- og P-gp-hæmmer (azol-svampemiddel/HIV-proteasehæmmer)");
+      if (m("dronedaron")) r.set("frarådes", null, "dronedaron (ingen data — undgås)");
+      if (m("klaritromycin") || m("erythromycin")) r.noter.push("makrolid: forsigtighed ved nedsat nyrefunktion");
+      if (induktor) r.set("frarådes", null, "enzyminduktor nedsætter effekten");
       res.push(r);
     }
-    // Edoxaban
+    // Edoxaban: 30 mg ved clearance 15–50, vægt ≤ 60 kg eller ciclosporin,
+    // dronedaron, erythromycin eller ketoconazol (produktresumé).
     {
-      const r = { navn: "Edoxaban", dosis: "60 mg × 1 dagligt", status: "ok", noter: [] };
-      const grunde = [];
-      if (cl >= 15 && cl <= 50) grunde.push("kreatininclearance 15–50 ml/min");
-      if (s.vaegt <= 60) grunde.push("vægt ≤ 60 kg");
-      const pgp = ["ciclosporin", "dronedaron", "makrolid", "azol"].filter(m);
-      if (pgp.length) grunde.push("P-gp-hæmmer (ciclosporin, dronedaron, erythromycin eller ketoconazol)");
-      if (cl < 15) Object.assign(r, { status: "frarådes", dosis: "Anbefales ikke", noter: ["kreatininclearance < 15 ml/min"] });
-      else if (grunde.length) Object.assign(r, { status: "reduceret", dosis: "30 mg × 1 dagligt", noter: grunde });
+      const r = drug("Edoxaban", "60 mg × 1 dagligt");
+      if (cl < 15) r.set("frarådes", "Anbefales ikke", "kreatininclearance < 15 ml/min");
+      else {
+        if (cl <= 50) r.set("reduceret", "30 mg × 1 dagligt", "kreatininclearance 15–50 ml/min");
+        if (s.vaegt <= 60) r.set("reduceret", "30 mg × 1 dagligt", "vægt ≤ 60 kg");
+        const pgp = [m("ciclosporin") && "ciclosporin", m("dronedaron") && "dronedaron", m("erythromycin") && "erythromycin", m("ketoconazol") && "ketoconazol/itraconazol"].filter(Boolean);
+        if (pgp.length) r.set("reduceret", "30 mg × 1 dagligt", `P-gp-hæmmer: ${pgp.join(", ")}`);
+      }
       if (cl > 95) r.noter.push("kreatininclearance > 95 ml/min: tendens til mindre effekt — bruges kun efter nøje overvejelse");
-      if (m("hiv")) Object.assign(r, { status: "frarådes", noter: r.noter.concat("HIV-proteasehæmmer (ingen data — undgås)") });
-      if (induktor) Object.assign(r, { status: "frarådes", noter: r.noter.concat("enzyminduktor nedsætter effekten") });
+      if (m("hiv")) r.set("frarådes", null, "HIV-proteasehæmmer (ingen data — undgås)");
+      if (induktor) r.set("frarådes", null, "enzyminduktor nedsætter effekten");
       res.push(r);
     }
     // Dabigatran
     {
-      const r = { navn: "Dabigatran", dosis: "150 mg × 2 dagligt", status: "ok", noter: [] };
-      const overvej = [];
-      if (cl < 30) Object.assign(r, { status: "kontraindiceret", dosis: "Kontraindiceret", noter: ["kreatininclearance < 30 ml/min"] });
-      else {
-        if (s.alder >= 80 || m("verapamil")) Object.assign(r, { status: "reduceret", dosis: "110 mg × 2 dagligt", noter: [s.alder >= 80 ? "alder ≥ 80" : "verapamil"] });
-        if (s.alder >= 75 && s.alder < 80) overvej.push("alder 75–79");
-        if (cl <= 50) overvej.push("kreatininclearance 30–50 ml/min");
-        if (has(s.bl, "gi")) overvej.push("gastritis/øsofagitis/refluks");
-        if (hasBled(s).length >= 3) overvej.push("øget blødningsrisiko");
-        if (r.status === "ok" && overvej.length) Object.assign(r, { status: "overvej", dosis: "150 mg × 2 — overvej 110 mg × 2", noter: overvej });
+      const r = drug("Dabigatran", "150 mg × 2 dagligt");
+      const kontra = [cl < 30 && "kreatininclearance < 30 ml/min", m("ketoconazol") && "ketoconazol/itraconazol", m("ciclosporin") && "ciclosporin", m("dronedaron") && "dronedaron", m("glecaprevir") && "glecaprevir/pibrentasvir"].filter(Boolean);
+      if (kontra.length) {
+        r.set("kontraindiceret", "Kontraindiceret", kontra.join("; "));
+      } else {
+        if (s.alder >= 80 || m("verapamil")) r.set("reduceret", "110 mg × 2 dagligt", s.alder >= 80 ? "alder ≥ 80" : "verapamil");
+        const overvej = [s.alder >= 75 && s.alder < 80 && "alder 75–79", cl <= 50 && "kreatininclearance 30–50 ml/min", has(s.bl, "gi") && "gastritis/øsofagitis/refluks", hasBled(s).length >= 3 && "øget blødningsrisiko"].filter(Boolean);
+        if (overvej.length) r.set("overvej", "150 mg × 2 — overvej 110 mg × 2", overvej.join(", "));
+        if (m("tacrolimus")) r.set("frarådes", null, "tacrolimus (ikke anbefalet)");
+        if (m("azol")) r.noter.push("voriconazol/posaconazol: forsigtighed");
+        if (m("klaritromycin")) r.noter.push("klaritromycin: forsigtighed");
+        if (m("hiv")) r.set("frarådes", null, "HIV-proteasehæmmer (undgås)");
+        if (induktor) r.set("frarådes", null, "enzyminduktor nedsætter effekten");
         r.noter.push("udskilles ca. 80 % renalt — følg nyrefunktionen tæt");
       }
-      const kontra = ["azol", "ciclosporin", "dronedaron"].filter(m);
-      if (kontra.length) Object.assign(r, { status: "kontraindiceret", dosis: "Kontraindiceret", noter: r.noter.concat("ketoconazol/itraconazol, ciclosporin/tacrolimus eller dronedaron") });
-      if (m("hiv")) Object.assign(r, { status: "frarådes", noter: r.noter.concat("HIV-proteasehæmmer (undgås)") });
-      if (induktor) Object.assign(r, { status: "frarådes", noter: r.noter.concat("enzyminduktor nedsætter effekten") });
       res.push(r);
     }
     return res;
@@ -183,7 +206,7 @@
     const grunde = [];
     let mdr = 12;
     if (s.alder >= 75) { mdr = 6; grunde.push("alder ≥ 75"); }
-    if (cl < 60) {
+    if (cl <= 60) {
       const n = Math.max(1, Math.floor(cl / 10));
       if (n < mdr) mdr = n;
       grunde.push(`kreatininclearance ${Math.round(cl)} ml/min (interval ≈ clearance/10 måneder)`);
@@ -207,7 +230,7 @@
     let html = "";
 
     if (s.klap) {
-      html += box("box-red", "Mekanisk klap eller mitralstenose: VKA", "<p>DOAK er kontraindiceret ved mekanisk hjerteklap og ikke dokumenteret ved moderat–svær mitralstenose. Brug warfarin (VKA) efter aftale med kardiolog — uanset CHA₂DS₂-VA.</p>");
+      html += box("box-red", "Mekanisk klap eller mitralstenose: VKA", "<p>DOAK er kontraindiceret ved mekanisk hjerteklap og ikke dokumenteret ved moderat–svær mitralstenose. Brug warfarin (VKA) efter aftale med kardiolog — uanset CHA₂DS₂-VA.</p><p>Ved VKA tæller labilt INR (tid i terapeutisk interval under 60 %) med som et ekstra point i HAS-BLED.</p>");
     }
 
     // CHA2DS2-VA
@@ -216,6 +239,8 @@
     if (sc.va >= 2) { cls = "box-red"; anbef = "Antikoagulation <strong>anbefales</strong> (ESC 2024 klasse I; DCS)."; }
     else if (sc.va === 1) { cls = "box-amber"; anbef = "Antikoagulation <strong>bør overvejes</strong> — fælles beslutning med patienten (ESC 2024 klasse IIa)."; }
     else { cls = "box-green"; anbef = "Antikoagulation er ikke indiceret. Revurdér ved nye risikofaktorer og når patienten fylder 65 år."; }
+    // Uden alder kan en score under 2 være for lav (alder giver op til 2 point).
+    if (isNaN(s.alder) && sc.va < 2) { cls = "box-amber"; anbef = "<strong>Angiv alder</strong> før anbefalingen — alder giver op til 2 point og kan ændre indikationen."; }
     const punkter = [];
     if (!isNaN(s.alder) && s.alder >= 75) punkter.push("alder ≥ 75 (2)");
     else if (!isNaN(s.alder) && s.alder >= 65) punkter.push("alder 65–74 (1)");
@@ -240,14 +265,14 @@
         const doaks = doak(s, cl);
         last.doaks = doaks;
         const h = ["Præparat", "Dosis", "Begrundelse"];
-        const rows = doaks.map((d) => `<tr${d.status === "ok" || d.status === "reduceret" ? "" : ""}><td>${d.navn}<span class="tag ${STATUS[d.status][0]}">${STATUS[d.status][1]}</span></td><td data-label="${h[1]}">${d.dosis}</td><td data-label="${h[2]}">${d.noter.length ? d.noter.join("; ") : "—"}</td></tr>`).join("");
+        const rows = doaks.map((d) => `<tr><td>${d.navn}<span class="tag ${STATUS[d.status][0]}">${STATUS[d.status][1]}</span></td><td data-label="${h[1]}">${d.dosis}</td><td data-label="${h[2]}">${d.noter.length ? d.noter.join("; ") : "—"}</td></tr>`).join("");
         html += box(
           "box-blue",
           `Valg og dosis af DOAK — kreatininclearance ${Math.round(cl)} ml/min`,
           `<p>DOAK er førstevalg frem for warfarin (DCS). Valget mellem præparaterne afgøres af nyrefunktion, interaktioner, dosering (1 eller 2 gange dagligt) og regionens anbefaling (basisliste/Medicinrådet).</p>
           <div class="drug-table-wrap"><table class="drug-table stack-mobile"><thead><tr>${h.map((x) => `<th>${x}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
           ${cl < 15 ? "<p><strong>Kreatininclearance under 15 ml/min:</strong> DOAK anbefales ikke — konferér med nefrolog/kardiolog.</p>" : ""}
-          ${(s.vaegt > 120) ? "<p><strong>Vægt over 120 kg:</strong> begrænset dokumentation — apixaban eller rivaroxaban foretrækkes (EHRA).</p>" : ""}`
+          ${(s.vaegt > 120) ? "<p><strong>Vægt over 120 kg:</strong> Cockcroft-Gault med faktisk vægt overvurderer nyrefunktionen — vurdér også eGFR. Begrænset dokumentation; apixaban eller rivaroxaban foretrækkes (EHRA).</p>" : ""}`
         );
         const iv = kontrolInterval(s, cl);
         html += box(
@@ -262,7 +287,9 @@
     const iaNoter = [];
     if (has(s.med, "amiodaron")) iaNoter.push("<strong>Amiodaron:</strong> øger DOAK-niveauet let — ingen dosisændring, men vær opmærksom på blødning.");
     if (has(s.med, "diltiazem")) iaNoter.push("<strong>Diltiazem:</strong> øger niveauet let — ingen dosisændring.");
-    if (has(s.med, "makrolid")) iaNoter.push("<strong>Klaritromycin/erythromycin:</strong> øger niveauet — edoxaban reduceres ved erythromycin; forsigtighed med de øvrige.");
+    if (has(s.med, "erythromycin")) iaNoter.push("<strong>Erythromycin:</strong> øger DOAK-niveauet — edoxaban reduceres til 30 mg; forsigtighed med de øvrige.");
+    if (has(s.med, "klaritromycin")) iaNoter.push("<strong>Klaritromycin:</strong> øger DOAK-niveauet — ingen dosisreduktion i produktresuméerne, men forsigtighed (især ved nedsat nyrefunktion).");
+    if (has(s.med, "verapamil")) iaNoter.push("<strong>Verapamil:</strong> dabigatran 110 mg × 2; øvrige DOAK uden dosisændring.");
     if (has(s.med, "ssri")) iaNoter.push("<strong>SSRI/SNRI:</strong> øger blødningsrisikoen — overvej behov og mavesårsprofylakse.");
     if (has(s.bl, "nsaid")) iaNoter.push("<strong>NSAID/trombocythæmmer:</strong> undgå NSAID; trombocythæmmer kun ved klar indikation (fx nylig AKS/stent) efter kardiologisk plan.");
     if (iaNoter.length) html += box("box-amber", "Interaktioner og samtidig medicin", `<ul class="followup-list">${iaNoter.map((i) => `<li>${i}</li>`).join("")}</ul>`);
@@ -307,7 +334,12 @@
     lines.push(`CHA2DS2-VA ${sc.va} (CHA2DS2-VASc ${sc.vasc}). HAS-BLED ${blod.length}${blod.length ? ` (${blod.join(", ")})` : ""}.`);
     const first = output.querySelector(".box p");
     if (first) lines.push(first.textContent.trim());
-    if (doaks) lines.push("DOAK-dosis: " + doaks.map((d) => `${d.navn} ${d.dosis.toLowerCase()}`).join("; ") + ".");
+    if (doaks) {
+      const mulige = doaks.filter((d) => RANK[d.status] < RANK.frarådes);
+      const ikke = doaks.filter((d) => RANK[d.status] >= RANK.frarådes);
+      if (mulige.length) lines.push("Mulige DOAK/dosis: " + mulige.map((d) => `${d.navn} ${d.dosis.toLowerCase()}${d.noter.length ? ` (${d.noter.join("; ")})` : ""}`).join("; ") + ".");
+      if (ikke.length) lines.push("Frarådes/kontraindiceret: " + ikke.map((d) => `${d.navn} — ${STATUS[d.status][1].toLowerCase()} (${d.noter.join("; ")})`).join("; ") + ".");
+    }
     const kontrol = Array.from(output.querySelectorAll(".box h3")).find((h) => h.textContent.startsWith("Kontrol"));
     if (kontrol) lines.push(kontrol.textContent.trim() + ": Hb, nyre- og leverfunktion.");
     lines.push("Drøftet med patienten (tilpas): gevinst ved AK, blødningsrisiko og tegn på blødning, adhærens.");
