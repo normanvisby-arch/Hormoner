@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Klinikværktøjer til kvindesundhed</title>
+<title>Lunger i almen praksis</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0b6e5f">
+<meta name="theme-color" content="#1f5f99">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Klinikværktøjer">
+<meta name="apple-mobile-web-app-title" content="Lunger">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
@@ -21,11 +21,11 @@
     --border: #dbe2dc;
     --text: #1c2624;
     --muted: #5c6b64;
-    --primary: #0b6e5f;
-    --primary-dark: #08554a;
+    --primary: #1f5f99;
+    --primary-dark: #14467a;
     --on-primary: #ffffff;
-    --chip-bg: #e7f2ee;
-    --chip-text: #0b5c47;
+    --chip-bg: #e3eef8;
+    --chip-text: #14467a;
     --note-bg: #eaf2fa;
     --note-border: #a9c9e6;
     --note-text: #1c4a72;
@@ -37,8 +37,8 @@
     :root:not([data-theme="light"]) {
       --bg: #101615; --surface: #1a2321; --border: #2c3835;
       --text: #e7ece9; --muted: #9bb0a8;
-      --primary: #35b79c; --primary-dark: #278d78; --on-primary: #06120f;
-      --chip-bg: #12332a; --chip-text: #a9e6cd;
+      --primary: #6aa8e0; --primary-dark: #4a8cc8; --on-primary: #06120f;
+      --chip-bg: #16304a; --chip-text: #b8d6f2;
       --note-bg: #16273a; --note-border: #35608a; --note-text: #bcd9f5;
       color-scheme: dark;
     }
@@ -46,8 +46,8 @@
   :root[data-theme="dark"] {
     --bg: #101615; --surface: #1a2321; --border: #2c3835;
     --text: #e7ece9; --muted: #9bb0a8;
-    --primary: #35b79c; --primary-dark: #278d78; --on-primary: #06120f;
-    --chip-bg: #12332a; --chip-text: #a9e6cd;
+    --primary: #6aa8e0; --primary-dark: #4a8cc8; --on-primary: #06120f;
+    --chip-bg: #16304a; --chip-text: #b8d6f2;
     --note-bg: #16273a; --note-border: #35608a; --note-text: #bcd9f5;
     color-scheme: dark;
   }
@@ -171,125 +171,43 @@
 <div class="wrap">
   <header>
     <p class="eyebrow">Almen praksis · danske forhold</p>
-    <h1>Klinikværktøjer til kvindesundhed</h1>
-    <p class="lede">Ni små webapps til konsultationen — hormoner, prævention og knoglesundhed. De kører direkte i browseren, kræver ingen installation, og intet sendes nogen steder hen.</p>
+    <h1>Lunger i almen praksis</h1>
+    <p class="lede">Tre små webapps til konsultationen — KOL og astma hos voksne. De kører direkte i browseren, og intet sendes nogen steder hen.</p>
   </header>
 
-  <h2 class="section-title">Klimakteriet og prævention</h2>
   <div class="grid">
     <article class="tool">
       <div class="tool-head"><span class="kind">Beslutningsstøtte</span><span class="who">Til lægen</span></div>
-      <h2>Klimakterieguide</h2>
-      <p class="use">Hormonbehandling i klimakteriet: valg af regime, dosis og administrationsvej ud fra uterus, status, kontraindikationer og risikofaktorer. Med ikke-hormonelle alternativer, risikotal til samtalen og kort journalnotat.</p>
-      <p class="basis">NRL 2022 · DSOG 2026 · BMS · NICE · ESHRE (POI)</p>
+      <h2>KOL</h2>
+      <p class="use">Spirometri og GOLD-grad, ABE-gruppe ud fra symptomer og eksacerbationer, valg af inhalationsbehandling med eosinofile, rehabilitering, vaccination og eksacerbationsbehandling.</p>
+      <p class="basis">GOLD 2025 · DSAM · Medicinrådet · Sundhedsstyrelsen</p>
       <div class="actions">
-        <a class="btn btn-open" href="index.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-klim" data-url="index.html">Kopiér link</button>
+        <a class="btn btn-open" href="kol.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-0" data-url="kol.html">Kopiér link</button>
         <span class="copied" aria-live="polite"></span>
       </div>
       <span class="url"></span>
     </article>
-
-    <article class="tool">
-      <div class="tool-head"><span class="kind">Risikovurdering</span><span class="who">Til lægen og patienten</span></div>
-      <h2>MHT-risikovurdering</h2>
-      <p class="use">Absolutte risikotal pr. 1.000 kvinder for brystkræft, blodpropper, apopleksi og endometriecancer — tilpasset alder, regime, administrationsvej og varighed, med patientens egne risikofaktorer markeret og en figur til samtalen.</p>
-      <p class="basis">MHRA 2019 · WHI · BMJ 2026 · NICE 2024 · Mørch 2016</p>
-      <div class="actions">
-        <a class="btn btn-open" href="risiko.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-risiko" data-url="risiko.html">Kopiér link</button>
-        <span class="copied" aria-live="polite"></span>
-      </div>
-      <span class="url"></span>
-    </article>
-
     <article class="tool">
       <div class="tool-head"><span class="kind">Beslutningsstøtte</span><span class="who">Til lægen</span></div>
-      <h2>Præventionsguide</h2>
-      <p class="use">Valg af prævention ud fra kontraindikationer, alder, amning, medicin og præference — plus en hurtig gren for nødprævention. Med glemte piller, opstart, VTE-tal og kort journalnotat.</p>
-      <p class="basis">NRL 2022 · Lægemiddelstyrelsen · EMA · FSRH</p>
+      <h2>Astma</h2>
+      <p class="use">Astmakontrol, risikofaktorer og behandlingstrin med ICS-formoterol som anfalds- og vedligeholdelsesbehandling (MART), dosis, trappe ned og op, og akut forværring.</p>
+      <p class="basis">GINA 2025 · DLS · Medicinrådets basisliste</p>
       <div class="actions">
-        <a class="btn btn-open" href="praevention.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-praev" data-url="praevention.html">Kopiér link</button>
+        <a class="btn btn-open" href="astma.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-1" data-url="astma.html">Kopiér link</button>
         <span class="copied" aria-live="polite"></span>
       </div>
       <span class="url"></span>
     </article>
-
-    <article class="tool">
-      <div class="tool-head"><span class="kind">Scoringsskema</span><span class="who">Til lægen og patienten</span></div>
-      <h2>MRS-scoring</h2>
-      <p class="use">Menopause Rating Scale: 11 spørgsmål, 0–44 point fordelt på somato-vegetative, psykiske og urogenitale symptomer. Bruges til at kvantificere gener og følge effekten af behandling.</p>
-      <p class="basis">Menopause Rating Scale (ZEG Berlin)</p>
-      <div class="actions">
-        <a class="btn btn-open" href="mrs.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-mrs" data-url="mrs.html">Kopiér link</button>
-        <span class="copied" aria-live="polite"></span>
-      </div>
-      <span class="url"></span>
-    </article>
-
     <article class="tool tool-wide">
       <div class="tool-head"><span class="kind">Huskeskema</span><span class="who">Til lægen</span></div>
-      <h2>MHT-huskeskema</h2>
-      <p class="use">Tolv principper, der holder risikoen lavest ved opstart og årlig kontrol: indikation og tidspunkt, østrogen, gestagen og endometrium, varighed og opfølgning. Med de skift, der flytter risikoen mest, og hvornår man skal konferere.</p>
-      <p class="basis">MHRA 2019 · WHI · BMJ 2026 · Mørch 2016 · NRL 2022 · DSOG 2026</p>
+      <h2>Lunge-huskeskema</h2>
+      <p class="use">Tolv principper for diagnostik, behandling og opfølgning af KOL og astma, effekt i tal og hvornår man henviser.</p>
+      <p class="basis">GOLD 2025 · GINA 2025 · DSAM · DLS</p>
       <div class="actions">
         <a class="btn btn-open" href="huskeskema.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-husk" data-url="huskeskema.html">Kopiér link</button>
-        <span class="copied" aria-live="polite"></span>
-      </div>
-      <span class="url"></span>
-    </article>
-
-  </div>
-
-  <h2 class="section-title">Knoglesundhed</h2>
-  <div class="grid">
-    <article class="tool">
-      <div class="tool-head"><span class="kind">Beslutningsstøtte</span><span class="who">Til lægen</span></div>
-      <h2>Osteoporose</h2>
-      <p class="use">DXA-indikation, behandlingsindikation ud fra brud og T-score, præparatvalg ud fra nyrefunktion og tolerans, udredning før opstart, varighed og journalnotat.</p>
-      <p class="basis">DSAM 2024 · DES NBV 2025 · Medicinrådet</p>
-      <div class="actions">
-        <a class="btn btn-open" href="osteoporose.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-osteo" data-url="osteoporose.html">Kopiér link</button>
-        <span class="copied" aria-live="polite"></span>
-      </div>
-      <span class="url"></span>
-    </article>
-    <article class="tool">
-      <div class="tool-head"><span class="kind">Risikovurdering</span><span class="who">Til lægen og patienten</span></div>
-      <h2>Frakturrisiko og NNT</h2>
-      <p class="use">Patientens FRAX-risiko omregnet til brud pr. 1.000 over 5 år med og uden behandling, NNT, 1.000-personers figur og bivirkninger i absolutte tal.</p>
-      <p class="basis">FRAX · Cochrane 2025 · FIT · HORIZON · FREEDOM</p>
-      <div class="actions">
-        <a class="btn btn-open" href="fraktur.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-fraktur" data-url="fraktur.html">Kopiér link</button>
-        <span class="copied" aria-live="polite"></span>
-      </div>
-      <span class="url"></span>
-    </article>
-    <article class="tool">
-      <div class="tool-head"><span class="kind">Opfølgning</span><span class="who">Til lægen</span></div>
-      <h2>Opfølgningsplan</h2>
-      <p class="use">Datoer for kontrol, DXA, revurdering og behandlingspause — og for denosumab næste injektion med advarsel ved forsinkelse.</p>
-      <p class="basis">DSAM 2024 · DES NBV · ECTS 2021</p>
-      <div class="actions">
-        <a class="btn btn-open" href="osteoplan.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-plan" data-url="osteoplan.html">Kopiér link</button>
-        <span class="copied" aria-live="polite"></span>
-      </div>
-      <span class="url"></span>
-    </article>
-    <article class="tool">
-      <div class="tool-head"><span class="kind">Huskeskema</span><span class="who">Til lægen</span></div>
-      <h2>Osteoporose-huskeskema</h2>
-      <p class="use">Tolv principper for udredning, opstart og sikker langtidsbehandling, effekt i tal og hvornår man henviser.</p>
-      <p class="basis">DSAM 2024 · DES NBV · FIT · HORIZON · FREEDOM</p>
-      <div class="actions">
-        <a class="btn btn-open" href="osteohuskeskema.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-ohusk" data-url="osteohuskeskema.html">Kopiér link</button>
+        <button class="btn btn-copy" type="button" id="copy-2" data-url="huskeskema.html">Kopiér link</button>
         <span class="copied" aria-live="polite"></span>
       </div>
       <span class="url"></span>
@@ -302,15 +220,15 @@
   </div>
 
   <div class="note" role="note">
-    <p><strong>Andre apps i samme serie:</strong> <a href="hjerte/index.html">Hjerte-kar</a> (SCORE2 og atrieflimren) · <a href="lunge/index.html">Lunger</a> (KOL og astma) · <a href="thyreoidea/index.html">Hypothyreose</a> (TSH, T4 og levothyroxin) · <a href="diabetes/index.html">Type 2-diabetes</a> (behandling og årskontrol).</p>
+    <p><strong>Andre apps i samme serie:</strong> <a href="../oversigt.html">Kvindesundhed</a> (klimakterie, prævention, MRS og osteoporose) · <a href="../hjerte/index.html">Hjerte-kar</a> (SCORE2 og atrieflimren) · <a href="../thyreoidea/index.html">Hypothyreose</a> (TSH, T4 og levothyroxin) · <a href="../diabetes/index.html">Type 2-diabetes</a> (behandling og årskontrol).</p>
   </div>
 
   <div class="note" role="note">
-    <p><strong>Til kolleger:</strong> Værktøjerne er hurtige huskesedler til brug i konsultationen. De erstatter ikke den kliniske vurdering, de officielle vejledninger eller opslag på pro.medicin.dk før ordination.</p>
+    <p><strong>Til kolleger:</strong> Værktøjerne er hurtige huskesedler til brug i konsultationen. De erstatter ikke den kliniske vurdering, DSAM's og Dansk Lungemedicinsk Selskabs vejledninger eller opslag på pro.medicin.dk før ordination.</p>
     <p>Der indtastes ingen personhenførbare oplysninger, og intet gemmes eller sendes.</p>
   </div>
 
-  <footer>Uafhængige hjælpeværktøjer — ikke officielle publikationer fra Sundhedsstyrelsen, DSOG eller øvrige nævnte kilder. Senest opdateret 28. september 2026.</footer>
+  <footer>Uafhængige hjælpeværktøjer — ikke officielle publikationer fra GOLD, GINA, DSAM, Dansk Lungemedicinsk Selskab eller øvrige nævnte kilder. Senest opdateret 29. september 2026.</footer>
 </div>
 
 <script>
@@ -343,6 +261,6 @@
     });
   });
 </script>
-<script src="pwa.js"></script>
+<script src="../pwa.js"></script>
 </body>
 </html>

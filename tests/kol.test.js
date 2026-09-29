@@ -1,0 +1,66 @@
+const { chromium } = require('playwright');
+// Kør via tests/run_all.sh (starter en lokal server). BASE_URL kan pege på en anden server.
+const ROOT = process.env.BASE_URL || 'http://localhost:8795/';
+const SHOTS = process.env.SHOT_DIR || require('os').tmpdir() + '/';
+const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
+const BASE = process.env.BASE || ROOT + 'lunge/kol.html';
+(async () => {
+  const b = await chromium.launch({ executablePath: CHROMIUM });
+  const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(BASE).origin });
+  const p = await ctx.newPage(); const errors = []; p.on('pageerror', (e) => errors.push(String(e)));
+  let fails = 0; const check = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + x : '')); if (!c) fails++; };
+  const fresh = async () => { await p.goto(BASE); await p.waitForTimeout(120); };
+  const out = async () => p.locator('#output').innerText();
+  const text = async () => p.locator('#output').textContent();
+  const head = async (i = 0) => p.locator('#output .box h3').nth(i).innerText();
+  const r = (n, v) => p.check(`input[name="${n}"][value="${v}"]`);
+  const cb = (n, v) => p.check(`input[name="${n}"][value="${v}"]`);
+  const fill = async (o) => { for (const [k, v] of Object.entries(o)) await p.fill('#' + k, String(v)); };
+  const recs = async () => p.$$eval('#output tr', (trs) => trs.filter((tr) => tr.querySelector('.tag-recommend')).map((tr) => tr.cells[0].childNodes[0].textContent.trim()));
+  const note = async () => { await p.click('#copyBtn'); await p.waitForTimeout(150); return p.evaluate(() => navigator.clipboard.readText()); };
+
+  await fresh(); let o = await out();
+  check('1 tom: gruppe A + beder om spirometri', (await head()).startsWith('ABE-gruppe A') && o.includes('Diagnosen kræver FEV1/FVC < 0,70'));
+  check('1 A: LAMA anbefalet', (await recs()).some((n) => n.startsWith('Spiriva Respimat')), JSON.stringify(await recs()));
+  await fill({ ratio: '0.75', fev1pct: 70 }); o = await out();
+  check('2 FEV1/FVC 0,75 -> ingen obstruktion + PRISm', (await head()) === 'Ingen obstruktion efter GOLD-kriteriet' && o.includes('PRISm'));
+  await fill({ ratio: '0.62', fev1pct: 58 }); await r('mmrc', '2'); o = await out();
+  check('3 B, GOLD 2 -> LAMA + LABA', (await head()) === 'ABE-gruppe B · GOLD 2' && (await recs()).some((n) => n.startsWith('Spiolto')), await head());
+  await fill({ ratio: '62' }); check('3b procent omregnes', (await out()).includes('FEV1/FVC 0,62'));
+  await fill({ eksModerat: 2 }); check('4 2 moderate -> E', (await head()).startsWith('ABE-gruppe E'));
+  await fill({ eos: '0.35' }); check('4 E + eos 0,35 -> triple', (await recs()).some((n) => n.startsWith('Trelegy')));
+  await fill({ eos: '0.2' }); check('4 E + eos 0,2 -> LAMA + LABA', (await recs()).some((n) => n.startsWith('Spiolto')) && !(await recs()).some((n) => n.startsWith('Trelegy')));
+  await fresh(); await fill({ ratio: '0.6', fev1pct: 55, eksIndl: 1 }); check('4b 1 indlæggelse -> E', (await head()).startsWith('ABE-gruppe E'));
+  // Opfølgning
+  await fresh(); await fill({ ratio: '0.55', fev1pct: 45, eksModerat: 2, eos: '0.15' }); await r('beh', 'dobbelt'); o = await out();
+  check('5 LAMA+LABA, E, eos 0,15 -> triple + DSAM-forbehold', (await recs()).some((n) => n.startsWith('Trelegy')) && o.includes('tvivlsom'));
+  check('5 teknik ikke kontrolleret -> note', o.includes('kontrollér inhalationsteknik og adhærens'));
+  await fill({ eos: '0.05' }); o = await out();
+  check('5b eos 0,05 -> azithromycin, ingen triple', o.includes('Azithromycin (profylakse)') && !(await recs()).some((n) => n.startsWith('Trelegy')));
+  check('5b uden kronisk bronkitis -> ingen roflumilast', !o.includes('Daxas'));
+  await cb('andet', 'bronkitis'); check('5c FEV1 45 + bronkitis -> roflumilast', (await out()).includes('Daxas'));
+  await fresh(); await fill({ ratio: '0.6', fev1pct: 60, eos: '0.05' }); await r('mmrc', '2'); await r('beh', 'icslaba'); o = await out();
+  check('6 ICS+LABA, dyspnø, eos lav -> skift til LAMA+LABA', o.includes('skift til LAMA + LABA') && (await recs()).some((n) => n.startsWith('Spiolto')));
+  await fresh(); await fill({ ratio: '0.5', fev1pct: 40, eksModerat: 3 }); await r('beh', 'triple'); o = await out();
+  check('7 triple + eksacerbationer -> henvis', o.includes('henvis til lungemedicinsk vurdering'));
+  await fresh(); await fill({ ratio: '0.6', fev1pct: 60, spo2: 91 }); o = await text(); check('8 SAT 91 -> iltvurdering', o.includes('vurdering af iltbehov'));
+  await fresh(); await fill({ ratio: '0.6', fev1pct: 60, eos: '0.4' }); await r('beh', 'triple'); await cb('andet', 'pneumoni'); o = await out();
+  check('9 stabil på triple med eos 0,4 -> ikke seponer ICS', !o.includes('Overvej at seponere ICS'));
+  await fill({ eos: '0.05' }); check('9b eos 0,05 + pneumoni -> overvej seponering', (await out()).includes('Overvej at seponere ICS'));
+  // Journal
+  await fresh(); await fill({ alder: 67, ratio: '0.62', fev1pct: 58 }); await r('mmrc', '2');
+  let n = await note(); console.log('---\n' + n + '\n---');
+  check('10 journal førstevalg', n.includes('ABE-gruppe B, GOLD 2') && n.includes('Førstevalg: Spiolto Respimat'));
+  await p.check('#output input[name="valg"][value^="dobbelt|Anoro"]'); n = await note();
+  check('10b valgt Anoro', n.includes('Valgt behandling: Anoro Ellipta') && !n.includes('Spiolto'), n);
+  await p.click('#copyFullBtn'); await p.waitForTimeout(150); const full = await p.evaluate(() => navigator.clipboard.readText());
+  check('10c fuld tekst uden "Vælg"', full.includes('ABE-GRUPPE B') && !full.includes('Vælg til journal'));
+  await p.click('#resetBtn'); check('11 reset', (await p.inputValue('#ratio')) === '' && (await p.locator('#output input[name="valg"]:checked').count()) === 0);
+  const m = await ctx.newPage(); await m.setViewportSize({ width: 390, height: 844 }); await m.goto(BASE);
+  await m.fill('#ratio', '0.6'); await m.fill('#eksModerat', '2'); await m.waitForTimeout(100);
+  check('12 mobile no overflow', (await m.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+  await m.locator('#resultPanel').screenshot({ path: SHOTS + 'kol_mobile.png' });
+  check('JS errors', errors.length === 0, JSON.stringify(errors));
+  console.log('FAILS:', fails); await b.close();
+})();

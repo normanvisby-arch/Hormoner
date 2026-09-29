@@ -1,0 +1,37 @@
+{
+  "name": "Hypothyreose i almen praksis",
+  "short_name": "Hypothyreose",
+  "description": "Hypothyreose — tolkning af TSH og T4, behandlingsindikation, levothyroxin-dosis, graviditet og opfølgning.",
+  "lang": "da",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f3f8",
+  "theme_color": "#5b3f8f",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

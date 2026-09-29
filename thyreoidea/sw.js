@@ -1,17 +1,15 @@
 /*
- * Service worker for hjerte-appen: gemmer alle filer, så appen virker uden
+ * Service worker for hypothyreose-appen: gemmer alle filer, så appen virker uden
  * internet. Netværket prøves først, så opdateringer slår igennem ved næste
  * åbning med forbindelse. Hæv VERSION, når filer tilføjes eller ændres.
  */
-const VERSION = "v4";
-const CACHE = `hjertekar-${VERSION}`;
+const VERSION = "v1";
+const CACHE = `thyreoidea-${VERSION}`;
 const FILES = [
   "./",
   "index.html",
-  "cvrisiko.html",
-  "cvrisiko.js",
-  "af.html",
-  "af.js",
+  "hypothyreose.html",
+  "hypothyreose.js",
   "huskeskema.html",
   "manifest.webmanifest",
   "icons/icon.svg",
@@ -21,6 +19,7 @@ const FILES = [
   "icons/apple-touch-icon.png",
   "../style.css",
   "../pwa.js",
+  "../valg.js",
 ];
 
 self.addEventListener("install", (event) => {
@@ -30,7 +29,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("hjertekar-") && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("thyreoidea-") && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

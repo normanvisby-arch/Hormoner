@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Type 2-diabetes — glukosesænkende behandling</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#9a4f0b">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Type 2-diabetes">
+</head>
+<body class="theme-diabetes">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">💧</span>
+      <div>
+        <h1>Type 2-diabetes — glukosesænkende behandling</h1>
+        <p class="subtitle">Individuelt HbA1c-mål, organbeskyttelse ved hjerte-kar-sygdom, hjertesvigt og nyresygdom, næste behandlingsskridt og dosis efter eGFR</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <span aria-current="page">Behandling</span>
+  <a href="aarskontrol.html">Årskontrol</a>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Følger DSAM's og Dansk Endokrinologisk Selskabs fælles vejledning om farmakologisk behandling af type 2-diabetes, Medicinrådets behandlingsvejledning (opdateret 2026: SGLT-2-hæmmer før GLP-1-receptoragonist, sulfonylurinstof nedprioriteret) og Lægemiddelstyrelsens tilskudsregler. Kontrollér dosis og tilskud på pro.medicin.dk.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se anbefaling ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patientens data</h2>
+
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="18" max="110" placeholder="fx 63">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+    <div class="field">
+      <label for="varighed">Diabetesvarighed (år)</label>
+      <input type="number" id="varighed" min="0" max="70" placeholder="fx 4">
+    </div>
+    <div class="field">
+      <label for="hba1c">HbA1c (mmol/mol)</label>
+      <input type="number" id="hba1c" min="20" max="200" placeholder="fx 58">
+    </div>
+    <div class="field">
+      <label for="egfr">eGFR (ml/min/1,73 m²)</label>
+      <input type="number" id="egfr" min="5" max="150" placeholder="fx 72">
+    </div>
+    <div class="field">
+      <label for="uacr">Urin-albumin/kreatinin-ratio (mg/g, valgfrit)</label>
+      <input type="number" id="uacr" min="0" max="5000" placeholder="fx 45">
+    </div>
+    <div class="field">
+      <label for="bmi">BMI (valgfrit)</label>
+      <input type="number" id="bmi" min="14" max="70" step="0.1" placeholder="fx 31">
+      <span class="input-warning" id="labWarning" aria-live="polite"></span>
+    </div>
+
+    <fieldset class="field">
+      <legend>Hjerte, nyrer og risiko</legend>
+      <label class="checkbox"><input type="checkbox" name="organ" value="ascvd"> Aterosklerotisk hjerte-kar-sygdom (AMI, apopleksi/TCI, perifer arteriesygdom, revaskularisering)</label>
+      <label class="checkbox"><input type="checkbox" name="organ" value="hs"> Hjertesvigt</label>
+      <label class="checkbox"><input type="checkbox" name="organ" value="risiko"> Høj risiko: mindst 3 risikofaktorer (alder &gt; 60, mand, arvelig disposition, ukontrolleret BT, LDL &gt; 1,8 trods behandling, rygning &gt; 10 pakkeår)</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Forhold ved behandlingsmål</legend>
+      <label class="checkbox"><input type="checkbox" name="forhold" value="hypo"> Tendens til hypoglykæmi eller svingende glukose</label>
+      <label class="checkbox"><input type="checkbox" name="forhold" value="skroebelig"> Skrøbelig, demens eller kort forventet restlevetid</label>
+      <label class="checkbox"><input type="checkbox" name="forhold" value="symptomer"> Symptomer på hyperglykæmi eller uforklaret vægttab</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Nuværende glukosesænkende behandling</legend>
+      <label class="checkbox"><input type="checkbox" name="beh" value="metformin"> Metformin</label>
+      <label class="checkbox"><input type="checkbox" name="beh" value="sglt2"> SGLT-2-hæmmer</label>
+      <label class="checkbox"><input type="checkbox" name="beh" value="glp1"> GLP-1-receptoragonist</label>
+      <label class="checkbox"><input type="checkbox" name="beh" value="dpp4"> DPP-4-hæmmer</label>
+      <label class="checkbox"><input type="checkbox" name="beh" value="su"> Sulfonylurinstof</label>
+      <label class="checkbox"><input type="checkbox" name="beh" value="insulin"> Insulin</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Kan ikke bruges (bivirkninger eller kontraindikation)</legend>
+      <label class="checkbox"><input type="checkbox" name="kan" value="metformin"> Metformin</label>
+      <label class="checkbox"><input type="checkbox" name="kan" value="sglt2"> SGLT-2-hæmmer</label>
+      <label class="checkbox"><input type="checkbox" name="kan" value="glp1"> GLP-1-receptoragonist</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Anbefaling" id="resultPanel">
+    <h2>2. Vurdering og anbefaling</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <p class="field-hint valg-hint" id="valgHint" hidden>Tryk "Vælg til journal" ved en behandling, så nævner journalnotatet den i stedet for værktøjets førstevalg.</p>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld anbefaling</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>DSAM og Dansk Endokrinologisk Selskab — Farmakologisk behandling af type 2-diabetes (2023) og Type 2-diabetes: opfølgning og behandling — individuelle HbA1c-mål (&lt; 48, &lt; 53, &lt; 58, &lt; 64–69 mmol/mol), metformin som førstevalg, SGLT-2-hæmmer eller GLP-1-receptoragonist ved hjerte-kar-sygdom, høj risiko, hjertesvigt og nyresygdom</li>
+    <li>Medicinrådets behandlingsvejledning for antidiabetika til type 2-diabetes (opdateret 2026) — SGLT-2-hæmmer før GLP-1-receptoragonist; ingen dokumenteret ekstra organbeskyttelse af kombinationen; sulfonylurinstof nedprioriteret</li>
+    <li>Lægemiddelstyrelsen — klausuleret tilskud til GLP-1-receptoragonister (fra 25. november 2024)</li>
+    <li>Rationel Farmakoterapi 3, 2024 (Sundhedsstyrelsen) — farmakologisk behandling af type 2-diabetes i almen praksis</li>
+    <li>Produktresuméer — metformin (maks. 1.000 mg ved eGFR 30–44, stop under 30), SGLT-2-hæmmere (opstart til organbeskyttelse fra eGFR 20–25), sitagliptin (50 mg ved eGFR 30–44, 25 mg under 30), linagliptin (ingen dosisjustering)</li>
+    <li>ADA/EASD — udkast til nye konsensusanbefalinger (2026): tidligere organbeskyttende behandling</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra DSAM, DES eller Medicinrådet. Primærdokumenterne kunne ikke tilgås direkte ved udviklingen; anbefalingerne er kontrolleret via sekundære kilder og skal verificeres i de gældende vejledninger. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="../valg.js"></script>
+<script src="behandling.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>
