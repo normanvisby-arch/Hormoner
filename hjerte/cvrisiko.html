@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CV-risiko — SCORE2</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#a3262f">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hjerte-kar">
+</head>
+<body class="theme-hjerte">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">♥</span>
+      <div>
+        <h1>Kardiovaskulær risiko og forebyggelse</h1>
+        <p class="subtitle">SCORE2, SCORE2-OP og SCORE2-Diabetes med danske behandlingstærskler og effekt af behandling</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <span aria-current="page">CV-risiko</span>
+  <a href="af.html">Atrieflimren</a>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> SCORE2-modellerne (ESC) er kalibreret til lavrisikoregionen, som Danmark tilhører, og beregner 10-års risiko for hjerte-kar-død, ikke-dødeligt AMI og apopleksi. Behandlingstærskler og mål følger Dansk Cardiologisk Selskabs NBV. Modellerne bruges <strong>ikke</strong> ved kendt hjerte-kar-sygdom, familiær hyperkolesterolæmi eller kronisk nyresygdom — de er i forvejen i høj eller meget høj risiko.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se risiko ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patientens data</h2>
+
+    <fieldset class="field">
+      <legend>Køn</legend>
+      <label class="radio"><input type="radio" name="koen" value="kvinde" checked> Kvinde</label>
+      <label class="radio"><input type="radio" name="koen" value="mand"> Mand</label>
+    </fieldset>
+
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="40" max="89" placeholder="fx 58">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+
+    <fieldset class="field">
+      <legend>Rygning</legend>
+      <label class="radio"><input type="radio" name="ryger" value="nej" checked> Ikke-ryger</label>
+      <label class="radio"><input type="radio" name="ryger" value="ja"> Ryger</label>
+    </fieldset>
+
+    <div class="field">
+      <label for="sbp">Systolisk blodtryk (mmHg)</label>
+      <input type="number" id="sbp" min="80" max="260" placeholder="fx 142">
+      <p class="field-hint">SCORE2 er udviklet på klinikblodtryk. Ved hjemme-, dagtids- eller uobserveret automatisk blodtryk lægges ca. 5 mmHg til (mere ved høje værdier).</p>
+    </div>
+
+    <div class="field">
+      <label for="tchol">Totalkolesterol (mmol/l)</label>
+      <input type="number" id="tchol" min="1" max="20" step="0.1" placeholder="fx 5,8">
+    </div>
+    <div class="field">
+      <label for="hdl">HDL-kolesterol (mmol/l)</label>
+      <input type="number" id="hdl" min="0.2" max="5" step="0.1" placeholder="fx 1,3">
+    </div>
+    <div class="field">
+      <label for="ldl">LDL-kolesterol (mmol/l, valgfrit)</label>
+      <input type="number" id="ldl" min="0.5" max="15" step="0.1" placeholder="fx 3,6">
+      <p class="field-hint">Bruges til effekt af statin og til LDL-mål.</p>
+    </div>
+
+    <fieldset class="field">
+      <legend>Type 2-diabetes</legend>
+      <label class="radio"><input type="radio" name="diabetes" value="nej" checked> Nej</label>
+      <label class="radio"><input type="radio" name="diabetes" value="ja"> Ja</label>
+    </fieldset>
+    <div id="dmFields" hidden>
+      <div class="field">
+        <label for="dmAlder">Alder ved diabetesdiagnose (år)</label>
+        <input type="number" id="dmAlder" min="18" max="89" placeholder="fx 52">
+      </div>
+      <div class="field">
+        <label for="hba1c">HbA1c (mmol/mol)</label>
+        <input type="number" id="hba1c" min="20" max="150" placeholder="fx 53">
+      </div>
+      <div class="field">
+        <label for="egfr">eGFR (ml/min/1,73 m²)</label>
+        <input type="number" id="egfr" min="5" max="150" placeholder="fx 85">
+      </div>
+      <fieldset class="field">
+        <legend>Organskade ved diabetes</legend>
+        <label class="checkbox"><input type="checkbox" name="organ" value="organ"> Organskade: albuminuri, retinopati eller neuropati</label>
+      </fieldset>
+    </div>
+
+    <fieldset class="field">
+      <legend>Forhold hvor SCORE2 ikke bruges</legend>
+      <label class="checkbox"><input type="checkbox" name="udelad" value="ascvd"> Kendt hjerte-kar-sygdom (AMI, apopleksi/TCI, perifer arteriesygdom, revaskularisering)</label>
+      <label class="checkbox"><input type="checkbox" name="udelad" value="fh"> Familiær hyperkolesterolæmi (kendt eller mistænkt)</label>
+      <label class="checkbox"><input type="checkbox" name="udelad" value="ckd"> Kronisk nyresygdom (eGFR &lt; 60 ml/min eller albuminuri i mindst 3 måneder)</label>
+    </fieldset>
+
+    <h2>2. Planlagt behandling</h2>
+    <fieldset class="field">
+      <legend>Statin</legend>
+      <label class="radio"><input type="radio" name="statin" value="ingen"> Ingen</label>
+      <label class="radio"><input type="radio" name="statin" value="moderat" checked> Moderat intensitet (fx atorvastatin 10–20 mg, simvastatin 40 mg) — LDL ca. −35 %</label>
+      <label class="radio"><input type="radio" name="statin" value="hoej"> Høj intensitet (fx atorvastatin 40–80 mg) — LDL ca. −50 %</label>
+    </fieldset>
+    <div class="field">
+      <label for="bpdrop">Planlagt sænkning af systolisk blodtryk (mmHg)</label>
+      <input type="number" id="bpdrop" min="0" max="60" placeholder="fx 10">
+    </div>
+  </form>
+
+  <section class="panel result-panel" aria-label="Risiko" id="resultPanel">
+    <h2>3. Risiko og effekt</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld vurdering</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>SCORE2 Working Group og ESC Cardiovascular Risk Collaboration, <em>Eur Heart J</em> 2021 — SCORE2 (40–69 år); SCORE2-OP Working Group, <em>Eur Heart J</em> 2021 — SCORE2-OP (70 år og derover); SCORE2-Diabetes Working Group, <em>Eur Heart J</em> 2023 — koefficienter og kalibrering for lavrisikoregionen</li>
+    <li>Dansk Cardiologisk Selskab — NBV Forebyggelse af hjertesygdom, Dyslipidæmi og Arteriel hypertension: behandlingstærskler efter alder, LDL-mål og blodtryksmål</li>
+    <li>Dansk Endokrinologisk Selskab og DSAM — type 2-diabetes: statin til praktisk talt alle over 40 år</li>
+    <li>ESC 2021 (forebyggelse) og ESC 2023 (diabetes) — risikokategorier og LDL-mål ved diabetes og kronisk nyresygdom; ESC 2024 (hypertension)</li>
+    <li>Cholesterol Treatment Trialists' Collaboration (<em>Lancet</em> 2010/2012) — ca. 22 % færre større karhændelser pr. 1 mmol/l lavere LDL</li>
+    <li>Blood Pressure Lowering Treatment Trialists' Collaboration (<em>Lancet</em> 2021) — ca. 10 % færre større hjerte-kar-hændelser pr. 5 mmHg lavere systolisk blodtryk</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra ESC eller DCS. Beregningerne er kontrolleret mod to uafhængige open source-implementeringer og de publicerede regneeksempler. DCS' vejledning kunne ikke tilgås direkte ved udviklingen; tærsklerne er kontrolleret via sekundære kilder. Effekten af behandling er et skøn ud fra metaanalyser. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="cvrisiko.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

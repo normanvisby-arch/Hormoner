@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atrieflimren — antikoagulation</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#a3262f">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hjerte-kar">
+</head>
+<body class="theme-hjerte">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">〰</span>
+      <div>
+        <h1>Atrieflimren — antikoagulation</h1>
+        <p class="subtitle">CHA₂DS₂-VA, blødningsrisiko, valg og dosis af DOAK ud fra nyrefunktion, interaktioner og kontrolinterval</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <a href="cvrisiko.html">CV-risiko</a>
+  <span aria-current="page">Atrieflimren</span>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Følger ESC 2024 og Dansk Cardiologisk Selskabs NBV (CHA₂DS₂-VA) samt produktresuméernes dosisregler. Gælder ikke ved mekanisk hjerteklap eller moderat–svær mitralstenose (her bruges VKA). Tjek altid dosis og interaktioner på pro.medicin.dk.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se anbefaling ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patientens data</h2>
+
+    <fieldset class="field">
+      <legend>Køn</legend>
+      <label class="radio"><input type="radio" name="koen" value="kvinde" checked> Kvinde</label>
+      <label class="radio"><input type="radio" name="koen" value="mand"> Mand</label>
+    </fieldset>
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="18" max="110" placeholder="fx 78">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+    <div class="field">
+      <label for="vaegt">Vægt (kg)</label>
+      <input type="number" id="vaegt" min="30" max="250" placeholder="fx 72">
+    </div>
+    <div class="field">
+      <label for="krea">P-kreatinin (µmol/l)</label>
+      <input type="number" id="krea" min="20" max="1500" placeholder="fx 98">
+      <p class="field-hint">Kreatininclearance beregnes med Cockcroft-Gault, som DOAK-doseringen bygger på.</p>
+    </div>
+
+    <fieldset class="field">
+      <legend>CHA₂DS₂-VA</legend>
+      <label class="checkbox"><input type="checkbox" name="cha" value="c"> Hjertesvigt eller nedsat venstre ventrikel-funktion</label>
+      <label class="checkbox"><input type="checkbox" name="cha" value="h"> Hypertension (også velbehandlet)</label>
+      <label class="checkbox"><input type="checkbox" name="cha" value="d"> Diabetes</label>
+      <label class="checkbox"><input type="checkbox" name="cha" value="s"> Tidligere apopleksi, TCI eller arteriel tromboemboli</label>
+      <label class="checkbox"><input type="checkbox" name="cha" value="v"> Karsygdom (tidligere AMI, perifer arteriesygdom, aortaplaque)</label>
+      <p class="field-hint">Alder tælles automatisk: 65–74 år giver 1 point, 75 år og derover 2 point.</p>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Klapsygdom</legend>
+      <label class="checkbox"><input type="checkbox" name="klap" value="klap"> Mekanisk hjerteklap eller moderat–svær mitralstenose</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Blødningsrisiko</legend>
+      <label class="checkbox"><input type="checkbox" name="bl" value="bt"> Ukontrolleret blodtryk (systolisk &gt; 160 mmHg)</label>
+      <label class="checkbox"><input type="checkbox" name="bl" value="nyre"> Svært nedsat nyrefunktion (dialyse, transplantation) — tælles også ved kreatinin &gt; 200 µmol/l</label>
+      <label class="checkbox"><input type="checkbox" name="bl" value="lever"> Leversygdom (cirrose eller svært forhøjede levertal)</label>
+      <label class="checkbox"><input type="checkbox" name="bl" value="bloed"> Tidligere større blødning eller anæmi</label>
+      <label class="checkbox"><input type="checkbox" name="bl" value="alkohol"> Alkohol ≥ 8 genstande om ugen</label>
+      <label class="checkbox"><input type="checkbox" name="bl" value="nsaid"> NSAID eller trombocythæmmer (fx acetylsalicylsyre, clopidogrel)</label>
+      <label class="checkbox"><input type="checkbox" name="bl" value="gi"> Gastritis, øsofagitis eller refluks</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Anden medicin (interaktioner)</legend>
+      <label class="checkbox"><input type="checkbox" name="med" value="amiodaron"> Amiodaron</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="dronedaron"> Dronedaron</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="verapamil"> Verapamil</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="diltiazem"> Diltiazem</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="erythromycin"> Erythromycin</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="klaritromycin"> Klaritromycin</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="ketoconazol"> Ketoconazol eller itraconazol</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="azol"> Voriconazol eller posaconazol</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="ciclosporin"> Ciclosporin</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="tacrolimus"> Tacrolimus</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="glecaprevir"> Glecaprevir/pibrentasvir (hepatitis C)</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="hiv"> HIV-proteasehæmmer (fx ritonavir)</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="induktor"> Rifampicin, carbamazepin, fenytoin, fenobarbital eller perikon</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="ssri"> SSRI eller SNRI</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Anbefaling" id="resultPanel">
+    <h2>2. Anbefaling</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld anbefaling</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>ESC 2024 Guidelines for the management of atrial fibrillation — CHA₂DS₂-VA (køn indgår ikke), antikoagulation ved score ≥ 2 og overvejes ved 1; blødningsrisiko håndteres, men er ikke grund til at undlade behandling</li>
+    <li>Dansk Cardiologisk Selskab — NBV Atrieflimren og Antitrombotisk behandling: DOAK som førstevalg, CHA₂DS₂-VA</li>
+    <li>EHRA Practical Guide on NOACs in AF (2021) — dosisreduktion, interaktioner og kontrolinterval (kreatininclearance/10 måneder)</li>
+    <li>Produktresuméer for apixaban, rivaroxaban, edoxaban og dabigatran (EMA) — nyregrænser og dosisreduktion</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra ESC, EHRA eller DCS. Dosis og interaktioner skal altid kontrolleres på pro.medicin.dk. DCS' vejledning kunne ikke tilgås direkte ved udviklingen; reglerne er kontrolleret via sekundære kilder og produktresuméer. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="af.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

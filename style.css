@@ -33,6 +33,12 @@
   text-size-adjust: 100%;
 }
 
+/* Hjerte-appen (hjerte/) bruger samme komponenter med rød hovedfarve. */
+body.theme-hjerte {
+  --color-primary: #a3262f;
+  --color-primary-dark: #7a1c24;
+}
+
 * { box-sizing: border-box; }
 
 body {
