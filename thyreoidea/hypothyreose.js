@@ -110,14 +110,15 @@
   function tolk(s) {
     if (gravid(s)) s = Object.assign({}, s, { ovre: Math.min(s.ovre, TSH_OVRE_GRAVID) });
     if (isNaN(s.tsh)) return { kode: "mangler", titel: "Indtast TSH", cls: "box-blue", tekst: "Angiv TSH og, hvis målt, T4 og TPO-antistoffer." };
-    if (s.tsh < TSH_NEDRE) {
+    const nedre = gravid(s) ? 0.1 : TSH_NEDRE;
+    if (s.tsh < nedre) {
       if (s.t4 === "lav") return { kode: "central", titel: "Lavt TSH og lavt T4 — mistanke om central hypothyreose", cls: "box-red", tekst: "Kan skyldes hypofyse- eller hypothalamussygdom, svær akut sygdom eller medicin (glukokortikoid). Henvis til endokrinolog — TSH kan ikke bruges til at styre behandlingen." };
       return { kode: "lav", titel: "Lavt TSH — ikke hypothyreose", cls: "box-blue", tekst: "Lavt TSH peger mod hyperthyreose (manifest eller subklinisk), som er uden for værktøjets område. Mål T4 og T3, og udred efter DSAM/DES." };
     }
     if (s.tsh <= s.ovre) {
       if (s.t4 === "lav") return { kode: "central", titel: "Normalt TSH og lavt T4 — overvej central hypothyreose", cls: "box-amber", tekst: "Et normalt TSH udelukker ikke central hypothyreose. Gentag prøverne; ved vedvarende lavt T4 eller hypofysesymptomer henvises til endokrinolog. Svær akut sygdom kan give samme billede." };
       if (s.t4 === "hoej") return { kode: "interferens", titel: "Normalt TSH og højt T4", cls: "box-amber", tekst: "Overvej analyseinterferens (fx biotin), nylig indtagelse af levothyroxin, akut sygdom eller — sjældent — TSH-producerende hypofyseadenom eller thyroideahormonresistens. Gentag prøverne; konferér med endokrinolog ved vedvarende fund." };
-      return { kode: "normal", titel: "Normalt TSH — ingen hypothyreose", cls: "box-green", tekst: `TSH ${fmt(s.tsh)} mIE/l er inden for referencen.${s.tpo === "pos" ? " Positive TPO-antistoffer: øget risiko for hypothyreose senere — mål TSH ved symptomer og før graviditet." : ""}` };
+      return { kode: "normal", titel: "Normalt TSH — ingen hypothyreose", cls: "box-green", tekst: `TSH ${fmt(s.tsh)} mIE/l er inden for ${gravid(s) ? "graviditetsreferencen" : "referencen"}.${gravid(s) && s.tsh < TSH_NEDRE ? " Let lavt TSH (0,1–0,3) er normalt i første trimester pga. hCG." : ""}${s.tpo === "pos" ? " Positive TPO-antistoffer: øget risiko for hypothyreose senere — mål TSH ved symptomer og før graviditet." : ""}` };
     }
     if (s.t4 === "lav") return { kode: "manifest", titel: "Manifest primær hypothyreose", cls: "box-red", tekst: `TSH ${fmt(s.tsh)} mIE/l over referencen og lavt T4.` };
     if (s.t4 === "hoej") return { kode: "interferens", titel: "Højt TSH og højt T4", cls: "box-amber", tekst: "Usædvanlig kombination: overvej analyseinterferens, TSH-producerende hypofyseadenom eller thyroideahormonresistens. Henvis til endokrinolog." };
@@ -215,6 +216,7 @@
       const ny = r125(D * 1.25);
       res.retning = "op";
       res.tekst.push(`Graviditet: øg dosis med 20–30 % straks ved positiv graviditetstest — fx til ${String(ny).replace(".", ",")} mikrog. dagligt, eller 2 ekstra dagsdoser om ugen (+29 %). TSH-mål under 2,5 mIE/l i første trimester; TSH hver 4. uge til uge 20. Er dosis allerede øget i denne graviditet, så markér det — så justeres efter TSH (mål under 2,5).`);
+      if (s.tsh < TSH_NEDRE) res.noter.push("TSH er allerede lavt (0,1–0,3): øg dosis, men kontrollér TSH og T4 efter 2–4 uger for at undgå overbehandling.");
       res.rows.push(doseRow("gravid", ny, "Anbefalet", true, "Ca. +25 %. Kontrol af TSH og T4 hver 4. uge. Tilbage til tidligere dosis efter fødslen."));
       res.rows.push({ key: "gravid|ekstra", navn: `${String(D).replace(".", ",")} mikrog. + 2 ekstra dagsdoser om ugen`, indhold: "Samme tablet — ingen ny recept", dosering: "Svarer til ca. +29 %.", tag: "Alternativ", tagClass: "tag-alt" });
       return res;

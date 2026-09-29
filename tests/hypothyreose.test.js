@@ -64,6 +64,7 @@ const BASE = process.env.BASE || ROOT + 'thyreoidea/hypothyreose.html';
   // Audit V7: graviditetsgrænse for TSH
   await fresh(); await fill({ tsh: '3.8', alder: 29 }); await r('t4', 'normal'); await cb('gravid');
   check('9f gravid TSH 3,8 -> subklinisk (grænse 3,5)', (await head()) === 'Subklinisk hypothyreose', await head());
+  await fill({ tsh: '0.2' }); check('9f2 gravid TSH 0,2 -> normalt (hCG)', (await head()).startsWith('Normalt TSH') && (await out()).includes('hCG'), await head());
   await fresh(); await fill({ tsh: '3.8', alder: 29 }); await r('t4', 'normal'); check('9g ikke gravid TSH 3,8 -> normal', (await head()).startsWith('Normalt TSH'));
   // Laveste dosis og lavt TSH -> pause
   await fresh(); await r('situation', 'beh'); await fill({ dosis: '12.5', tsh: '0.05', alder: 60 });
