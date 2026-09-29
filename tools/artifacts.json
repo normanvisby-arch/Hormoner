@@ -13,5 +13,16 @@
   "hjerte/index.html": { "url": "https://claude.ai/artifact/XKN6nykM6YPEeLv4AbgLHP", "mode": "standalone", "title": "Hjerte-kar i almen praksis" },
   "hjerte/cvrisiko.html": { "url": "https://claude.ai/artifact/PZ9AdGJSAoZg4sTspQMFcg", "mode": "tool", "title": "CV-risiko — SCORE2" },
   "hjerte/af.html": { "url": "https://claude.ai/artifact/2nGFCKz6mPxesZpGM7qZdm", "mode": "tool", "title": "Atrieflimren — antikoagulation" },
-  "hjerte/huskeskema.html": { "url": "https://claude.ai/artifact/V2AuSDq28JWHLgWBRFGwvW", "mode": "standalone", "title": "Hjerte-kar-huskeskema" }
+  "hjerte/huskeskema.html": { "url": "https://claude.ai/artifact/V2AuSDq28JWHLgWBRFGwvW", "mode": "standalone", "title": "Hjerte-kar-huskeskema" },
+  "lunge/index.html": { "url": "https://claude.ai/artifact/3UBrppDKHzFrQPWPmqTyN3", "mode": "standalone", "title": "Lunger i almen praksis" },
+  "lunge/kol.html": { "url": "https://claude.ai/artifact/RwkiswDjFX8ASUTB7rWTHg", "mode": "tool", "title": "KOL — gruppering og behandling" },
+  "lunge/astma.html": { "url": "https://claude.ai/artifact/QLsvaCZogcMMqB4wYjq9Dt", "mode": "tool", "title": "Astma — kontrol og behandling" },
+  "lunge/huskeskema.html": { "url": "https://claude.ai/artifact/Vw6a789yzyQFx8YmES88zw", "mode": "standalone", "title": "Lunge-huskeskema" },
+  "thyreoidea/index.html": { "url": "https://claude.ai/artifact/NNMzFNJBZ9qfn6waPQSUrU", "mode": "standalone", "title": "Hypothyreose i almen praksis" },
+  "thyreoidea/hypothyreose.html": { "url": "https://claude.ai/artifact/L2CezRoPizszaaeRAEUcei", "mode": "tool", "title": "Hypothyreose — TSH og levothyroxin" },
+  "thyreoidea/huskeskema.html": { "url": "https://claude.ai/artifact/2HfwSKFsydvPL6k29a5G86", "mode": "standalone", "title": "Hypothyreose-huskeskema" },
+  "diabetes/index.html": { "url": "https://claude.ai/artifact/DhADmnZZjEJSU9MBH5LjkM", "mode": "standalone", "title": "Type 2-diabetes i almen praksis" },
+  "diabetes/behandling.html": { "url": "https://claude.ai/artifact/GU6rvt4iEZcCKPsegv2UeS", "mode": "tool", "title": "Type 2-diabetes — behandling" },
+  "diabetes/aarskontrol.html": { "url": "https://claude.ai/artifact/HC6TGXaFwyKSL9uHMpDW92", "mode": "tool", "title": "Type 2-diabetes — årskontrol" },
+  "diabetes/huskeskema.html": { "url": "https://claude.ai/artifact/9hHVEYD5VFyuDEQ8jkFpta", "mode": "standalone", "title": "Type 2-diabetes-huskeskema" }
 }
