@@ -33,6 +33,7 @@
 
   resetBtn.addEventListener("click", () => {
     form.reset();
+    valgt = "";
     // form.reset() does not fire "input"/"change", so re-sync dependent UI.
     update();
   });
@@ -189,9 +190,32 @@
         if (induktor) r.set("frarådes", null, "enzyminduktor nedsætter effekten");
         r.noter.push("udskilles ca. 80 % renalt — følg nyrefunktionen tæt");
       }
+      if (r.status === "overvej") r.valg = ["150 mg × 2 dagligt", "110 mg × 2 dagligt"];
       res.push(r);
     }
+    // Doser, der kan vælges til journalnotatet (ikke ved frarådes/kontraindiceret).
+    res.forEach((d) => { if (!d.valg) d.valg = RANK[d.status] < RANK.frarådes ? [d.dosis] : []; });
     return res;
+  }
+
+  // Lægens valg af behandling til journalnotatet. Bevares mellem genberegninger,
+  // så længe valget stadig er muligt.
+  let valgt = "";
+  const ANDRE_VALG = [
+    ["warfarin", "Warfarin (VKA) — dosering efter INR, mål 2–3"],
+    ["ingen", "Ingen antikoagulation — fravalgt efter drøftelse"],
+  ];
+  output.addEventListener("change", (e) => {
+    if (e.target.name === "valg") valgt = e.target.value;
+  });
+
+  function valgFieldset(doaks) {
+    const opts = [];
+    doaks.forEach((d) => d.valg.forEach((dosis) => opts.push([`${d.navn}|${dosis}`, `${d.navn} ${dosis}`])));
+    ANDRE_VALG.forEach((o) => opts.push(o));
+    if (!opts.some(([v]) => v === valgt)) valgt = "";
+    const radios = opts.map(([v, label]) => `<label class="radio"><input type="radio" name="valg" value="${v}"${v === valgt ? " checked" : ""}> ${label}</label>`).join("");
+    return `<fieldset class="valg"><legend>Valgt behandling til journalnotatet</legend>${radios}<p class="field-hint">Vælg den behandling, I er enige om — så nævner journalnotatet kun den. Uden valg listes alle mulige præparater.</p></fieldset>`;
   }
 
   const STATUS = {
@@ -271,6 +295,7 @@
           `Valg og dosis af DOAK — kreatininclearance ${Math.round(cl)} ml/min`,
           `<p>DOAK er førstevalg frem for warfarin (DCS). Valget mellem præparaterne afgøres af nyrefunktion, interaktioner, dosering (1 eller 2 gange dagligt) og regionens anbefaling (basisliste/Medicinrådet).</p>
           <div class="drug-table-wrap"><table class="drug-table stack-mobile"><thead><tr>${h.map((x) => `<th>${x}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
+          ${valgFieldset(doaks)}
           ${cl < 15 ? "<p><strong>Kreatininclearance under 15 ml/min:</strong> DOAK anbefales ikke — konferér med nefrolog/kardiolog.</p>" : ""}
           ${(s.vaegt > 120) ? "<p><strong>Vægt over 120 kg:</strong> Cockcroft-Gault med faktisk vægt overvurderer nyrefunktionen — vurdér også eGFR. Begrænset dokumentation; apixaban eller rivaroxaban foretrækkes (EHRA).</p>" : ""}`
         );
@@ -316,6 +341,8 @@
       </ul></details></div>`;
     html += `<p class="source-note">Dosis efter produktresuméerne; kreatininclearance efter Cockcroft-Gault. Kontrollér altid dosis og interaktioner på <a href="https://pro.medicin.dk" target="_blank" rel="noopener">pro.medicin.dk</a>.</p>`;
     output.innerHTML = html;
+    // Uden DOAK-tabel (fx score 0 eller mekanisk klap) er der intet valg at huske.
+    if (!output.querySelector('input[name="valg"]')) valgt = "";
   }
 
   // ---------------------------------------------------------------------
@@ -334,14 +361,27 @@
     lines.push(`CHA2DS2-VA ${sc.va} (CHA2DS2-VASc ${sc.vasc}). HAS-BLED ${blod.length}${blod.length ? ` (${blod.join(", ")})` : ""}.`);
     const first = output.querySelector(".box p");
     if (first) lines.push(first.textContent.trim());
-    if (doaks) {
+    const [vNavn, vDosis] = valgt.split("|");
+    const vDrug = doaks && vDosis ? doaks.find((d) => d.navn === vNavn) : null;
+    if (vDrug) {
+      lines.push(`Valgt behandling: ${vDrug.navn} ${vDosis.toLowerCase()}${vDrug.noter.length ? ` (${vDrug.noter.join("; ")})` : ""}.`);
+    } else if (valgt === "warfarin") {
+      lines.push("Valgt behandling: warfarin (VKA), dosering efter INR med mål 2–3.");
+    } else if (valgt === "ingen") {
+      lines.push("Antikoagulation fravalgt efter drøftelse med patienten (angiv begrundelse).");
+    } else if (doaks) {
       const mulige = doaks.filter((d) => RANK[d.status] < RANK.frarådes);
       const ikke = doaks.filter((d) => RANK[d.status] >= RANK.frarådes);
       if (mulige.length) lines.push("Mulige DOAK/dosis: " + mulige.map((d) => `${d.navn} ${d.dosis.toLowerCase()}${d.noter.length ? ` (${d.noter.join("; ")})` : ""}`).join("; ") + ".");
       if (ikke.length) lines.push("Frarådes/kontraindiceret: " + ikke.map((d) => `${d.navn} — ${STATUS[d.status][1].toLowerCase()} (${d.noter.join("; ")})`).join("; ") + ".");
     }
+    if (valgt === "ingen") {
+      lines.push("Drøftet med patienten (tilpas): risiko for apopleksi uden AK; revurderes ved nye risikofaktorer.");
+      return lines.join("\n");
+    }
     const kontrol = Array.from(output.querySelectorAll(".box h3")).find((h) => h.textContent.startsWith("Kontrol"));
-    if (kontrol) lines.push(kontrol.textContent.trim() + ": Hb, nyre- og leverfunktion.");
+    if (valgt === "warfarin") lines.push("Kontrol: INR efter aftale; Hb og nyrefunktion mindst årligt.");
+    else if (kontrol) lines.push(kontrol.textContent.trim() + ": Hb, nyre- og leverfunktion.");
     lines.push("Drøftet med patienten (tilpas): gevinst ved AK, blødningsrisiko og tegn på blødning, adhærens.");
     return lines.join("\n");
   }
