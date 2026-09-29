@@ -24,5 +24,14 @@
   "diabetes/index.html": { "url": "https://claude.ai/artifact/DhADmnZZjEJSU9MBH5LjkM", "mode": "standalone", "title": "Type 2-diabetes i almen praksis" },
   "diabetes/behandling.html": { "url": "https://claude.ai/artifact/GU6rvt4iEZcCKPsegv2UeS", "mode": "tool", "title": "Type 2-diabetes — behandling" },
   "diabetes/aarskontrol.html": { "url": "https://claude.ai/artifact/HC6TGXaFwyKSL9uHMpDW92", "mode": "tool", "title": "Type 2-diabetes — årskontrol" },
-  "diabetes/huskeskema.html": { "url": "https://claude.ai/artifact/9hHVEYD5VFyuDEQ8jkFpta", "mode": "standalone", "title": "Type 2-diabetes-huskeskema" }
+  "diabetes/huskeskema.html": { "url": "https://claude.ai/artifact/9hHVEYD5VFyuDEQ8jkFpta", "mode": "standalone", "title": "Type 2-diabetes-huskeskema" },
+  "infektion/index.html": { "url": "PENDING/infektion/index.html", "mode": "standalone", "title": "Infektioner i almen praksis" },
+  "infektion/luftveje.html": { "url": "PENDING/infektion/luftveje.html", "mode": "tool", "title": "Luftvejsinfektioner — antibiotika" },
+  "infektion/urinveje.html": { "url": "PENDING/infektion/urinveje.html", "mode": "tool", "title": "Urinvejsinfektioner — antibiotika" },
+  "infektion/hud.html": { "url": "PENDING/infektion/hud.html", "mode": "tool", "title": "Hud- og bløddelsinfektioner" },
+  "infektion/huskeskema.html": { "url": "PENDING/infektion/huskeskema.html", "mode": "standalone", "title": "Antibiotika-huskeskema" },
+  "nyre/index.html": { "url": "PENDING/nyre/index.html", "mode": "standalone", "title": "Nyrer i almen praksis" },
+  "nyre/ckd.html": { "url": "PENDING/nyre/ckd.html", "mode": "tool", "title": "Kronisk nyresygdom" },
+  "nyre/dosis.html": { "url": "PENDING/nyre/dosis.html", "mode": "tool", "title": "Dosis efter nyrefunktion" },
+  "nyre/huskeskema.html": { "url": "PENDING/nyre/huskeskema.html", "mode": "standalone", "title": "Nyre-huskeskema" }
 }
