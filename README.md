@@ -98,7 +98,8 @@ Selvstændig app med eget manifest, ikon og service worker (installeres fra
   sammenligning, HAS-BLED som støtte (ikke grund til at undlade AK), kreatininclearance
   (Cockcroft-Gault), dosis og status for apixaban, rivaroxaban, edoxaban og dabigatran efter
   produktresuméerne, interaktioner og kontrolinterval (EHRA: clearance/10 måneder, 6 måneder fra
-  75 år, ellers årligt). VKA ved mekanisk klap/mitralstenose.
+  75 år, ellers årligt). VKA ved mekanisk klap/mitralstenose. Lægen kan vælge den aftalte
+  behandling, så journalnotatet kun nævner den.
 - **`huskeskema.html`**: tolv principper, effekt i tal (CTT, BPLTTC, Hart 2007, Ruff 2014) og
   henvisningskriterier.
 
@@ -397,6 +398,15 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**29. september 2026 — valg af behandling til journalnotatet (hjerte-kar):**
+- Atrieflimren: under DOAK-tabellen vælges den aftalte behandling (mulige DOAK-doser, ved
+  dabigatran i "overvej"-gruppen både 150 og 110 mg, samt warfarin eller fravalg af AK).
+  Journalnotatet nævner så kun det valgte; uden valg listes alle mulige præparater som før.
+  Frarådede og kontraindicerede præparater kan ikke vælges, og valget nulstilles, hvis det ikke
+  længere er muligt.
+- CV-risiko: når statin eller blodtrykssænkning vælges aktivt, skrives valget som "Plan" i
+  journalnotatet (standardvalget bruges kun til at vise effekten).
 
 **28. september 2026 — ny selvstændig app: hjerte-kar (`hjerte/`):**
 - CV-risiko (SCORE2/SCORE2-OP/SCORE2-Diabetes med danske tærskler og NNT), antikoagulation ved

@@ -78,6 +78,23 @@ const BASE = process.env.BASE || ROOT + 'hjerte/af.html';
   await fresh(); await cb('koen', 'mand'); await fill({ alder: 85, vaegt: 55, krea: 150 }); await cb('cha', 'h');
   await p.click('#copyBtn'); await p.waitForTimeout(150); const note2 = await p.evaluate(() => navigator.clipboard.readText());
   check('14b journal skiller kontraindicerede DOAK fra', note2.includes('Frarådes/kontraindiceret: Dabigatran — kontraindiceret') && !/Mulige DOAK[^\n]*Dabigatran/.test(note2), note2);
+  // Valg af behandling til journalnotatet
+  const getNote = async () => { await p.click('#copyBtn'); await p.waitForTimeout(150); return p.evaluate(() => navigator.clipboard.readText()); };
+  await fresh(); await cb('koen', 'mand'); await fill({ alder: 85, vaegt: 55, krea: 150 }); await cb('cha', 'h');
+  const opts = await p.$$eval('#output input[name="valg"]', (els) => els.map((e) => e.value));
+  check('14f valg: kun mulige doser + warfarin/ingen', opts.includes('Apixaban|2,5 mg × 2 dagligt') && !opts.some((v) => v.startsWith('Dabigatran')) && opts.includes('warfarin') && opts.includes('ingen'), JSON.stringify(opts));
+  await p.check('#output input[name="valg"][value="Apixaban|2,5 mg × 2 dagligt"]'); let n = await getNote();
+  check('14g valgt apixaban -> kun apixaban i notatet', n.includes('Valgt behandling: Apixaban 2,5 mg × 2 dagligt') && !n.includes('Rivaroxaban') && !n.includes('Mulige DOAK') && !n.includes('Frarådes/kontraindiceret'), n);
+  await fill({ vaegt: 56 }); n = await getNote();
+  check('14h valget bevares ved ny indtastning', n.includes('Valgt behandling: Apixaban') && (await p.isChecked('#output input[name="valg"][value="Apixaban|2,5 mg × 2 dagligt"]')));
+  await p.check('#output input[name="valg"][value="ingen"]'); n = await getNote();
+  check('14i ingen AK -> fravalgt, ingen kontrollinje', n.includes('Antikoagulation fravalgt') && !n.includes('Kontrol:') && !n.includes('Apixaban'), n);
+  await p.check('#output input[name="valg"][value="warfarin"]'); n = await getNote(); check('14j warfarin', n.includes('Valgt behandling: warfarin') && n.includes('INR'));
+  await p.click('#resetBtn'); await fill({ alder: 77, vaegt: 75, krea: 90 }); await cb('cha', 'h');
+  check('14k reset rydder valget', (await p.$$eval('#output input[name="valg"]:checked', (e) => e.length)) === 0);
+  const dOpts = await p.$$eval('#output input[name="valg"]', (els) => els.map((e) => e.value).filter((v) => v.startsWith('Dabigatran')));
+  check('14l dabigatran "overvej" giver to doser', dOpts.length === 2 && dOpts.includes('Dabigatran|110 mg × 2 dagligt'), JSON.stringify(dOpts));
+  await p.check('#output input[name="valg"][value="Dabigatran|110 mg × 2 dagligt"]'); n = await getNote(); check('14m dabigatran 110 valgt', n.includes('Valgt behandling: Dabigatran 110 mg × 2 dagligt (alder 75–79'), n);
   // HAS-BLED: kreatinin > 200 tæller som nyresygdom
   await fresh(); await fill({ alder: 60, vaegt: 70, krea: 250 }); o = await out(); check('14c kreatinin > 200 -> nyrepoint', o.includes('HAS-BLED 1') && o.includes('nyresygdom'));
   // Kontrolinterval ved clearance præcis 60

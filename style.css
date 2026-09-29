@@ -751,3 +751,8 @@ body {
   .calendar-layout { grid-template-columns: 1fr; }
   .day-cell { border: 1px solid #ccc; }
 }
+
+/* Valg af behandling til journalnotatet (atrieflimren) */
+.valg { border: 1px solid var(--color-border); border-radius: 8px; padding: 0.4rem 0.85rem 0.6rem; margin: 0.9rem 0 0; }
+.valg legend { font-weight: 600; font-size: 0.9rem; padding: 0 0.3rem; }
+.valg .field-hint { margin: 0.4rem 0 0; }

@@ -23,6 +23,11 @@
 
   form.addEventListener("input", update);
   form.addEventListener("change", update);
+  // Planen skrives først i journalnotatet, når lægen aktivt har valgt behandling
+  // (standardvalget "moderat" bruges kun til at vise effekten).
+  let planValgt = false;
+  form.addEventListener("change", (e) => { if (e.target.name === "statin" || e.target.id === "bpdrop") planValgt = true; });
+  form.addEventListener("input", (e) => { if (e.target.id === "bpdrop") planValgt = true; });
 
   if (printBtn) {
     printBtn.addEventListener("click", () => {
@@ -36,6 +41,7 @@
 
   resetBtn.addEventListener("click", () => {
     form.reset();
+    planValgt = false;
     // form.reset() does not fire "input"/"change", so re-sync dependent UI.
     update();
   });
@@ -409,6 +415,13 @@
     if (heading) lines.push(heading.textContent.trim() + ".");
     const first = output.querySelector(".box p");
     if (first) lines.push(first.textContent.trim());
+    if (last && planValgt) {
+      const plan = [];
+      if (s.statin === "moderat") plan.push("statin i moderat intensitet (fx atorvastatin 10–20 mg)");
+      if (s.statin === "hoej") plan.push("statin i høj intensitet (fx atorvastatin 40–80 mg)");
+      if (s.bpdrop) plan.push(`blodtrykssænkning ca. ${s.bpdrop} mmHg systolisk`);
+      lines.push(plan.length ? `Plan (tilpas): ${plan.join(" og ")}; livsstil.` : "Plan (tilpas): livsstil; ingen medicinsk behandling p.t.");
+    }
     if (last && last.eff.pct + last.s.bpdrop > 0) lines.push(`Effekt af planlagt behandling over 10 år: NNT ca. ${fmtInt(roundNnt(last.eff.nnt))} (risiko ${fmt1(last.res.risk)} % → ${fmt1(last.eff.treated)} %).`);
     if (last && last.utenRyg) lines.push(`Ved rygestop: ca. ${fmt1(last.utenRyg.risk)} %.`);
     lines.push("Drøftet med patienten (tilpas): risiko i absolutte tal, livsstil, gevinst og bivirkninger ved behandling.");
