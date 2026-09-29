@@ -756,3 +756,11 @@ body {
 .valg { border: 1px solid var(--color-border); border-radius: 8px; padding: 0.4rem 0.85rem 0.6rem; margin: 0.9rem 0 0; }
 .valg legend { font-weight: 600; font-size: 0.9rem; padding: 0 0.3rem; }
 .valg .field-hint { margin: 0.4rem 0 0; }
+
+/* "Vælg til journal" i behandlingstabeller (valg.js) */
+.valg-radio { display: flex; align-items: center; gap: 0.35rem; margin-top: 0.3rem; font-size: 0.78rem; font-weight: 600; color: var(--color-muted); cursor: pointer; }
+.valg-radio input { margin: 0; accent-color: var(--color-primary); }
+.valg-radio:has(input:checked) { color: var(--color-primary); }
+.valg-ingen { margin: 0.5rem 0 0; }
+.valg-hint { margin: 0.2rem 0 0.4rem; }
+

@@ -18,6 +18,8 @@ eller "usikker" end et falsk præcist tal.
   `body.theme-hjerte`) og `../pwa.js`. SCORE2-koefficienterne er kontrolleret mod R-pakken
   RiskScorescvd og de publicerede regneeksempler (se `tests/cvrisiko.test.js`) — ret dem kun med
   en primærkilde.
+- `valg.js`: fælles "Vælg til journal"-knap i behandlingstabeller (klimakterie, prævention,
+  osteoporose); journalnotatet bruger det valgte i stedet for førstevalget.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
   **Hæv `VERSION` i `sw.js`** (og `hjerte/sw.js` for hjerte-appen), når filer tilføjes, fjernes

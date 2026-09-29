@@ -11,6 +11,8 @@
 
   const form = document.querySelector(".form-panel");
   const output = document.getElementById("output");
+  // Lægens valg af behandling til journalnotatet (valg.js).
+  const valg = Behandlingsvalg(output);
   const copyBtn = document.getElementById("copyBtn");
   const copyFullBtn = document.getElementById("copyFullBtn");
   const copyStatus = document.getElementById("copyStatus");
@@ -43,6 +45,7 @@
 
   resetBtn.addEventListener("click", () => {
     form.reset();
+    valg.nulstil();
     // form.reset() does not fire "input"/"change", so re-sync dependent UI.
     checkAlderRange();
     update();
@@ -182,7 +185,7 @@
     zoledronsyre: { navn: "Zoledronsyre (Aclasta)", indhold: "Bisfosfonat, infusion 5 mg", dosering: "1 infusion årligt, typisk i 3 år — gives oftest i hospitalsregi. Kræver eGFR ≥ 35 og normalt calcium/D-vitamin. Influenzalignende reaktion efter første infusion er hyppig." },
     denosumab: { navn: "Denosumab (Prolia)", indhold: "Antistof, injektion 60 mg s.c. (klausuleret tilskud)", dosering: "Hver 6. måned — aldrig mere end 7 måneder imellem. Må aldrig stoppes uden efterbehandling (zoledronsyre 6 mdr. efter sidste injektion). Calcium før hver injektion." },
   };
-  const row = (p, tag, tagClass) => Object.assign({}, P[p], { tag, tagClass });
+  const row = (p, tag, tagClass) => Object.assign({ key: p }, P[p], { tag, tagClass });
 
   function praeparatValg(s) {
     const notes = [];
@@ -208,7 +211,7 @@
     }
     if (!egfrKendt(s)) notes.push("Mål eGFR før opstart — alendronat og zoledronsyre bruges ikke ved eGFR under 35.");
     if (s.gruppe === "kvinde" && has(s.forhold, "klimakteriegener") && !has(s.rf, "aromatase") && !(!isNaN(s.alder) && s.alder >= 60)) {
-      rows.push({ navn: "Hormonbehandling (MHT)", indhold: "Østrogen ± gestagen", dosering: `Forebygger brud og kan være førstevalg hos kvinder under 60 år med generende gener — se <a href="${KLIMAKTERIE_URL}" target="_blank" rel="noopener">Klimakterieguiden</a>.`, tag: "Ved klimakterielle gener" });
+      rows.push({ key: "mht", navn: "Hormonbehandling (MHT)", indhold: "Østrogen ± gestagen", dosering: `Forebygger brud og kan være førstevalg hos kvinder under 60 år med generende gener — se <a href="${KLIMAKTERIE_URL}" target="_blank" rel="noopener">Klimakterieguiden</a>.`, tag: "Ved klimakterielle gener" });
     }
     if (has(s.rf, "aromatase")) notes.push("Aromatasehæmmer: koordinér med onkologisk afdeling (DBCG). MHT er kontraindiceret.");
     if (prednisolon(s)) notes.push("Glukokortikoid: bisfosfonat er førstevalg; fortsæt behandlingen, så længe prednisolonbehandlingen varer.");
@@ -228,7 +231,7 @@
   function drugTable(rows) {
     const h = ["Præparat", "Type", "Dosering og forhold"];
     return `<div class="drug-table-wrap"><table class="drug-table stack-mobile"><thead><tr>${h.map((x) => `<th>${x}</th>`).join("")}</tr></thead><tbody>${rows
-      .map((r) => `<tr><td>${r.navn}${r.tag ? `<span class="tag ${r.tagClass || "tag-alt"}">${r.tag}</span>` : ""}</td><td data-label="${h[1]}">${r.indhold}</td><td data-label="${h[2]}">${r.dosering}</td></tr>`)
+      .map((r) => `<tr><td>${r.navn}${r.tag ? `<span class="tag ${r.tagClass || "tag-alt"}">${r.tag}</span>` : ""}${r.key ? valg.radio(r.key) : ""}</td><td data-label="${h[1]}">${r.indhold}</td><td data-label="${h[2]}">${r.dosering}</td></tr>`)
       .join("")}</tbody></table></div>`;
   }
 
@@ -354,21 +357,22 @@
 
     html += statusBox(s, ind);
     if (ind.status === "behandling" || ind.status === "individuel") {
-      const valg = praeparatValg(s);
-      lastValg = valg;
-      html += specialistBox(s, valg);
-      if (!valg.specialist) {
+      const pv = praeparatValg(s);
+      lastValg = pv;
+      html += specialistBox(s, pv);
+      if (!pv.specialist) {
         html += box(
           ind.status === "behandling" ? "box-green" : "box-amber",
           ind.status === "behandling" ? "Valg af præparat" : "Hvis der vælges behandling",
-          `${valg.notes.map((n) => `<p>${n}</p>`).join("")}${drugTable(valg.rows)}`
+          `${pv.notes.map((n) => `<p>${n}</p>`).join("")}${drugTable(pv.rows)}
+          <p class="valg-ingen">${valg.radio("ingen", "Ingen medicinsk behandling — fravalgt efter drøftelse (til journal)")}</p>`
         );
       }
       html += foerOpstartBox(s);
-      if (valg.primaer === "alendronat" || valg.primaer === "risedronat") html += alendronatBox();
+      if (pv.primaer === "alendronat" || pv.primaer === "risedronat") html += alendronatBox();
       // Only warn prominently when denosumab is a realistic choice, not a distant 3rd option.
-      if (valg.primaer && valg.primaer !== "alendronat" && valg.rows.some((r) => r.navn.startsWith("Denosumab"))) html += denosumabBox();
-      html += calciumBox(s) + varighedBox(valg);
+      if (pv.primaer && pv.primaer !== "alendronat" && pv.rows.some((r) => r.navn.startsWith("Denosumab"))) html += denosumabBox();
+      html += calciumBox(s) + varighedBox(pv);
     } else {
       html += specialistBox(s, null);
       html += calciumBox(s);
@@ -393,17 +397,17 @@
     lines.push(`Risikofaktorer: ${s.rf.length ? s.rf.map((k) => RF_LABELS[k]).join(", ") : "ingen markeret"}.`);
     const heading = output.querySelector(".box h3");
     if (heading) lines.push(`Vurdering: ${heading.textContent.trim()}. ${lastInd.r.join(" ")}`);
-    if (lastValg && lastValg.primaer) lines.push(`Plan (tilpas): ${P[lastValg.primaer].navn} — ${P[lastValg.primaer].dosering} Calcium og D-vitamin. Blodprøver og tandstatus før opstart. Revurdering efter ${lastValg.primaer === "zoledronsyre" ? "3" : "5"} år${lastValg.primaer === "denosumab" ? " — denosumab stoppes ikke uden efterbehandling" : ""}.`);
+    // Lægens valg i tabellen har forrang for værktøjets førstevalg.
+    const v = lastValg && valg.valgt;
+    const p = v && P[v] ? v : lastValg && !v ? lastValg.primaer : null;
+    if (v === "ingen") lines.push("Medicinsk behandling fravalgt efter drøftelse med patienten (angiv begrundelse). Calcium og D-vitamin efter behov, faldforebyggelse og fysisk aktivitet.");
+    else if (v === "mht") lines.push("Plan (tilpas): hormonbehandling (MHT) — se klimakterievurdering. Calcium og D-vitamin efter behov.");
+    else if (p) lines.push(`${v ? "Valgt behandling" : "Plan (tilpas)"}: ${P[p].navn} — ${P[p].dosering} Calcium og D-vitamin. Blodprøver og tandstatus før opstart. Revurdering efter ${p === "zoledronsyre" ? "3" : "5"} år${p === "denosumab" ? " — denosumab stoppes ikke uden efterbehandling" : ""}.`);
     return lines.join("\n");
   }
 
   // Keeps the tag ("1. valg") apart from the drug name in the plain-text copy.
-  function cellText(td) {
-    const tag = td.querySelector(".tag");
-    if (!tag) return td.textContent.trim();
-    const navn = Array.from(td.childNodes).filter((n) => n !== tag).map((n) => n.textContent).join("").trim();
-    return `${navn} (${tag.textContent.trim()})`;
-  }
+  const cellText = Behandlingsvalg.cellText;
 
   function buildFullText() {
     const lines = [];
@@ -411,7 +415,7 @@
       const h3 = boxEl.querySelector("h3");
       if (h3) lines.push(h3.textContent.trim().toUpperCase());
       boxEl.querySelectorAll(":scope > p, :scope > ul, :scope > .drug-table-wrap, :scope > details > p, :scope > details > ul").forEach((el) => {
-        if (el.tagName === "P") lines.push(el.textContent.trim());
+        if (el.tagName === "P") { if (!el.classList.contains("valg-ingen")) lines.push(el.textContent.trim()); }
         else if (el.tagName === "UL") el.querySelectorAll("li").forEach((li) => lines.push("- " + li.textContent.trim().replace(/\s+/g, " ")));
         else el.querySelectorAll("tbody tr").forEach((tr) => lines.push("  * " + Array.from(tr.querySelectorAll("td")).map(cellText).join(" — ")));
       });

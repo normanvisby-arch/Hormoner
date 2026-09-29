@@ -4,7 +4,7 @@
  * åbning med forbindelse; uden forbindelse bruges den gemte kopi.
  * Hæv VERSION, når filer tilføjes eller fjernes fra listen.
  */
-const VERSION = "v5";
+const VERSION = "v6";
 const CACHE = `klinikvaerktoejer-${VERSION}`;
 const FILES = [
   "./",
@@ -28,6 +28,7 @@ const FILES = [
   "fraktur.js",
   "osteoplan.js",
   "bloedningskalender.js",
+  "valg.js",
   "pwa.js",
   "manifest.webmanifest",
   "icons/icon.svg",
