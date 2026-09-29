@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KOL — gruppering og behandling</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f5f99">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lunger">
+</head>
+<body class="theme-lunge">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🫁</span>
+      <div>
+        <h1>KOL — gruppering og behandling</h1>
+        <p class="subtitle">Spirometri, ABE-gruppe, inhalationsbehandling efter symptomer, eksacerbationer og eosinofile, rehabilitering og eksacerbationsbehandling</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <span aria-current="page">KOL</span>
+  <a href="astma.html">Astma</a>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Følger GOLD 2025 og DSAM's vejledning om KOL (ABE-gruppering og eosinofile til valg af inhalationssteroid). DSAM's nye fælles vejledning "Astma og KOL i almen praksis" var i høring i foråret 2026 — tjek, om den endelige version ændrer noget. Præparatnavne er eksempler; valget følger regionens basisliste.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se anbefaling ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patientens data</h2>
+
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="18" max="110" placeholder="fx 67">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+
+    <fieldset class="field">
+      <legend>Rygning</legend>
+      <label class="radio"><input type="radio" name="ryger" value="ukendt" checked> Ikke angivet</label>
+      <label class="radio"><input type="radio" name="ryger" value="ryger"> Ryger</label>
+      <label class="radio"><input type="radio" name="ryger" value="tidligere"> Tidligere ryger</label>
+      <label class="radio"><input type="radio" name="ryger" value="aldrig"> Aldrig røget</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Spirometri efter bronkodilatator</legend>
+      <label for="ratio">FEV1/FVC (fx 0,62)</label>
+      <input type="number" id="ratio" min="0.2" max="1" step="0.01" placeholder="fx 0,62">
+      <label for="fev1pct" class="field-sublabel">FEV1 i % af forventet</label>
+      <input type="number" id="fev1pct" min="5" max="150" placeholder="fx 58">
+      <span class="input-warning" id="spiroWarning" aria-live="polite"></span>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Åndenød (mMRC)</legend>
+      <label class="radio"><input type="radio" name="mmrc" value="0"> 0 — kun ved hård anstrengelse</label>
+      <label class="radio"><input type="radio" name="mmrc" value="1"> 1 — ved rask gang eller op ad bakke</label>
+      <label class="radio"><input type="radio" name="mmrc" value="2"> 2 — går langsommere end jævnaldrende eller må stoppe i eget tempo</label>
+      <label class="radio"><input type="radio" name="mmrc" value="3"> 3 — må stoppe efter ca. 100 m eller få minutter</label>
+      <label class="radio"><input type="radio" name="mmrc" value="4"> 4 — for forpustet til at gå ud eller klæde sig på</label>
+      <p class="field-hint">mMRC 0–4 svarer til MRC 1–5 (mMRC 2 = MRC 3).</p>
+    </fieldset>
+    <div class="field">
+      <label for="cat">CAT-score (valgfrit, 0–40)</label>
+      <input type="number" id="cat" min="0" max="40" placeholder="fx 14">
+      <p class="field-hint">Ved uenighed mellem mMRC og CAT vægtes den højeste symptombyrde.</p>
+    </div>
+
+    <fieldset class="field">
+      <legend>Eksacerbationer det seneste år</legend>
+      <label for="eksModerat">Behandlet med prednisolon og/eller antibiotika (antal)</label>
+      <input type="number" id="eksModerat" min="0" max="20" placeholder="fx 1">
+      <label for="eksIndl" class="field-sublabel">Indlæggelser pga. KOL (antal)</label>
+      <input type="number" id="eksIndl" min="0" max="20" placeholder="fx 0">
+    </fieldset>
+
+    <div class="field">
+      <label for="eos">Eosinofile leukocytter (mia./l, valgfrit)</label>
+      <input type="number" id="eos" min="0" max="5" step="0.01" placeholder="fx 0,25">
+      <p class="field-hint">Målt i stabil fase uden prednisolon.</p>
+    </div>
+
+    <fieldset class="field">
+      <legend>Nuværende vedligeholdelsesbehandling</legend>
+      <label class="radio"><input type="radio" name="beh" value="ingen" checked> Ingen (eller kun korttidsvirkende efter behov)</label>
+      <label class="radio"><input type="radio" name="beh" value="mono"> LAMA eller LABA alene</label>
+      <label class="radio"><input type="radio" name="beh" value="dobbelt"> LAMA + LABA</label>
+      <label class="radio"><input type="radio" name="beh" value="icslaba"> ICS + LABA</label>
+      <label class="radio"><input type="radio" name="beh" value="triple"> LAMA + LABA + ICS (triple)</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Øvrige forhold</legend>
+      <label class="checkbox"><input type="checkbox" name="andet" value="bronkitis"> Kronisk bronkitis (hoste med ekspektorat det meste af året)</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="astma"> Astma i anamnesen eller samtidig astma</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="pneumoni"> Gentagne pneumonier eller mykobakteriel infektion</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="teknik"> Inhalationsteknik og adhærens er kontrolleret og i orden</label>
+    </fieldset>
+    <div class="field">
+      <label for="spo2">Saturation i hvile i stabil fase (%, valgfrit)</label>
+      <input type="number" id="spo2" min="60" max="100" placeholder="fx 94">
+    </div>
+  </form>
+
+  <section class="panel result-panel" aria-label="Anbefaling" id="resultPanel">
+    <h2>2. Vurdering og anbefaling</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <p class="field-hint valg-hint" id="valgHint" hidden>Tryk "Vælg til journal" ved en behandling, så nævner journalnotatet den i stedet for værktøjets førstevalg.</p>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld anbefaling</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Global Initiative for Chronic Obstructive Lung Disease (GOLD) 2025 — diagnose (FEV1/FVC &lt; 0,70), GOLD-grad 1–4, ABE-gruppering, initial og opfølgende farmakologisk behandling, eosinofile og inhalationssteroid</li>
+    <li>DSAM — klinisk vejledning om KOL i almen praksis: ICS ved eosinofile ≥ 0,3 mia./l, tvivlsom effekt ved 0,10–0,29, ikke indiceret ved &lt; 0,10; rehabilitering ved betydende åndenød</li>
+    <li>DSAM — "Astma og KOL i almen praksis" (udkast i høring april–maj 2026)</li>
+    <li>Regionale infektionsvejledninger for almen praksis og Lægehåndbogen — eksacerbation: prednisolon 37,5 mg i 5 dage; amoxicillin ved øget mængde og purulent ekspektorat</li>
+    <li>Dansk Lungemedicinsk Selskab — iltbehandling i hjemmet (PaO2 &lt; 7,3 kPa, eller 7,3–8,0 kPa ved cor pulmonale eller polycytæmi)</li>
+    <li>Sundhedsstyrelsen og Lægemiddelstyrelsen — vaccination mod influenza og covid-19; klausuleret tilskud til pneumokokvaccine og til RSV-vaccine til personer over 60 år med KOL</li>
+    <li>Medicinrådets basisliste — triple-behandling ved KOL (fx Trelegy Ellipta)</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra GOLD, DSAM eller Dansk Lungemedicinsk Selskab. DSAM's og Medicinrådets sider kunne ikke tilgås direkte ved udviklingen; anbefalingerne er kontrolleret via sekundære kilder og skal verificeres i de gældende vejledninger. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="../valg.js"></script>
+<script src="kol.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

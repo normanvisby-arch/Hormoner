@@ -76,8 +76,8 @@ def build_standalone(page):
     body_start = src.index(">", src.index("<body")) + 1
     body = src[body_start: re.search(r'<script src="[^"]*pwa\.js">', src).start()].strip()
     body = strip_app_only(map_links(body, page))
-    # Oversigtens "Åbn"-knapper åbner værktøjet i en ny fane i claude.ai.
-    body = re.sub(r'(<a class="btn btn-open" href="https://claude\.ai/[^"]+"|<strong>Se også:</strong> <a href="https://claude\.ai/[^"]+")>', r'\1 target="_blank" rel="noopener">', body)
+    # Links til andre artifacts ("Åbn"-knapper, "Se også", "Andre apps") åbner i en ny fane i claude.ai.
+    body = re.sub(r'(<a (?:class="[^"]*" )?href="https://claude\.ai/artifact/[^"]+")>', r'\1 target="_blank" rel="noopener">', body)
     return set_title(title, page) + "\n" + style + "\n\n" + body + "\n"
 
 

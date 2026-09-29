@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Type 2-diabetes — årskontrol</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#9a4f0b">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Type 2-diabetes">
+</head>
+<body class="theme-diabetes">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">📋</span>
+      <div>
+        <h1>Type 2-diabetes — årskontrol</h1>
+        <p class="subtitle">Behandlingsmål for blodtryk, LDL og albuminuri, nyrefunktion, fødder, øjne og livsstil — med journalnotat</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <a href="behandling.html">Behandling</a>
+  <span aria-current="page">Årskontrol</span>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Følger DSAM's vejledning "Type 2-diabetes — opfølgning og behandling", Dansk Endokrinologisk Selskabs NBV og Dansk Nefrologisk Selskab. Glukosesænkende behandling vurderes i <a href="behandling.html">Behandling</a>; samlet hjerte-kar-risiko kan beregnes med SCORE2-Diabetes i hjerte-kar-appen.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se status ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Årets målinger</h2>
+
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="18" max="110" placeholder="fx 66">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+    <div class="field">
+      <label for="hba1c">HbA1c (mmol/mol)</label>
+      <input type="number" id="hba1c" min="20" max="200" placeholder="fx 55">
+    </div>
+    <fieldset class="field">
+      <legend>Blodtryk (mmHg)</legend>
+      <label for="sbp">Systolisk</label>
+      <input type="number" id="sbp" min="70" max="260" placeholder="fx 138">
+      <label for="dbp" class="field-sublabel">Diastolisk</label>
+      <input type="number" id="dbp" min="30" max="160" placeholder="fx 82">
+    </fieldset>
+    <div class="field">
+      <label for="ldl">LDL-kolesterol (mmol/l)</label>
+      <input type="number" id="ldl" min="0.2" max="15" step="0.1" placeholder="fx 2,4">
+    </div>
+    <fieldset class="field">
+      <legend>Nyrer</legend>
+      <label for="egfr">eGFR nu (ml/min/1,73 m²)</label>
+      <input type="number" id="egfr" min="5" max="150" placeholder="fx 64">
+      <label for="egfrFoer" class="field-sublabel">eGFR for ca. 1 år siden (valgfrit)</label>
+      <input type="number" id="egfrFoer" min="5" max="150" placeholder="fx 71">
+      <label for="uacr" class="field-sublabel">Urin-albumin/kreatinin-ratio (mg/g)</label>
+      <input type="number" id="uacr" min="0" max="5000" placeholder="fx 25">
+    </fieldset>
+    <div class="field">
+      <label for="bmi">BMI</label>
+      <input type="number" id="bmi" min="14" max="70" step="0.1" placeholder="fx 30">
+      <span class="input-warning" id="labWarning" aria-live="polite"></span>
+    </div>
+
+    <fieldset class="field">
+      <legend>Risiko og medicin</legend>
+      <label class="checkbox"><input type="checkbox" name="rf" value="ascvd"> Kendt hjerte-kar-sygdom</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="risiko"> Mindst 3 risikofaktorer (alder &gt; 60, mand, arvelig disposition, ukontrolleret BT, rygning &gt; 10 pakkeår)</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="statin"> Får statin</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="acearb"> Får ACE-hæmmer eller angiotensin II-receptorblokker</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="sglt2"> Får SGLT-2-hæmmer</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="nystart"> SGLT-2-hæmmer eller ACE-hæmmer/ARB startet inden for det seneste år</label>
+      <label class="checkbox"><input type="checkbox" name="rf" value="metformin4"> Metformin i mere end 4 år</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Rygning</legend>
+      <label class="radio"><input type="radio" name="ryger" value="nej" checked> Ikke-ryger</label>
+      <label class="radio"><input type="radio" name="ryger" value="ja"> Ryger</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Fødder — risikogruppe ved årets fodstatus</legend>
+      <label class="radio"><input type="radio" name="fod" value="ukendt" checked> Ikke vurderet i år</label>
+      <label class="radio"><input type="radio" name="fod" value="1"> 1 — normal følesans og puls</label>
+      <label class="radio"><input type="radio" name="fod" value="2"> 2 — neuropati eller nedsat cirkulation</label>
+      <label class="radio"><input type="radio" name="fod" value="3"> 3 — neuropati eller nedsat cirkulation og fejlstilling/hård hud</label>
+      <label class="radio"><input type="radio" name="fod" value="4"> 4 — tidligere sår, amputation eller Charcot-fod</label>
+      <label class="checkbox"><input type="checkbox" name="saar" value="saar"> Aktuelt fodsår</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Øjne</legend>
+      <label class="radio"><input type="radio" name="oeje" value="ok" checked> Screenet inden for det interval, øjenlægen har fastsat</label>
+      <label class="radio"><input type="radio" name="oeje" value="forfalden"> Screening forfalden eller ukendt</label>
+      <label class="radio"><input type="radio" name="oeje" value="retinopati"> Kendt retinopati i kontrol hos øjenlæge</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Status" id="resultPanel">
+    <h2>2. Status og handling</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld status</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>DSAM — Type 2-diabetes: opfølgning og behandling (behandlingsmål: blodtryk &lt; 130/80, individuelt &lt; 140/85; LDL &lt; 2,6 og &lt; 1,8 mmol/l ved høj risiko; RAAS-blokade ved albuminuri; årlig fodstatus)</li>
+    <li>Dansk Endokrinologisk Selskab — NBV Type 2-diabetes; statin til praktisk talt alle over 40 år</li>
+    <li>ESC 2023 (diabetes) og ESC/EAS 2019 — LDL &lt; 1,4 mmol/l ved hjerte-kar-sygdom (samme mål som hjerte-kar-appen; DSAM angiver &lt; 1,8)</li>
+    <li>KDIGO 2022/2024 — diabetes og kronisk nyresygdom: henvisning ved UACR ≥ 300 mg/g; forventet initialt eGFR-fald efter opstart af SGLT-2-hæmmer og ACE-hæmmer/ARB</li>
+    <li>Dansk Nefrologisk Selskab — diabetisk nyresygdom ved type 2-diabetes: albuminuri-kategorier og henvisning (eGFR &lt; 30 eller fald &gt; 5 ml/min/1,73 m² pr. år)</li>
+    <li>Dansk Oftalmologisk Selskab — national retningslinje for screening for diabetisk retinopati (individuelle intervaller fra 2024)</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra DSAM, DES eller de faglige selskaber. Primærdokumenterne kunne ikke tilgås direkte ved udviklingen; målene er kontrolleret via sekundære kilder. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="aarskontrol.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

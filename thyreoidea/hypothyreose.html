@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hypothyreose — tolkning og levothyroxin</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#5b3f8f">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hypothyreose">
+</head>
+<body class="theme-thyreoidea">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🦋</span>
+      <div>
+        <h1>Hypothyreose — tolkning og levothyroxin</h1>
+        <p class="subtitle">TSH og T4, subklinisk eller manifest hypothyreose, behandlingsindikation, startdosis, dosisjustering, graviditet og kontrol</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <span aria-current="page">Hypothyreose</span>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Gælder voksne med primær hypothyreose og følger Dansk Endokrinologisk Selskabs NBV, DSAM og Lægehåndbogen (NICE NG145 hvor danske kilder ikke er detaljerede). Referenceintervaller varierer mellem laboratorier — brug dit eget laboratoriums grænser. Lavt TSH (hyperthyreose) er uden for værktøjets område.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se anbefaling ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patientens data</h2>
+
+    <fieldset class="field">
+      <legend>Situation</legend>
+      <label class="radio"><input type="radio" name="situation" value="ny" checked> Ny vurdering (ikke i behandling)</label>
+      <label class="radio"><input type="radio" name="situation" value="beh"> I behandling med levothyroxin</label>
+    </fieldset>
+    <div class="field" id="dosisField" hidden>
+      <label for="dosis">Nuværende dosis levothyroxin (mikrog. dagligt)</label>
+      <input type="number" id="dosis" min="12.5" max="400" step="12.5" placeholder="fx 100">
+    </div>
+
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="18" max="110" placeholder="fx 54">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+    <div class="field">
+      <label for="vaegt">Vægt (kg)</label>
+      <input type="number" id="vaegt" min="30" max="250" placeholder="fx 72">
+    </div>
+
+    <fieldset class="field">
+      <legend>Blodprøver</legend>
+      <label for="tsh">TSH (mIE/l)</label>
+      <input type="number" id="tsh" min="0" max="500" step="0.01" placeholder="fx 7,8">
+      <label for="tshOvre" class="field-sublabel">Laboratoriets øvre TSH-grænse (standard 4,0)</label>
+      <input type="number" id="tshOvre" min="2" max="8" step="0.1" placeholder="4,0">
+      <span class="input-warning" id="ovreWarning" aria-live="polite"></span>
+      <span class="input-warning" id="labWarning" aria-live="polite"></span>
+    </fieldset>
+    <fieldset class="field">
+      <legend>T4 (fri eller total) i forhold til referencen</legend>
+      <label class="radio"><input type="radio" name="t4" value="ukendt" checked> Ikke målt</label>
+      <label class="radio"><input type="radio" name="t4" value="lav"> Under reference</label>
+      <label class="radio"><input type="radio" name="t4" value="normal"> Inden for reference</label>
+      <label class="radio"><input type="radio" name="t4" value="hoej"> Over reference</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>TPO-antistoffer</legend>
+      <label class="radio"><input type="radio" name="tpo" value="ukendt" checked> Ikke målt</label>
+      <label class="radio"><input type="radio" name="tpo" value="pos"> Positive</label>
+      <label class="radio"><input type="radio" name="tpo" value="neg"> Negative</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Forhold</legend>
+      <label class="checkbox"><input type="checkbox" name="andet" value="bekraeftet"> Forhøjet TSH bekræftet ved ny måling efter 1–3 måneder</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="symptomer"> Symptomer forenelige med hypothyreose</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="hjerte"> Iskæmisk hjertesygdom eller hjertearytmi</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="gravid"> Gravid</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="oeget"> I behandling: dosis allerede øget i denne graviditet</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="planlaegger"> Planlægger graviditet</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="akut"> Nylig akut sygdom eller indlæggelse</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="postpartum"> Inden for 1 år efter fødsel</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="medicin"> Amiodaron, lithium eller immunterapi (checkpointhæmmer)</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="hypofyse"> Kendt hypofysesygdom eller mistanke herom</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Anbefaling" id="resultPanel">
+    <h2>2. Tolkning og anbefaling</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <p class="field-hint valg-hint" id="valgHint" hidden>Tryk "Vælg til journal" ved en dosis, så nævner journalnotatet den i stedet for værktøjets forslag.</p>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld anbefaling</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Dansk Endokrinologisk Selskab — NBV Hypothyroidisme: behandling af subklinisk hypothyreose ved TSH &gt; 10 hos yngre (&lt; 70 år) og ved symptomer; kontrol efter 3–6 måneder uden behandling; startdosis 50–100 mikrog.; TSH-kontrol hver 4.–6. uge under optitrering</li>
+    <li>DSAM — klinisk vejledning om hypo- og hyperthyreose hos voksne; Lægehåndbogen: fuld dosis 1,6–1,8 mikrog./kg hos yngre raske, 25 mikrog. hos ældre og ved iskæmisk hjertesygdom; TSH-mål op til 4–6 mIE/l hos personer over 70 år</li>
+    <li>NICE NG145 (2019, opdateret 2023) — behandling ved TSH ≥ 10 på to målinger med 3 måneders mellemrum; 6 måneders forsøgsbehandling ved symptomer og TSH under 10 hos personer under 65 år</li>
+    <li>Graviditet: dosisøgning 20–30 % straks ved positiv graviditetstest og TSH-mål under 2,5 mIE/l i første trimester (<em>Ugeskrift for Læger</em>; ATA 2017)</li>
+    <li>Produktresuméer for levothyroxin (fx Euthyrox, Eltroxin) — indtagelse og interaktioner med calcium, jern, antacida og protonpumpehæmmere</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra Dansk Endokrinologisk Selskab eller DSAM. Primærdokumenterne kunne ikke tilgås direkte ved udviklingen; kriterierne er kontrolleret via sekundære kilder og skal verificeres i de gældende vejledninger. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="../valg.js"></script>
+<script src="hypothyreose.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

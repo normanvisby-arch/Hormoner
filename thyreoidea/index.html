@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Hjerte-kar i almen praksis</title>
+<title>Hypothyreose i almen praksis</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#a3262f">
+<meta name="theme-color" content="#5b3f8f">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Hjerte-kar">
+<meta name="apple-mobile-web-app-title" content="Hypothyreose">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
@@ -21,11 +21,11 @@
     --border: #dbe2dc;
     --text: #1c2624;
     --muted: #5c6b64;
-    --primary: #a3262f;
-    --primary-dark: #7a1c24;
+    --primary: #5b3f8f;
+    --primary-dark: #432c6c;
     --on-primary: #ffffff;
-    --chip-bg: #f7e6e7;
-    --chip-text: #7a1c24;
+    --chip-bg: #ece6f5;
+    --chip-text: #432c6c;
     --note-bg: #eaf2fa;
     --note-border: #a9c9e6;
     --note-text: #1c4a72;
@@ -37,8 +37,8 @@
     :root:not([data-theme="light"]) {
       --bg: #101615; --surface: #1a2321; --border: #2c3835;
       --text: #e7ece9; --muted: #9bb0a8;
-      --primary: #e5707a; --primary-dark: #c24a55; --on-primary: #06120f;
-      --chip-bg: #3a1d20; --chip-text: #f2b8bd;
+      --primary: #b39ae0; --primary-dark: #9478c8; --on-primary: #06120f;
+      --chip-bg: #2c2240; --chip-text: #d9ccf2;
       --note-bg: #16273a; --note-border: #35608a; --note-text: #bcd9f5;
       color-scheme: dark;
     }
@@ -46,8 +46,8 @@
   :root[data-theme="dark"] {
     --bg: #101615; --surface: #1a2321; --border: #2c3835;
     --text: #e7ece9; --muted: #9bb0a8;
-    --primary: #e5707a; --primary-dark: #c24a55; --on-primary: #06120f;
-    --chip-bg: #3a1d20; --chip-text: #f2b8bd;
+    --primary: #b39ae0; --primary-dark: #9478c8; --on-primary: #06120f;
+    --chip-bg: #2c2240; --chip-text: #d9ccf2;
     --note-bg: #16273a; --note-border: #35608a; --note-text: #bcd9f5;
     color-scheme: dark;
   }
@@ -171,43 +171,31 @@
 <div class="wrap">
   <header>
     <p class="eyebrow">Almen praksis · danske forhold</p>
-    <h1>Hjerte-kar i almen praksis</h1>
-    <p class="lede">Tre små webapps til konsultationen — kardiovaskulær forebyggelse og antikoagulation ved atrieflimren. De kører direkte i browseren, og intet sendes nogen steder hen.</p>
+    <h1>Hypothyreose i almen praksis</h1>
+    <p class="lede">To små webapps til konsultationen — hypothyreose hos voksne. De kører direkte i browseren, og intet sendes nogen steder hen.</p>
   </header>
 
   <div class="grid">
     <article class="tool">
-      <div class="tool-head"><span class="kind">Risikovurdering</span><span class="who">Til lægen og patienten</span></div>
-      <h2>CV-risiko og forebyggelse</h2>
-      <p class="use">10-års risiko med SCORE2, SCORE2-OP eller SCORE2-Diabetes (dansk lavrisikokalibrering), danske behandlingstærskler, LDL- og blodtryksmål og effekt af statin og blodtrykssænkning som NNT.</p>
-      <p class="basis">SCORE2 2021 · SCORE2-Diabetes 2023 · DCS NBV · CTT · BPLTTC</p>
+      <div class="tool-head"><span class="kind">Beslutningsstøtte</span><span class="who">Til lægen</span></div>
+      <h2>Hypothyreose</h2>
+      <p class="use">Tolkning af TSH og T4, subklinisk eller manifest hypothyreose, behandlingsindikation efter alder og symptomer, startdosis og dosisjustering af levothyroxin, graviditet og kontrolintervaller.</p>
+      <p class="basis">DES NBV · DSAM · Lægehåndbogen · NICE NG145</p>
       <div class="actions">
-        <a class="btn btn-open" href="cvrisiko.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-cv" data-url="cvrisiko.html">Kopiér link</button>
+        <a class="btn btn-open" href="hypothyreose.html">Åbn</a>
+        <button class="btn btn-copy" type="button" id="copy-0" data-url="hypothyreose.html">Kopiér link</button>
         <span class="copied" aria-live="polite"></span>
       </div>
       <span class="url"></span>
     </article>
     <article class="tool">
-      <div class="tool-head"><span class="kind">Beslutningsstøtte</span><span class="who">Til lægen</span></div>
-      <h2>Atrieflimren — antikoagulation</h2>
-      <p class="use">CHA₂DS₂-VA, blødningsrisiko, dosis af apixaban, rivaroxaban, edoxaban og dabigatran ud fra kreatininclearance og interaktioner, samt kontrolinterval.</p>
-      <p class="basis">ESC 2024 · DCS NBV · EHRA 2021 · produktresuméer</p>
-      <div class="actions">
-        <a class="btn btn-open" href="af.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-af" data-url="af.html">Kopiér link</button>
-        <span class="copied" aria-live="polite"></span>
-      </div>
-      <span class="url"></span>
-    </article>
-    <article class="tool tool-wide">
       <div class="tool-head"><span class="kind">Huskeskema</span><span class="who">Til lægen</span></div>
-      <h2>Hjerte-kar-huskeskema</h2>
-      <p class="use">Tolv principper for forebyggelse og antikoagulation, effekt i tal og hvornår man henviser.</p>
-      <p class="basis">DCS NBV · ESC · CTT · BPLTTC · EHRA</p>
+      <h2>Hypothyreose-huskeskema</h2>
+      <p class="use">Tolv principper for diagnostik, behandling og opfølgning af hypothyreose, faldgruber og hvornår man henviser.</p>
+      <p class="basis">DES NBV · DSAM · NICE NG145</p>
       <div class="actions">
         <a class="btn btn-open" href="huskeskema.html">Åbn</a>
-        <button class="btn btn-copy" type="button" id="copy-husk" data-url="huskeskema.html">Kopiér link</button>
+        <button class="btn btn-copy" type="button" id="copy-1" data-url="huskeskema.html">Kopiér link</button>
         <span class="copied" aria-live="polite"></span>
       </div>
       <span class="url"></span>
@@ -220,15 +208,15 @@
   </div>
 
   <div class="note" role="note">
-    <p><strong>Andre apps i samme serie:</strong> <a href="../oversigt.html">Kvindesundhed</a> (klimakterie, prævention, MRS og osteoporose) · <a href="../lunge/index.html">Lunger</a> (KOL og astma) · <a href="../thyreoidea/index.html">Hypothyreose</a> (TSH, T4 og levothyroxin) · <a href="../diabetes/index.html">Type 2-diabetes</a> (behandling og årskontrol).</p>
+    <p><strong>Andre apps i samme serie:</strong> <a href="../oversigt.html">Kvindesundhed</a> (klimakterie, prævention, MRS og osteoporose) · <a href="../hjerte/index.html">Hjerte-kar</a> (SCORE2 og atrieflimren) · <a href="../lunge/index.html">Lunger</a> (KOL og astma) · <a href="../diabetes/index.html">Type 2-diabetes</a> (behandling og årskontrol).</p>
   </div>
 
   <div class="note" role="note">
-    <p><strong>Til kolleger:</strong> Værktøjerne er hurtige huskesedler til brug i konsultationen. De erstatter ikke den kliniske vurdering, Dansk Cardiologisk Selskabs vejledninger eller opslag på pro.medicin.dk før ordination.</p>
+    <p><strong>Til kolleger:</strong> Værktøjerne er hurtige huskesedler til brug i konsultationen. De erstatter ikke den kliniske vurdering, Dansk Endokrinologisk Selskabs NBV eller opslag på pro.medicin.dk før ordination.</p>
     <p>Der indtastes ingen personhenførbare oplysninger, og intet gemmes eller sendes.</p>
   </div>
 
-  <footer>Uafhængige hjælpeværktøjer — ikke officielle publikationer fra ESC, Dansk Cardiologisk Selskab eller øvrige nævnte kilder. Senest opdateret 28. september 2026.</footer>
+  <footer>Uafhængige hjælpeværktøjer — ikke officielle publikationer fra Dansk Endokrinologisk Selskab, DSAM eller øvrige nævnte kilder. Senest opdateret 29. september 2026.</footer>
 </div>
 
 <script>

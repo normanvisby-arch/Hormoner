@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Astma — kontrol og behandlingstrin</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f5f99">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lunger">
+</head>
+<body class="theme-lunge">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🌬</span>
+      <div>
+        <h1>Astma — kontrol og behandlingstrin</h1>
+        <p class="subtitle">Astmakontrol og risiko, behandlingstrin med ICS-formoterol som anfalds- og vedligeholdelsesbehandling, dosis og akut forværring — voksne og unge fra 12 år</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <a href="kol.html">KOL</a>
+  <span aria-current="page">Astma</span>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Følger GINA 2025 (spor 1: ICS-formoterol som anfaldsmedicin) og Medicinrådets basisliste, hvor budesonid/formoterol er 1. valg. Gælder voksne og unge fra 12 år — ikke børn. DSAM's nye vejledning "Astma og KOL i almen praksis" var i høring i foråret 2026.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se anbefaling ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patientens data</h2>
+
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="5" max="110" placeholder="fx 34">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+
+    <fieldset class="field">
+      <legend>Situation</legend>
+      <label class="radio"><input type="radio" name="situation" value="ny" checked> Ny diagnose eller ingen fast behandling</label>
+      <label class="radio"><input type="radio" name="situation" value="kendt"> Kendt astma i behandling (kontrol)</label>
+    </fieldset>
+
+    <fieldset class="field" id="startFields">
+      <legend>Symptomer ved start</legend>
+      <label class="radio"><input type="radio" name="start" value="sjaeldne" checked> Symptomer færre end 4–5 dage om ugen</label>
+      <label class="radio"><input type="radio" name="start" value="fleste"> Symptomer de fleste dage eller natlig opvågning ≥ 1 gang om ugen</label>
+      <label class="radio"><input type="radio" name="start" value="daglige"> Daglige symptomer med natlig opvågning ≥ 1 gang om ugen og nedsat lungefunktion</label>
+      <label class="radio"><input type="radio" name="start" value="akut"> Debut med svær forværring (akut ukontrolleret astma)</label>
+    </fieldset>
+
+    <fieldset class="field" id="behFields" hidden>
+      <legend>Nuværende behandling</legend>
+      <label class="radio"><input type="radio" name="beh" value="saba" checked> Kun korttidsvirkende β2-agonist (SABA) efter behov</label>
+      <label class="radio"><input type="radio" name="beh" value="air"> ICS-formoterol efter behov (trin 1–2)</label>
+      <label class="radio"><input type="radio" name="beh" value="icsfast"> Fast lavdosis ICS + SABA efter behov</label>
+      <label class="radio"><input type="radio" name="beh" value="martlav"> ICS-formoterol som vedligeholdelse og anfald (MART), lav dosis (trin 3)</label>
+      <label class="radio"><input type="radio" name="beh" value="icslabalav"> Fast lavdosis ICS-LABA + SABA efter behov</label>
+      <label class="radio"><input type="radio" name="beh" value="martmedium"> MART, medium dosis (trin 4)</label>
+      <label class="radio"><input type="radio" name="beh" value="icslabahoej"> Fast medium/høj dosis ICS-LABA + SABA efter behov</label>
+      <label class="radio"><input type="radio" name="beh" value="trin5"> Trin 5: tillæg af LAMA eller biologisk behandling</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Astmakontrol de seneste 4 uger</legend>
+      <label class="checkbox"><input type="checkbox" name="kontrol" value="dag"> Symptomer i dagtimerne mere end 2 gange om ugen</label>
+      <label class="checkbox"><input type="checkbox" name="kontrol" value="nat"> Natlig opvågning pga. astma</label>
+      <label class="checkbox"><input type="checkbox" name="kontrol" value="anfald"> Anfaldsmedicin mere end 2 gange om ugen (ikke før motion)</label>
+      <label class="checkbox"><input type="checkbox" name="kontrol" value="aktivitet"> Begrænsning af aktiviteter pga. astma</label>
+    </fieldset>
+    <div class="field">
+      <label for="act">ACT-score (valgfrit, 5–25)</label>
+      <input type="number" id="act" min="5" max="25" placeholder="fx 18">
+      <span class="input-warning" id="actWarning" aria-live="polite"></span>
+    </div>
+
+    <div class="field">
+      <label for="eks">Forværringer med prednisolonkur det seneste år (antal)</label>
+      <input type="number" id="eks" min="0" max="20" placeholder="fx 0">
+    </div>
+    <div class="field">
+      <label for="fev1pct">FEV1 i % af forventet (valgfrit)</label>
+      <input type="number" id="fev1pct" min="10" max="150" placeholder="fx 85">
+    </div>
+
+    <fieldset class="field">
+      <legend>Øvrige forhold</legend>
+      <label class="checkbox"><input type="checkbox" name="andet" value="teknik"> Inhalationsteknik og adhærens er kontrolleret og i orden</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="stabil"> Velkontrolleret i mindst 3 måneder</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="ryger"> Ryger</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="saba3"> Bruger ≥ 3 SABA-inhalatorer om året</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="gravid"> Gravid</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Anbefaling" id="resultPanel">
+    <h2>2. Vurdering og anbefaling</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <p class="field-hint valg-hint" id="valgHint" hidden>Tryk "Vælg til journal" ved en behandling, så nævner journalnotatet den i stedet for værktøjets førstevalg.</p>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld anbefaling</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Global Initiative for Asthma (GINA) 2025 — spor 1 med ICS-formoterol som anfaldsmedicin (trin 1–2) og vedligeholdelses- og anfaldsbehandling (MART, trin 3–4), trin 5, astmakontrol, risikofaktorer, nedtrapning og ICS-doser (lav/medium/høj)</li>
+    <li>Medicinrådets basisliste for astma — budesonid/formoterol (Bufomix Easyhaler) som 1. valg; LABA kun i fast kombination med ICS</li>
+    <li>Dansk Lungemedicinsk Selskab — akut astma (2025): prednisolon 37,5–50 mg dagligt i 5–7 dage; henvisning efter steroidkrævende forværring</li>
+    <li>ERS/ATS (2022) — ny definition af positiv reversibilitet: stigning i FEV1 eller FVC på mere end 10 % af forventet værdi</li>
+    <li>Asthma Control Test (ACT): ≥ 20 velkontrolleret, 16–19 ikke velkontrolleret, ≤ 15 dårligt kontrolleret</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra GINA, Dansk Lungemedicinsk Selskab eller DSAM. Primærsiderne kunne ikke tilgås direkte ved udviklingen; anbefalingerne er kontrolleret via sekundære kilder. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="../valg.js"></script>
+<script src="astma.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>
