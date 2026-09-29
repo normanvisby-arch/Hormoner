@@ -17,6 +17,7 @@
   const resetBtn = document.getElementById("resetBtn");
   const alderWarning = document.getElementById("alderWarning");
   const labWarning = document.getElementById("labWarning");
+  const ovreWarning = document.getElementById("ovreWarning");
   const printMeta = document.getElementById("printMeta");
   const dosisField = document.getElementById("dosisField");
   const valg = Behandlingsvalg(output);
@@ -73,12 +74,18 @@
   const r25 = (x) => Math.round(x / 25) * 25;
 
   const TSH_NEDRE = 0.3;
+  // Graviditet uden trimesterspecifik reference: øvre grænse ca. 3,5–4,0 i første
+  // trimester (ATA 2017; DES). Laboratoriets grænse bruges, hvis den er lavere.
+  const TSH_OVRE_GRAVID = 3.5;
+  const KONTROL = "TSH og T4 efter 6 uger (4–8 uger)";
 
   function getState() {
     const situation = radio("situation");
     dosisField.hidden = situation !== "beh";
     const ovre = num("tshOvre");
+    ovreWarning.textContent = !isNaN(ovre) && (ovre < 2 || ovre > 8) ? "Øvre grænse uden for 2–8 mIE/l — standard 4,0 bruges." : "";
     return {
+      ovreAngivet: ovre >= 2 && ovre <= 8,
       situation,
       dosis: num("dosis"),
       alder: num("alder"),
@@ -101,6 +108,7 @@
   // ---------------------------------------------------------------------
 
   function tolk(s) {
+    if (gravid(s)) s = Object.assign({}, s, { ovre: Math.min(s.ovre, TSH_OVRE_GRAVID) });
     if (isNaN(s.tsh)) return { kode: "mangler", titel: "Indtast TSH", cls: "box-blue", tekst: "Angiv TSH og, hvis målt, T4 og TPO-antistoffer." };
     if (s.tsh < TSH_NEDRE) {
       if (s.t4 === "lav") return { kode: "central", titel: "Lavt TSH og lavt T4 — mistanke om central hypothyreose", cls: "box-red", tekst: "Kan skyldes hypofyse- eller hypothalamussygdom, svær akut sygdom eller medicin (glukokortikoid). Henvis til endokrinolog — TSH kan ikke bruges til at styre behandlingen." };
@@ -114,7 +122,7 @@
     if (s.t4 === "lav") return { kode: "manifest", titel: "Manifest primær hypothyreose", cls: "box-red", tekst: `TSH ${fmt(s.tsh)} mIE/l over referencen og lavt T4.` };
     if (s.t4 === "hoej") return { kode: "interferens", titel: "Højt TSH og højt T4", cls: "box-amber", tekst: "Usædvanlig kombination: overvej analyseinterferens, TSH-producerende hypofyseadenom eller thyroideahormonresistens. Henvis til endokrinolog." };
     if (s.t4 === "ukendt") return { kode: "ukendtT4", titel: `Forhøjet TSH (${fmt(s.tsh)} mIE/l) — T4 mangler`, cls: "box-amber", tekst: "Mål T4 (og TPO-antistoffer) for at skelne subklinisk fra manifest hypothyreose." };
-    return { kode: "subklinisk", titel: "Subklinisk hypothyreose", cls: "box-amber", tekst: `TSH ${fmt(s.tsh)} mIE/l over referencen (${fmt(s.ovre)}) med normalt T4.` };
+    return { kode: "subklinisk", titel: "Subklinisk hypothyreose", cls: "box-amber", tekst: `TSH ${fmt(s.tsh)} mIE/l over ${gravid(s) ? "graviditetsgrænsen" : "referencen"} (${fmt(s.ovre)}) med normalt T4.${gravid(s) ? " I graviditeten bruges en lavere øvre grænse (ca. 3,5 mIE/l i første trimester, medmindre laboratoriet har trimesterspecifik reference)." : ""}` };
   }
 
   // ---------------------------------------------------------------------
@@ -135,20 +143,20 @@
     } else if (t.kode === "subklinisk") {
       if (gravid(s)) {
         behandl = true;
-        tekst = "Graviditet: subklinisk hypothyreose behandles altid (risiko for komplikationer og fosterets hjerneudvikling). Henvis samtidig efter regionens retningslinje for thyroideasygdom i graviditeten.";
+        tekst = "Graviditet: subklinisk hypothyreose behandles (risiko for graviditetskomplikationer). Henvis samtidig til endokrinolog/obstetriker efter regionens retningslinje for thyroideasygdom i graviditeten.";
       } else if (has(s.andet, "planlaegger")) {
         behandl = true;
         tekst = "Planlagt graviditet: behandling anbefales, så TSH er under 2,5 mIE/l ved konception.";
       } else if (!has(s.andet, "bekraeftet")) {
         tekst = "Bekræft fundet: gentag TSH, T4 og TPO-antistoffer efter 1–3 måneder, før der tages stilling til behandling — forhøjet TSH normaliseres ofte spontant.";
       } else if (s.tsh >= 10) {
-        if (aeldre(s)) tekst = "TSH ≥ 10 hos person over 70 år: individuel vurdering. Der er ikke vist gevinst af behandling i denne aldersgruppe — overvej behandling ved symptomer, ellers kontrol hver 6.–12. måned.";
+        if (aeldre(s)) tekst = "TSH ≥ 10 hos person på 70 år og derover: individuel vurdering — drøft fordele og ulemper (gevinsten er dårligt dokumenteret i denne aldersgruppe). Overvej behandling ved symptomer, ellers kontrol hver 6.–12. måned.";
         else {
           behandl = true;
           tekst = "TSH ≥ 10 bekræftet hos person under 70 år: behandling anbefales efter drøftelse af fordele og ulemper med patienten (DES).";
         }
       } else if (aeldre(s)) {
-        tekst = "TSH under 10 hos person over 70 år: behandling anbefales ikke — TSH stiger normalt med alderen. Kontrol ved symptomer.";
+        tekst = "TSH under 10 hos person på 70 år og derover: behandling anbefales ikke — TSH stiger normalt med alderen. Kontrol ved symptomer.";
       } else if (has(s.andet, "symptomer")) {
         behandl = true;
         tekst = "TSH under 10 med symptomer: forsøgsbehandling kan tilbydes (DES). Revurdér efter 3 måneder med TSH i målområdet — stop, hvis symptomerne ikke er bedret. Gevinsten er usikker og formentlig lille.";
@@ -202,31 +210,43 @@
       res.noter.push("<strong>Central hypothyreose:</strong> TSH kan ikke bruges — dosis styres efter T4 (øvre halvdel af referencen) i samarbejde med endokrinolog.");
       return res;
     }
-    if (gravid(s)) {
+    const oeget = has(s.andet, "oeget");
+    if (gravid(s) && !oeget && s.tsh >= 0.1) {
       const ny = r125(D * 1.25);
       res.retning = "op";
-      res.tekst.push(`Graviditet: øg dosis med 20–30 % straks ved positiv graviditetstest — fx til ${String(ny).replace(".", ",")} mikrog. dagligt, eller 2 ekstra dagsdoser om ugen (+29 %). TSH-mål under 2,5 mIE/l i første trimester; TSH hver 4. uge til uge 20. Er dosis allerede øget i denne graviditet, justeres efter TSH (mål under 2,5).`);
+      res.tekst.push(`Graviditet: øg dosis med 20–30 % straks ved positiv graviditetstest — fx til ${String(ny).replace(".", ",")} mikrog. dagligt, eller 2 ekstra dagsdoser om ugen (+29 %). TSH-mål under 2,5 mIE/l i første trimester; TSH hver 4. uge til uge 20. Er dosis allerede øget i denne graviditet, så markér det — så justeres efter TSH (mål under 2,5).`);
       res.rows.push(doseRow("gravid", ny, "Anbefalet", true, "Ca. +25 %. Kontrol af TSH og T4 hver 4. uge. Tilbage til tidligere dosis efter fødslen."));
       res.rows.push({ key: "gravid|ekstra", navn: `${String(D).replace(".", ",")} mikrog. + 2 ekstra dagsdoser om ugen`, indhold: "Samme tablet — ingen ny recept", dosering: "Svarer til ca. +29 %.", tag: "Alternativ", tagClass: "tag-alt" });
       return res;
     }
+    const nedre = gravid(s) ? 0.1 : TSH_NEDRE;
+    const ktr = gravid(s) ? "TSH og T4 efter 4 uger (graviditet)." : KONTROL + ".";
+    if (gravid(s)) res.noter.push("Graviditet: TSH og T4 hver 4. uge til ca. uge 20, derefter mindst én gang pr. trimester. Henvis efter regionens retningslinje for thyroideasygdom i graviditeten.");
     if (s.tsh > maalOvre) {
       res.retning = "op";
       const step = s.tsh > 10 ? 25 : 12.5;
       res.tekst.push(`TSH ${fmt(s.tsh)} mIE/l er over målet (${fmt(maalOvre)}): øg dosis med ${String(step).replace(".", ",")}–${s.tsh > 10 ? 50 : 25} mikrog.`);
       if (!isNaN(s.vaegt) && D / s.vaegt > 1.8) res.noter.push(`Dosis er allerede ${fmt(D / s.vaegt)} mikrog./kg: tjek adhærens, indtagelse (fastende), interaktioner (calcium, jern, PPI) og malabsorption (cøliaki, atrofisk gastritis), før dosis øges yderligere.`);
-      res.rows.push(doseRow("op", D + step, "Anbefalet", true, "TSH og T4 efter 6–8 uger."));
-      res.rows.push(doseRow("op", D + (step === 25 ? 50 : 25), "Alternativ", false, "TSH og T4 efter 6–8 uger."));
-    } else if (s.tsh < TSH_NEDRE) {
+      res.rows.push(doseRow("op", D + step, "Anbefalet", true, ktr));
+      res.rows.push(doseRow("op", D + (step === 25 ? 50 : 25), "Alternativ", false, ktr));
+    } else if (s.tsh < nedre) {
       res.retning = "ned";
       const step = s.tsh < 0.1 ? 25 : 12.5;
-      res.tekst.push(`TSH ${fmt(s.tsh)} mIE/l er under referencen: overbehandling øger risikoen for atrieflimren og osteoporose — især hos ældre. Reducér dosis med ${String(step).replace(".", ",")}–25 mikrog. (medmindre TSH bevidst holdes lavt efter thyroideacancer).`);
-      if (D - step >= 12.5) res.rows.push(doseRow("ned", D - step, "Anbefalet", true, "TSH og T4 efter 6–8 uger."));
-      if (step === 12.5 && D - 25 >= 12.5) res.rows.push(doseRow("ned", D - 25, "Alternativ", false, "TSH og T4 efter 6–8 uger."));
+      if (D - 12.5 < 12.5) {
+        res.tekst.push(`TSH ${fmt(s.tsh)} mIE/l er under referencen på den laveste dosis: overvej pause med levothyroxin og ny TSH og T4 efter 6 uger — og om indikationen stadig er til stede${gravid(s) ? " (konferér med endokrinolog i graviditeten)" : ""}.`);
+        res.rows.push({ key: "ned|pause", navn: "Pause med levothyroxin", indhold: "—", dosering: "TSH og T4 efter 6 uger.", tag: "Anbefalet", tagClass: "tag-recommend" });
+        return res;
+      }
+      const maks = step === 25 ? "25–50" : "12,5–25";
+      res.tekst.push(`TSH ${fmt(s.tsh)} mIE/l er under ${gravid(s) ? "målet i graviditeten" : "referencen"}: overbehandling øger risikoen for atrieflimren og osteoporose — især hos ældre. Reducér dosis med ${maks} mikrog. (medmindre TSH bevidst holdes lavt efter thyroideacancer).`);
+      const ned1 = Math.max(12.5, D - step);
+      res.rows.push(doseRow("ned", ned1, "Anbefalet", true, ktr));
+      const ned2 = D - (step === 25 ? 50 : 25);
+      if (ned2 >= 12.5 && ned2 !== ned1) res.rows.push(doseRow("ned", ned2, "Alternativ", false, ktr));
     } else {
-      res.tekst.push(`TSH ${fmt(s.tsh)} mIE/l er i målområdet${aeldre(s) ? " (op til 4–6 mIE/l accepteres over 70 år)" : ""}: fortsæt uændret dosis.`);
-      res.rows.push(doseRow("uaendret", D, "Uændret", true, "Årlig kontrol af TSH ved stabil dosis."));
-      if (s.tsh > s.ovre && aeldre(s)) res.noter.push("TSH er over laboratoriets reference, men inden for det accepterede mål over 70 år.");
+      res.tekst.push(`TSH ${fmt(s.tsh)} mIE/l er i målområdet${aeldre(s) ? " (op til 4–6 mIE/l accepteres fra 70 år)" : ""}: fortsæt uændret dosis.`);
+      res.rows.push(doseRow("uaendret", D, "Uændret", true, gravid(s) ? "TSH og T4 hver 4. uge til ca. uge 20." : "Årlig kontrol af TSH ved stabil dosis."));
+      if (s.tsh > s.ovre && aeldre(s)) res.noter.push("TSH er over laboratoriets reference, men inden for det accepterede mål fra 70 år.");
     }
     return res;
   }
@@ -277,7 +297,9 @@
           const { rows, fuld } = startDoser(s, t);
           body += drugTable(rows);
           if (!fuld && t.kode === "manifest" && !forsigtig(s)) body += "<p>Angiv vægten for at beregne fuld substitutionsdosis (ca. 1,6 mikrog./kg).</p>";
-          body += "<p>Kontrol: TSH og T4 efter 6–8 uger (tidligst 4 uger), herefter efter hver dosisændring, og årligt når dosis er stabil.</p>";
+          body += gravid(s)
+            ? "<p>Kontrol: TSH og T4 hver 4. uge til ca. uge 20, derefter mindst én gang pr. trimester. Henvis efter regionens retningslinje.</p>"
+            : "<p>Kontrol: TSH og T4 efter 6 uger (4–8 uger), herefter efter hver dosisændring, og årligt når dosis er stabil.</p>";
         }
         if (b.noter.length) body += ul(b.noter);
         html += box(b.behandl ? "box-green" : "box-blue", b.behandl ? "Behandling" : "Ingen behandling nu", body);
@@ -289,7 +311,7 @@
       "TSH-mål",
       ul([
         `Generelt: TSH inden for laboratoriets reference (ca. ${String(TSH_NEDRE).replace(".", ",")}–${fmt(s.ovre)} mIE/l).`,
-        "Over 70 år: op til 4–6 mIE/l kan accepteres — undgå overbehandling (atrieflimren, osteoporose).",
+        "70 år og derover: op til 4–6 mIE/l kan accepteres — undgå overbehandling (atrieflimren, osteoporose).",
         "Graviditet: under 2,5 mIE/l i første trimester (under 3,0 senere).",
         "Symptomer trods normalt TSH skyldes sjældent for lav dosis — overvej andre årsager (anæmi, D-vitaminmangel, søvnapnø, depression). Kombination med T3 aftales med endokrinolog.",
       ])
@@ -353,7 +375,11 @@
     if (row) {
       const r = Behandlingsvalg.raekkeTekst(row);
       lines.push(`${valg.valgtRaekke() ? "Valgt dosis" : "Plan"}: ${r.navn}.`);
-      lines.push("Kontrol (tilpas): TSH og T4 efter 6–8 uger. Informeret om indtagelse fastende og interaktioner.");
+      lines.push(gravid(s)
+        ? "Kontrol: TSH og T4 hver 4. uge til ca. uge 20. Henvist/konfereret efter regionens retningslinje for thyroideasygdom i graviditeten."
+        : "Kontrol (tilpas): TSH og T4 efter 6 uger (4–8 uger). Informeret om indtagelse fastende og interaktioner.");
+    } else if (has(s.andet, "hypofyse")) {
+      lines.push("Plan: central hypothyreose — dosis styres efter T4 i samarbejde med endokrinolog; henvist/konfereret.");
     }
     return lines.join("\n");
   }

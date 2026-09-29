@@ -73,6 +73,7 @@
       <input type="number" id="tsh" min="0" max="500" step="0.01" placeholder="fx 7,8">
       <label for="tshOvre" class="field-sublabel">Laboratoriets øvre TSH-grænse (standard 4,0)</label>
       <input type="number" id="tshOvre" min="2" max="8" step="0.1" placeholder="4,0">
+      <span class="input-warning" id="ovreWarning" aria-live="polite"></span>
       <span class="input-warning" id="labWarning" aria-live="polite"></span>
     </fieldset>
     <fieldset class="field">
@@ -95,6 +96,7 @@
       <label class="checkbox"><input type="checkbox" name="andet" value="symptomer"> Symptomer forenelige med hypothyreose</label>
       <label class="checkbox"><input type="checkbox" name="andet" value="hjerte"> Iskæmisk hjertesygdom eller hjertearytmi</label>
       <label class="checkbox"><input type="checkbox" name="andet" value="gravid"> Gravid</label>
+      <label class="checkbox"><input type="checkbox" name="andet" value="oeget"> I behandling: dosis allerede øget i denne graviditet</label>
       <label class="checkbox"><input type="checkbox" name="andet" value="planlaegger"> Planlægger graviditet</label>
       <label class="checkbox"><input type="checkbox" name="andet" value="akut"> Nylig akut sygdom eller indlæggelse</label>
       <label class="checkbox"><input type="checkbox" name="andet" value="postpartum"> Inden for 1 år efter fødsel</label>

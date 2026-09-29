@@ -40,7 +40,7 @@ const BASE = process.env.BASE || ROOT + 'thyreoidea/hypothyreose.html';
   await fill({ alder: 78 }); o = await out(); check('4f TSH 12 hos 78-årig -> individuel', o.includes('individuel vurdering') && !o.includes('Levothyroxin'));
   await fill({ tsh: '7' }); check('4g TSH 7 hos 78-årig -> ikke behandling', (await out()).includes('behandling anbefales ikke'));
   await fresh(); await fill({ tsh: '5', alder: 30 }); await r('t4', 'normal'); await cb('gravid'); o = await out();
-  check('5 gravid subklinisk -> behandles altid, 50 µg', o.includes('behandles altid') && (await rec()).includes('Levothyroxin 50 mikrog. dagligt'));
+  check('5 gravid subklinisk -> behandles, 50 µg, kontrol hver 4. uge', o.includes('subklinisk hypothyreose behandles') && o.includes('hver 4. uge') && (await rec()).includes('Levothyroxin 50 mikrog. dagligt'));
   await fresh(); await fill({ tsh: '6' }); await r('t4', 'ukendt'); check('5b T4 mangler', (await head()).includes('T4 mangler'));
   await cb('akut'); await r('t4', 'normal'); await cb('bekraeftet'); check('5c akut sygdom -> gentag efter 6 uger', (await out()).includes('efter ca. 6 uger'));
   // I behandling
@@ -53,9 +53,27 @@ const BASE = process.env.BASE || ROOT + 'thyreoidea/hypothyreose.html';
   await fill({ tsh: '2' }); check('8 i mål -> uændret', (await head()).startsWith('Uændret'));
   await fill({ tsh: '5.5', alder: 75 }); check('8b 75 år TSH 5,5 -> i mål (op til 6)', (await head()).startsWith('Uændret'));
   await cb('gravid'); o = await out(); check('9 gravid i behandling -> +25 %', o.includes('20–30 %') && (await rec()).includes('Levothyroxin 125 mikrog. dagligt'));
+  // Audit K2: allerede øget dosis eller lavt TSH i graviditet -> normal justering med mål 2,5
+  await fresh(); await r('situation', 'beh'); await fill({ dosis: 100, tsh: '0.05', alder: 32, vaegt: 65 }); await cb('gravid'); o = await out();
+  check('9b gravid + TSH 0,05 -> ikke øgning, reducér', (await head()).startsWith('Reducér') && !o.includes('20–30 %') && (await rec()).includes('Levothyroxin 75 mikrog. dagligt'), await head());
+  check('9b kontrol hver 4. uge', o.includes('efter 4 uger (graviditet)'));
+  await fill({ tsh: '1.2' }); await cb('oeget'); o = await out();
+  check('9c allerede øget + TSH 1,2 -> uændret', (await head()).startsWith('Uændret') && !o.includes('Ca. +25 %'), await head());
+  await fill({ tsh: '3.1' }); check('9d allerede øget + TSH 3,1 -> øg (mål 2,5)', (await head()).startsWith('Øg dosis') && (await head()).includes('2,5'));
+  let n = await note(); check('9e journal graviditet -> hver 4. uge + henvisning', n.includes('hver 4. uge') && n.includes('graviditeten'), n);
+  // Audit V7: graviditetsgrænse for TSH
+  await fresh(); await fill({ tsh: '3.8', alder: 29 }); await r('t4', 'normal'); await cb('gravid');
+  check('9f gravid TSH 3,8 -> subklinisk (grænse 3,5)', (await head()) === 'Subklinisk hypothyreose', await head());
+  await fresh(); await fill({ tsh: '3.8', alder: 29 }); await r('t4', 'normal'); check('9g ikke gravid TSH 3,8 -> normal', (await head()).startsWith('Normalt TSH'));
+  // Laveste dosis og lavt TSH -> pause
+  await fresh(); await r('situation', 'beh'); await fill({ dosis: '12.5', tsh: '0.05', alder: 60 });
+  check('9h 12,5 µg + TSH 0,05 -> pause', (await rec()).includes('Pause med levothyroxin'), JSON.stringify(await rec()));
+  await fill({ tshOvre: '12' }); check('9i øvre grænse uden for område -> advarsel', (await p.locator('#ovreWarning').innerText()).includes('standard 4,0'));
+  await r('situation', 'ny'); await cb('hypofyse'); await r('situation', 'beh'); n = await note();
+  check('9j hypofyse -> journalplan', n.includes('central hypothyreose') && n.includes('endokrinolog'), n);
   // Journal
   await fresh(); await fill({ tsh: '25', alder: 40, vaegt: 70 }); await r('t4', 'lav');
-  let n = await note(); console.log('---\n' + n + '\n---');
+  n = await note(); console.log('---\n' + n + '\n---');
   check('10 journal', n.includes('TSH 25 mIE/l, T4 lav') && n.includes('Vurdering: Manifest primær hypothyreose') && n.includes('Plan: Levothyroxin 100 mikrog. dagligt'));
   await p.check('#output input[name="valg"][value="start|50"]'); n = await note();
   check('10b valgt 50 µg', n.includes('Valgt dosis: Levothyroxin 50 mikrog. dagligt') && !n.includes('100 mikrog'), n);
