@@ -48,7 +48,7 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
   r = await soeg('Selo-Zok');
   check('S4 Selo-Zok → betablokkere', r.includes('Betablokkere'));
   r = await soeg('eliquis');
-  check('S5 Eliquis → DOAK med link til Atrieflimren', r.includes('DOAK') && (await p.locator('#output a[href$="hjerte/af.html"]').count()) === 1);
+  check('S5 Eliquis → DOAK med link til Atrieflimren', r.includes('DOAK') && (await p.locator(ARTIFACT ? '#output a[href="https://claude.ai/artifact/2nGFCKz6mPxesZpGM7qZdm"][target="_blank"]' : '#output a[href$="hjerte/af.html"]').count()) === 1);
   r = await soeg('desogestrel');
   check('S6 desogestrel → minipille (ikke kombinationspiller)', r.includes('P-piller og minipiller') && (await p.locator('.rest-col').count()) === 0);
   r = await soeg('xyzzy');
