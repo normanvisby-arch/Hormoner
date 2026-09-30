@@ -1,18 +1,14 @@
 /*
- * Service worker for hjerte-appen: gemmer alle filer, så appen virker uden
+ * Service worker for Notat-indgangen: gemmer alle filer, så appen virker uden
  * internet. Netværket prøves først, så opdateringer slår igennem ved næste
  * åbning med forbindelse. Hæv VERSION, når filer tilføjes eller ændres.
  */
-const VERSION = "v7";
-const CACHE = `hjertekar-${VERSION}`;
+const VERSION = "v1";
+const CACHE = `notat-${VERSION}`;
 const FILES = [
   "./",
   "index.html",
-  "cvrisiko.html",
-  "cvrisiko.js",
-  "af.html",
-  "af.js",
-  "huskeskema.html",
+  "notat.js",
   "manifest.webmanifest",
   "icons/icon.svg",
   "icons/icon-192.png",
@@ -21,6 +17,7 @@ const FILES = [
   "icons/apple-touch-icon.png",
   "../style.css",
   "../pwa.js",
+  "../udfyld.js",
 ];
 
 self.addEventListener("install", (event) => {
@@ -30,7 +27,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("hjertekar-") && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("notat-") && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
