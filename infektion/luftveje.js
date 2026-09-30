@@ -258,5 +258,107 @@
     return lines.join("\n");
   }
 
+  // ---------------------------------------------------------------------
+  // Udfyld fra journaltekst (../udfyld.js)
+  // ---------------------------------------------------------------------
+
+  if (window.Udfyld) {
+    const crpFund = (c) => ({ type: "num", id: "crp", v: c.op === "<" ? Math.max(0, c.v - 1) : c.v, label: "CRP", kilde: c.kilde, note: [c.op === "<" ? `angivet som ${c.op} ${String(c.v).replace(".", ",")} — sat til ${Math.max(0, c.v - 1)}` : "", c.note || ""].filter(Boolean).join("; ") });
+    const chk = (name, value, r, label, on) => (r && r.status ? { type: "check", name, value, on: on === undefined ? r.status === "ja" : on, label, kilde: r.kilde } : null);
+    Udfyld.init(
+      (L) => {
+        const u = [];
+        const diag = L.vaelg([
+          { value: "tonsillitis", staerk: "tonsillit|faryngit|faryngo-?tonsillit|halsbetændelse|streptokokhals", svag: "ondt i halsen|halssmerter|synkesmerter|synkebesvær" },
+          { value: "otitis", staerk: "otitis|mellemørebetændelse|ørebetændelse", svag: "ørepine|øresmerter|ondt i øret" },
+          { value: "sinuitis", staerk: "sinuit|rhinosinuit|bihulebetændelse", svag: "bihule|ansigtssmerter" },
+          { value: "pneumoni", staerk: "pneumoni|lungebetændelse", svag: "krepitation|infiltrat" },
+          { value: "bronkitis", staerk: "bronkit", svag: `host(?:e|er|en|et|ende)?${L.E}` },
+        ]);
+        const d = diag ? diag.value : "tonsillitis";
+        if (diag) {
+          u.push({ type: "radio", name: "diag", value: d, label: "Problemstilling", kilde: diag.kilde });
+          if (diag.flere) u.push({ type: "note", tekst: `Flere problemstillinger nævnt (${diag.flere.join(", ")}) — ${d} er valgt. Skift, hvis det er forkert.` });
+        } else u.push({ type: "note", tekst: "Problemstillingen kunne ikke genkendes — vælg den selv." });
+        const a = L.alder();
+        if (a) u.push({ type: "num", id: "alder", v: a.v, label: "Alder (år)", kilde: a.kilde, note: a.note });
+        const w = L.vaegt();
+        if (w) u.push({ type: "num", id: "vaegt", v: w.v, label: "Vægt (kg)", kilde: w.kilde });
+        u.push(chk("andet", "allergi", L.allergi(), "Penicillinallergi"));
+        u.push(chk("andet", "gravid", L.gravid(), "Gravid"));
+        const men = L.term("petekki|nakkestiv|meningit|meningokok|meningisme");
+        if (men.status === "ja") u.push(chk("rf", "meningitis", men, "Petekkier, nakkestivhed eller bevidsthedspåvirkning"));
+        const c = L.crp();
+        if (c && d !== "tonsillitis" && d !== "otitis") u.push(crpFund(c));
+        const feber = L.feber();
+        if (feber.note && (d === "tonsillitis" || d === "sinuitis")) u.push({ type: "note", tekst: `Feber: ${feber.note}.` });
+
+        if (d === "tonsillitis") {
+          u.push(chk("centor", "feber", feber, "Centor: feber"));
+          u.push(chk("centor", "belaeg", L.term("belægning|belæg|pus på tonsil|hævede tonsiller|forstørrede tonsiller|tonsilhypertrofi|eksudat"), "Centor: belægninger/hævede tonsiller"));
+          u.push(chk("centor", "lymf", L.term("lymfeknude|glandler|lymfadenit|lymfadenopati"), "Centor: ømme lymfeknuder"));
+          const hoste = L.term(`host(?:e|er|en|et|ende)?${L.E}`);
+          if (hoste.status) u.push({ type: "check", name: "centor", value: "hoste", on: hoste.status === "nej", label: "Centor: ingen hoste", kilde: hoste.kilde });
+          const s1 = L.find(`${L.B}strep\\w*(?:[ -]?a)?(?:[ -]?(?:test|hurtigtest|antigentest))?\\s*[:=]?\\s*(pos\\w*|\\+|neg\\w*|÷|-(?!\\d))`) || L.find("(positiv|negativ)\\w*\\s+strep");
+          if (s1) u.push({ type: "radio", name: "strep", value: /^(pos|\+)/.test(s1.m[1]) ? "pos" : "neg", label: "Strep A-test", kilde: s1.kilde });
+          const abs = L.term("peritonsillær absces|peritonsillit|trismus|kartoffeltale");
+          if (abs.status === "ja") u.push(chk("rf", "absces", abs, "Mistanke om peritonsillær absces"));
+          const lv = L.term("stridor|savl");
+          if (lv.status === "ja") u.push(chk("rf", "luftvej", lv, "Stridor/savlen"));
+        }
+        if (d === "otitis") {
+          const upaav = L.term("upåvirket|alment upåvirket|almen upåvirket");
+          const paav = L.term("almen påvirket|almenpåvirket|påvirket almentilstand|påvirket almen tilstand|sløv|medtaget");
+          if (paav.status === "ja") u.push(chk("ot", "paavirket", paav, "Almen påvirket"));
+          else if (upaav.status === "ja" || paav.status === "nej") u.push(chk("ot", "paavirket", upaav.status ? upaav : paav, "Almen påvirket", false));
+          const draen = L.term("dræn");
+          const flaad = L.term("flåd|sekretion|otorr|løber fra øret");
+          if (draen.status === "ja" && flaad.status === "ja") u.push(chk("ot", "otore3", flaad, "Flåd gennem trommehindedræn"));
+          const mast = L.term("mastoidit|hævelse bag øret|ømhed bag øret|rødme bag øret|udstående øre|retroaurikul");
+          if (mast.status === "ja") u.push(chk("ot", "mastoid", mast, "Hævelse/ømhed bag øret"));
+          const svigt = L.term("behandlingssvigt|ingen effekt af penicillin|ingen bedring (?:på|trods|efter) penicillin|ikke bedring på penicillin");
+          if (svigt.status === "ja") u.push(chk("ot", "svigt", svigt, "Ingen effekt af penicillin"));
+        }
+        if (d === "sinuitis") {
+          const dob = L.term("dobbelt ?sygdom|forværring efter (?:initial |en )?bedring|forværret igen|fornyet forværring");
+          let varighed = null;
+          if (dob.status === "ja") varighed = { value: "dobbelt", kilde: dob.kilde };
+          else {
+            for (const m of L.alle(/(\d{1,2})\s*(dage|døgn|uger?)(?![a-zæøå])/g)) {
+              const led = L.leddetFor(m.index) + m[0] + L.leddetEfter(m.index + m[0].length);
+              if (/penicillin|antibiotika|behandl|kur/.test(led)) continue;
+              const n = parseFloat(m[1]) * (/uge/.test(m[2]) ? 7 : 1);
+              varighed = { value: n < 5 ? "kort" : n < 10 ? "mellem" : "lang", kilde: L.kilde(m.index, m.index + m[0].length) };
+              break;
+            }
+          }
+          if (varighed) u.push({ type: "radio", name: "varighed", value: varighed.value, label: "Varighed", kilde: varighed.kilde });
+          u.push(chk("sin", "sekret", L.term("misfarvet|purulent|gult sekret|grønt sekret|gult snot|grønt snot|pus fra næsen|pussekret"), "Misfarvet sekret"));
+          u.push(chk("sin", "smerte", L.term("svære smerter|kraftige smerter|ensidige smerter|ensidig smerte|smerter over (?:kæbe|pande)hul|tandsmerter"), "Svære lokale smerter"));
+          u.push(chk("sin", "feber", feber, "Feber"));
+          const orb = L.term("periorbital|hævelse (?:omkring|om|ved) øjet|dobbeltsyn|synspåvirk|synsforstyrrelse");
+          if (orb.status === "ja") u.push(chk("rf", "orbital", orb, "Hævelse omkring øjet/synspåvirkning"));
+          const cer = L.term("nakkestiv|bevidsthedspåvirk|svær hovedpine|meningisme");
+          if (cer.status === "ja") u.push(chk("rf", "cerebral", cer, "Svær hovedpine/nakkestivhed"));
+        }
+        if (d === "pneumoni") {
+          const konf = L.term("konfus|forvirret|desorienteret|nyopstået forvirring");
+          if (konf.status) u.push(chk("crb", "konfus", konf, "CRB-65: konfusion"));
+          const rf = L.rf();
+          if (rf) u.push({ type: "check", name: "crb", value: "rf30", on: rf.v >= 30, label: `CRB-65: respirationsfrekvens ≥ 30 (${rf.v})`, kilde: rf.kilde });
+          const bt = L.bt();
+          if (bt) u.push({ type: "check", name: "crb", value: "bt", on: bt.s < 90 || bt.d <= 60, label: `CRB-65: lavt BT (${bt.s}/${bt.d})`, kilde: bt.kilde });
+          u.push(chk("pn", "fokal", L.term("krepitation|knitren|dæmpning|nedsat respirationslyd|bronkial respiration|fokal|infiltrat|rallelyde"), "Fokale fund"));
+          const kom = L.term(`kol${L.E}|hjertesvigt|immunsuppr|kemoterapi|bor alene`);
+          if (kom.status === "ja") u.push(chk("pn", "komorbid", kom, "Komorbiditet/bor alene"));
+          const sat = L.sat();
+          if (sat) u.push({ type: "num", id: "sat", v: sat.v, label: "Saturation (%)", kilde: sat.kilde });
+        }
+        return u;
+      },
+      { vigtige: [["diag", "problemstilling"], ["alder", "alder"]], eksempel: "Fx: 6-årig dreng, 20 kg. Ondt i halsen i 2 dage, feber 38,9, belægninger og ømme glandler, ingen hoste. Strep A positiv. Ingen kendte allergier." }
+    );
+  }
+
   update();
 })();

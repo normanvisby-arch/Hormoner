@@ -262,5 +262,71 @@
     return lines.join("\n");
   }
 
+  // ---------------------------------------------------------------------
+  // Udfyld fra journaltekst (../udfyld.js)
+  // ---------------------------------------------------------------------
+
+  if (window.Udfyld) {
+    const chk = (name, value, r, label, on) => (r && r.status ? { type: "check", name, value, on: on === undefined ? r.status === "ja" : on, label, kilde: r.kilde } : null);
+    // Stix: "leuk +", "nitrit neg", "positiv for leukocytter og nitrit".
+    function stix(L, stof) {
+      const direkte = L.find(`${L.B}(?:${stof})\\w*\\s*[:=]?\\s*(\\d\\s*\\+|\\++|pos\\w*|neg\\w*|spor|÷|\\(-\\)|-(?!\\d)|0(?![,.\\d]))`);
+      if (direkte) {
+        const v = direkte.m[1];
+        if (/spor/.test(v)) return { spor: true, kilde: direkte.kilde };
+        return { value: /^(\d\s*\+|\+|pos)/.test(v) ? "pos" : "neg", kilde: direkte.kilde };
+      }
+      const i = L.find(`${L.B}(?:${stof})`);
+      if (!i) return null;
+      const led = L.leddetFor(i.index) + L.leddetEfter(i.index);
+      const pos = /(?<![a-zæøå])(positiv|pos)(?![a-zæøå])/.test(led);
+      const neg = /(?<![a-zæøå])(negativ|neg)(?![a-zæøå])/.test(led);
+      if (pos !== neg) return { value: pos ? "pos" : "neg", kilde: i.kilde };
+      return null;
+    }
+    Udfyld.init(
+      (L) => {
+        const u = [];
+        const k = L.koen();
+        if (k) u.push({ type: "radio", name: "koen", value: k.v, label: "Køn", kilde: k.kilde });
+        const a = L.alder();
+        if (a) u.push({ type: "num", id: "alder", v: a.v, label: "Alder (år)", kilde: a.kilde, note: a.note });
+        const w = L.vaegt();
+        if (w) u.push({ type: "num", id: "vaegt", v: w.v, label: "Vægt (kg)", kilde: w.kilde });
+        const e = L.egfrTid().nu;
+        if (e) u.push({ type: "num", id: "egfr", v: e.v, label: "eGFR", kilde: e.kilde, note: e.note || (e.op ? `angivet som ${e.op} ${e.v}` : "") });
+        if (!k || k.v === "kvinde") u.push(chk("andet", "gravid", L.gravid(), "Gravid"));
+        u.push(chk("andet", "allergi", L.allergi(), "Penicillinallergi"));
+        // Klinisk billede
+        const feber = L.feber();
+        if (feber.note) u.push({ type: "note", tekst: `Feber: ${feber.note}.` });
+        const flanke = L.term("flankesmerter|flankeømhed|nyrelogeømhed|ømhed over nyrelogen|dunkeøm|pyelonefrit|urosepsis");
+        const asympt = L.term("asymptomatisk|uden symptomer|ingen symptomer|symptomfri");
+        const cyst = L.term("svie|dysuri|hyppig vandladning|pollakisuri|blærebetændelse|cystit|vandladningstrang|urgency");
+        if (feber.status === "ja" || flanke.status === "ja") u.push({ type: "radio", name: "billede", value: "feber", label: "Klinisk billede", kilde: (flanke.status === "ja" ? flanke : feber).kilde });
+        else if (asympt.status === "ja" && cyst.status !== "ja") u.push({ type: "radio", name: "billede", value: "asympt", label: "Klinisk billede", kilde: asympt.kilde });
+        else if (cyst.status === "ja") u.push({ type: "radio", name: "billede", value: "cystitis", label: "Klinisk billede", kilde: cyst.kilde });
+        const sep = L.term("septisk|sepsis|påvirket almentilstand|almen påvirket|almenpåvirket|konfus");
+        if (sep.status === "ja") u.push(chk("andet", "sepsis", sep, "Påvirket almentilstand"));
+        const kul = L.term("kulderystelser");
+        if (kul.status === "ja" && sep.status !== "ja") u.push({ type: "note", tekst: `Kulderystelser nævnt ("${kul.kilde}") — markér "Påvirket almentilstand", hvis patienten er påvirket.` });
+        // Stix
+        const leu = stix(L, "leu[kc]\\w*|leu");
+        const nit = stix(L, "nit\\w*|nitrit");
+        for (const [navn, r, label] of [["leuk", leu, "Stix: leukocytter"], ["nitrit", nit, "Stix: nitrit"]]) {
+          if (r && r.spor) u.push({ type: "note", tekst: `${label}: "spor" — angiv selv positiv eller negativ.` });
+          else if (r) u.push({ type: "radio", name: navn, value: r.value, label, kilde: r.kilde });
+        }
+        u.push(chk("andet", "kateter", L.term(`blærekateter|kateter|kad${L.E}`), "Blærekateter"));
+        const rec = L.term("recidiv|gentagne (?:urinvejsinfektioner|uvi|cystitis|blærebetændelser)|hyppige (?:uvi|urinvejsinfektioner|blærebetændelser)");
+        if (rec.status === "ja") u.push(chk("andet", "recidiv", rec, "Gentagne infektioner"));
+        const kompl = L.term("nyresten|sten i urinvejene|misdannelse|resturin|blæretømningsproblem|neurogen blære|immunsupprim");
+        if (kompl.status === "ja") u.push(chk("andet", "kompl", kompl, "Komplicerende forhold"));
+        return u;
+      },
+      { vigtige: [["koen", "køn"], ["alder", "alder"], ["billede", "klinisk billede"]], eksempel: "Fx: 34-årig kvinde med svie og hyppig vandladning i 2 dage, afebril, ingen flankesmerter. Stix: leuk +, nitrit +. Ikke gravid. Ingen kendte allergier." }
+    );
+  }
+
   update();
 })();

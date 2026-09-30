@@ -232,6 +232,50 @@ direkte; doser og varigheder er kontrolleret via sekundære kilder. Regionerne a
 **Forbehold:** DNS' og regionernes sider kunne ikke tilgås direkte. DSAM har ikke tilsluttet sig
 DNS' 2024-vejledning, og regionernes forløbsbeskrivelser har forskellige henvisningsgrænser.
 
+## Udfyld fra journaltekst (`udfyld.js`)
+
+Trin 1 af en tale-til-tekst-overbygning (inspireret af AI-scribes som Noteless): lægen indsætter en
+fri journaltekst — fx fra diktat eller en scribe — og felterne udfyldes af faste regler.
+
+- **Hvor:** infektion (luftveje, urinveje, hud og bløddele) og nyre (kronisk nyresygdom, dosis
+  efter nyrefunktion). Panelet "Udfyld fra journaltekst" øverst i formularen.
+- **Privatliv:** alt sker lokalt i browseren med regulære udtryk. Teksten sendes ingen steder, gemmes
+  ikke og er væk, når siden lukkes. Der bruges ingen sprogmodel.
+- **Hvad læses:** alder (også måneder/uger hos børn), køn, vægt, temperatur/feber, graviditet,
+  penicillinallergi, CRP, saturation, respirationsfrekvens, BT, eGFR (også "fra X til Y" og
+  tidligere værdi), kreatinin, kalium, UACR (mg/mmol omregnes til mg/g ×8,84), diagnose/billede,
+  kliniske fund (fx Centor, stix, dyrebid) samt sygdomme og lægemidler (ckd og dosis).
+- **Nægtelse:** et fund er afkræftet ved ingen/ikke/uden/benægter/negativ/aldrig/intet/seponeret
+  højst ca. otte ord før (inden for leddet, og ikke forbi "men", "dog", "fortsat", "stadig", "nu"),
+  eller nej/neg/negativ/÷/(-)/benægtes/afkræftet/udelukket/seponeret efter ("Pneumoni udelukket",
+  "Strep A ÷", "Feber? Nej."). "Ingen feber, hoste eller ondt i halsen" nægter hele opremsningen;
+  uden "eller" regnes de efterfølgende led som uklare og udfyldes ikke.
+- **Ignoreres (hverken ja eller nej):** hypotetisk omtale og sikkerhedsråd ("hvis feber", "ved feber
+  eller flankesmerter genkontakt", "informeret om at søge læge ved nakkestivhed"), ubesvarede
+  spørgsmål ("Gravid?"), ønsker ("forsøger at blive gravid"), vaccination og — for sygdomme i
+  nyre-appen og hud (diabetes) — familieanamnese ("mor har diabetes", "disp.").
+- **Tid:** feber afgøres af den sidste oplysning i teksten (note ved modstrid). Ved flere målinger
+  vinder den, der er markeret "nu/i dag/aktuel"; eGFR "fra 52 til 44"/"52 → 44", årstal og
+  "tidligere" bruges til før/nu. Er rækkefølgen uklar, bruges den laveste eGFR (forsigtigst) og den
+  sidst nævnte CRP, altid med en bemærkning. En aktuel problemstilling ("nu ondt i halsen") vinder
+  over en gammel ("sinuitis for 3 uger siden", "hundebid 2019").
+- **Tal og enheder:** datoer før værdien springes over ("eGFR 12.03.26: 44"); vægtændringer og
+  fødselsvægt er ikke vægt; U-kreatinin, mg/dl, LDL-K, vitamin K og reumafaktor læses ikke som
+  P-kreatinin, kalium eller respirationsfrekvens; ledsagerens køn ("sin mand") bruges ikke.
+- **Penicillinallergi:** også "Allergi: penicillin", "CAVE: penicillin", "tåler ikke penicillin",
+  "allergisk over for amoxicillin" og "ingen allergier udover penicillin". "Ingen kendte allergier"
+  giver kun nej, når intet andet peger på allergi.
+- **Dosis-siden:** alle nævnte lægemidler kommer med i filtret "kun nævnte" (også "ingen
+  bivirkninger af Eliquis"), og filtret ryddes ved ny udfyldning og Nulstil. Køn, vægt og
+  kreatinin meldes som "ikke fundet", hvis de mangler (Cockcroft-Gault).
+- **Visning:** udfyldte felter markeres gult, og rapporten viser hvert felt med værdi og
+  tekstuddraget, det kom fra, samt bemærkninger (fx enhedsomregning, flere mulige diagnoser, plain
+  "diabetes" uden type) og vigtige felter, der ikke blev fundet. En manuel ændring fjerner
+  markeringen. Ny udfyldning nulstiller formularen først.
+- **Begrænsninger:** reglerne forstår ikke sammenhæng som en sprogmodel — tjek altid de markerede
+  felter. Ukendte formuleringer udfyldes ikke (hellere tomt end forkert). Felter uden for teksten
+  bevarer standardværdien.
+
 ## Installér som app
 
 Værktøjerne er en installerbar webapp (PWA) med eget ikon, som også virker uden internet:
@@ -528,6 +572,19 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**29. september 2026 — "Udfyld fra journaltekst" (trin 1 af tale-til-tekst):**
+- Fælles `udfyld.js`: indsæt en journaltekst, og felterne udfyldes lokalt med faste regler, med
+  negationsdetektion, markering af udfyldte felter og kildeuddrag. Tilføjet til infektion
+  (luftveje, urinveje, hud) og nyre (ckd, dosis). På dosis-siden kan listen begrænses til de
+  lægemidler, der nævnes i teksten.
+- Uafhængig audit af udtrækket (84 motor- og 30 sidetilfælde): rettet "÷" og "Feber? Nej",
+  hypotetiske formuleringer og sikkerhedsråd, penicillinallergi i almindelige skriveformer,
+  vægtændringer/fødselsvægt, datoer før værdier, flere eGFR/CRP-målinger, seponeret medicin,
+  familieanamnese, PCOS/gastric bypass/amitriptylin som falske sygdomme, LDL-K som kalium,
+  ledsagerens køn, rester af lægemiddelfiltret efter Nulstil og langsom behandling af lange tekster
+  uden tegnsætning (nu under 0,3 s for 110.000 tegn).
+- Ny testsuite `udfyld` (125 kontroller). Service worker v2 (infektion og nyre) pga. ny fil og ændret `style.css`.
 
 **29. september 2026 — to nye selvstændige apps: infektioner og nyrer:**
 - `infektion/` (luftveje, urinveje, hud og bløddele, huskeskema; fælles `ab.js`) og `nyre/`

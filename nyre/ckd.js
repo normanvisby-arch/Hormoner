@@ -338,5 +338,68 @@
     return lines.join("\n").trim();
   }
 
+  // ---------------------------------------------------------------------
+  // Udfyld fra journaltekst (../udfyld.js)
+  // ---------------------------------------------------------------------
+
+  if (window.Udfyld) {
+    const chk = (name, value, r, label) => (r && r.status === "ja" ? { type: "check", name, value, on: true, label, kilde: r.kilde } : null);
+    // Lægemidler (generiske navne og hyppige handelsnavne).
+    const MED = {
+      acearb: "ace-?hæmmer|angiotensin|arb" + "(?![a-zæøå])|enalapril|lisinopril|ramipril|perindopril|captopril|trandolapril|losartan|candesartan|valsartan|irbesartan|telmisartan|olmesartan|cozaar|atacand|diovan|aprovel|micardis",
+      sglt2: "sglt-?2|empagliflozin|dapagliflozin|canagliflozin|ertugliflozin|jardiance|forxiga|synjardy|xigduo",
+      statin: "statin|atorvastatin|simvastatin|rosuvastatin|pravastatin|fluvastatin|lipitor|zarator|crestor|zocor",
+      finerenon: "finerenon|kerendia",
+      nsaid: "nsaid|ibuprofen|naproxen|diclofenac|etoricoxib|celecoxib|ipren|ibumetin|voltaren|arcoxia|celebra|naproxen",
+    };
+    Udfyld.init(
+      (L) => {
+        const u = [];
+        const a = L.alder();
+        if (a) u.push({ type: "num", id: "alder", v: a.v, label: "Alder (år)", kilde: a.kilde });
+        const k = L.koen();
+        if (k) u.push({ type: "radio", name: "koen", value: k.v, label: "Køn", kilde: k.kilde });
+        // UACR først, så "albumin/kreatinin" ikke læses som kreatinin.
+        const ua = L.uacr();
+        if (ua) u.push({ type: "num", id: "uacr", v: ua.v, label: "UACR (mg/g)", kilde: ua.kilde, note: ua.note || (ua.op ? `angivet som ${ua.op} ${ua.v}` : "") });
+        // eGFR: "faldet fra 52 til 44", årstal, "tidligere"/"for et år siden".
+        const { nu, foer } = L.egfrTid();
+        if (nu) u.push({ type: "num", id: "egfr", v: nu.v, label: "eGFR nu", kilde: nu.kilde, note: nu.note || (nu.op ? `angivet som ${nu.op} ${nu.v}` : "") });
+        if (foer) u.push({ type: "num", id: "egfrFoer", v: foer.v, label: "eGFR tidligere", kilde: foer.kilde, note: "kontrollér, at den tidligere værdi er fra ca. 1 år siden" });
+        const bt = L.bt();
+        if (bt) {
+          u.push({ type: "num", id: "sbp", v: bt.s, label: "Systolisk BT", kilde: bt.kilde });
+          u.push({ type: "num", id: "dbp", v: bt.d, label: "Diastolisk BT", kilde: bt.kilde });
+        }
+        const kal = L.kalium();
+        if (kal) u.push({ type: "num", id: "kalium", v: kal.v, label: "Kalium", kilde: kal.kilde });
+        // Sygdomme
+        const F = { familie: true };
+        const t1 = L.term("type 1-diabetes|type 1 diabetes|t1d|dm1", F);
+        const t2 = L.term("type 2-diabetes|type 2 diabetes|t2d|dm2|diabetes mellitus type 2|diabetes", F);
+        if (t2.status === "ja" && t1.status !== "ja") {
+          u.push(chk("syg", "t2d", t2, "Type 2-diabetes"));
+          if (!/type 2|t2d|dm2/i.test(t2.kilde)) u.push({ type: "note", tekst: `"Diabetes" er tolket som type 2-diabetes ("${t2.kilde}").` });
+        } else if (t1.status === "ja") u.push({ type: "note", tekst: "Type 1-diabetes nævnt — værktøjets diabetesråd gælder type 2." });
+        u.push(chk("syg", "hypertension", L.term("hypertension|forhøjet blodtryk|hypertoni", F), "Hypertension"));
+        u.push(chk("syg", "hs", L.term("hjertesvigt|hfref|hfpef|hjerteinsufficiens", F), "Hjertesvigt"));
+        u.push(chk("syg", "ascvd", L.term(`iskæmisk hjertesygdom|ihs${L.E}|ami${L.E}|blodprop i (?:hjertet|hjernen)|myokardieinfarkt|apopleksi|tci${L.E}|perifer arteriesygdom|claudicatio|pci${L.E}|cabg|(?:koronar|hjerte-?)bypass|stent`, F), "Hjerte-kar-sygdom"));
+        u.push(chk("syg", "pkd", L.term(`polycystisk\\w*\\s+nyre\\w*|cystenyre\\w*|adpkd`, F), "Polycystisk nyresygdom"));
+        u.push(chk("syg", "immun", L.term("nyretransplant|transplanteret|immunsuppr", F), "Immunsuppression/transplanteret"));
+        u.push(chk("syg", "haematuri", L.term("hæmaturi|blod i urinen", F), "Hæmaturi"));
+        u.push(chk("syg", "arvelig", L.term("arvelig nyresygdom|familiær nyresygdom|nyresygdom i familien"), "Arvelig nyresygdom"));
+        u.push(chk("syg", "resistent", L.term("behandlingsresistent hypertension|resistent hypertension|4 (?:blodtrykspræparater|antihypertensiva)|fire (?:blodtrykspræparater|antihypertensiva)"), "Resistent hypertension"));
+        for (const [key, monster] of Object.entries(MED)) {
+          const label = { acearb: "ACE-hæmmer/ARB", sglt2: "SGLT-2-hæmmer", statin: "Statin", finerenon: "Finerenon", nsaid: "NSAID" }[key];
+          u.push(chk("med", key, L.term(monster), label));
+        }
+        if (L.term("nyligt startet|startet for|opstartet for|påbegyndt for").status === "ja") u.push({ type: "note", tekst: 'Nylig opstart af medicin nævnt — markér "startet inden for 3 måneder", hvis det gælder ACE-hæmmer/ARB eller SGLT-2-hæmmer.' });
+        if (L.term("bekræftet|vedvarende|over 3 måneder|gentagne målinger").status === "ja") u.push({ type: "note", tekst: 'Teksten nævner bekræftet/vedvarende fund — markér selv "bekræftet over mindst 3 måneder", hvis det er rigtigt.' });
+        return u;
+      },
+      { vigtige: [["alder", "alder"], ["egfr", "eGFR"], ["uacr", "UACR"]], eksempel: "Fx: 68-årig mand med type 2-diabetes og hypertension. eGFR faldet fra 52 til 44, UACR 180 mg/g. BT 142/84, kalium 4,6. Metformin, ramipril og atorvastatin." }
+    );
+  }
+
   update();
 })();
