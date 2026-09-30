@@ -21,6 +21,14 @@
   const B = "(?<![a-zæøå0-9])";
   const E = "(?![a-zæøå0-9])";
   const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // Links til de andre værktøjer: slås op i #linkKort, så claude.ai-versionen bruger artifact-adresser
+  // (og åbner dem i en ny fane).
+  const lenke = (sti, tekst) => {
+    const a = document.querySelector(`#linkKort a[data-sti="${sti}"]`);
+    const href = a ? a.getAttribute("href") : sti;
+    const ny = /^https?:/.test(href) ? ' target="_blank" rel="noopener"' : "";
+    return `<a href="${esc(href)}"${ny}>${tekst}</a>`;
+  };
   const box = (cls, title, body) => `<div class="box ${cls}"><h3>${title}</h3>${body}</div>`;
   const ul = (items) => `<ul class="followup-list">${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
   const stor = (s) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -179,7 +187,7 @@
 
   function skift(g) {
     const punkter = (g.skift || []).map(esc);
-    const link = g.link ? `<p><a href="${esc(g.link.href)}">${esc(g.link.tekst)} →</a></p>` : "";
+    const link = g.link ? `<p>${lenke(g.link.href, `${esc(g.link.tekst)} →`)}</p>` : "";
     const kilder = `<p class="field-hint">Kilder: ${g.kilder.map(esc).join(" · ")}</p>`;
     return punkter.length || link ? box("", "Sådan skiftes", (punkter.length ? ul(punkter) : "") + link + kilder) : box("", "Kilder", kilder);
   }
