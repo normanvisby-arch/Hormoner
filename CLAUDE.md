@@ -33,11 +33,15 @@ eller "usikker" end et falsk præcist tal.
   kun med en primærkilde.
 - `valg.js`: fælles "Vælg til journal"-knap i behandlingstabeller (klimakterie, prævention,
   osteoporose); journalnotatet bruger det valgte i stedet for førstevalget.
+- `udfyld.js`: fælles "Udfyld fra journaltekst" (indsæt diktat-/journaltekst → felter udfyldes
+  lokalt med faste regler og negationsdetektion; intet sendes). Bruges foreløbig i infektion og
+  nyre; hver side har sin konfiguration nederst i sin `.js` (`Udfyld.init`). Script-tagget skal stå
+  før sidens egen `.js`, og filen skal i den brugende apps `sw.js`. Test: `tests/udfyld.test.js`.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
   **Hæv `VERSION` i `sw.js`** og i den berørte apps `*/sw.js` (hjerte, lunge, thyreoidea,
   diabetes, infektion, nyre), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
-  `valg.js`) caches af alle apps.
+  `valg.js`, `udfyld.js`) caches af alle apps.
 - `README.md`: klinisk logik, datagrundlag og ændringslog (opdateres ved hver ændring).
 - `tests/`: Playwright-suiter. `tests/run_all.sh` kører dem alle mod en lokal server.
 - `tools/artifacts.json` + `tools/build_artifact.py`: byg de publicerede claude.ai-versioner.
