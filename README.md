@@ -276,6 +276,43 @@ fri journaltekst — fx fra diktat eller en scribe — og felterne udfyldes af f
   felter. Ukendte formuleringer udfyldes ikke (hellere tomt end forkert). Felter uden for teksten
   bevarer standardværdien.
 
+## Notat-indgang (`notat/`)
+
+Én indgang for journalnotater: lægen kopierer notatet fra Noteless (eller en diktering), åbner
+Notat-appen og sætter ind — eller trykker "Indsæt fra udklipsholder".
+
+- **Valg af værktøj:** `Udfyld.klassificer` (i `udfyld.js`) giver point til 15 værktøjer:
+  - Diagnoser og entydige udtryk giver 3 point, typiske fund 2 og svage tegn 1.
+  - Hvert begreb tæller én gang. Lægemidler, der doseres efter nyrefunktion, giver højst 4 point
+    til dosis-værktøjet.
+  - Nægtede fund, sikkerhedsråd ("ved flankesmerter genkontakt"), vaccination og familieanamnese
+    ("mor har KOL") tæller ikke. Ønsker ("ønsker p-piller") og ubesvarede spørgsmål ("SCORE2?",
+    "Start levothyroxin?") tæller.
+- **Sikkert valg:** mindst 3 point, mindst 1,5 gang så mange som nummer to og mindst 2 point foran.
+  - Kan værktøjet udfyldes, åbnes det med det samme og udfyldes.
+  - Ellers vises kandidaterne med de ord, der pegede på dem, og lægen vælger. Det samme sker, hvis
+    "Gå direkte til værktøjet" er slået fra. Listen over alle værktøjer kan altid foldes ud.
+- **Udfyldes automatisk:** luftveje, urinveje, hud, kronisk nyresygdom og dosis efter
+  nyrefunktion. Atrieflimren, CV-risiko, KOL, astma, hypothyreose, type 2-diabetes (behandling og
+  årskontrol), klimakteriet, prævention og osteoporose genkendes og åbnes, men udfyldes ikke endnu.
+- **I værktøjet:**
+  - Rapporten viser, hvad der er udfyldt og hvorfra.
+  - Der er et link tilbage ("Forkert værktøj? Vælg et andet"), hvor teksten og valgene vises igen.
+  - "Teksten passer også til …" sender teksten videre til et andet værktøj med udfyldning, fx fra
+    urinveje til kronisk nyresygdom.
+- **Privatliv:** teksten gives videre i fanens `sessionStorage`.
+  - Nøglen `udfyld.overdrag` bruges én gang og slettes, når målsiden har læst den.
+  - `udfyld.notat` bruges til "tilbage" og slettes, når fanen lukkes, eller ved Ryd (i Notat eller
+    i værktøjets udfyld-panel).
+  - Intet sendes over netværket, og der bruges ingen sprogmodel. Kun indstillingen "Gå direkte"
+    gemmes i `localStorage`.
+- **App:** egen manifest, service worker og ikon. `scope` er `../`, så værktøjerne åbner i samme
+  app-vindue. Offline virker Notat-siden; værktøjerne virker offline, når deres egen app har været
+  åbnet.
+- **claude.ai-versionen:** artifacts er selvstændige sider, så teksten kan ikke gives videre. Notat
+  viser valget, kopierer teksten og åbner værktøjet i en ny fane, hvor den indsættes i "Udfyld fra
+  journaltekst".
+
 ## Installér som app
 
 Værktøjerne er en installerbar webapp (PWA) med eget ikon, som også virker uden internet:
@@ -285,7 +322,8 @@ Værktøjerne er en installerbar webapp (PWA) med eget ikon, som også virker ud
 - **Computer (Windows/Mac):** åbn adressen i Chrome eller Edge, og klik på "Installér som app" på
   startsiden eller installér-ikonet i adresselinjen. Hver app får eget vindue og ikon. Adresser:
   `…/Hormoner/oversigt.html`, `…/Hormoner/hjerte/`, `…/Hormoner/lunge/`, `…/Hormoner/thyreoidea/`,
-  `…/Hormoner/diabetes/`, `…/Hormoner/infektion/` og `…/Hormoner/nyre/`.
+  `…/Hormoner/diabetes/`, `…/Hormoner/infektion/`, `…/Hormoner/nyre/` og `…/Hormoner/notat/`
+  (Notat-indgangen).
 - **iPhone:** åbn adressen i Safari → Del-ikonet → "Føj til hjemmeskærm".
 - **Android:** åbn adressen i Chrome → ⋮ → "Installer app" / "Føj til startskærm".
 - `manifest.webmanifest` beskriver appen (navn, ikon, startside `oversigt.html`); `sw.js` gemmer
@@ -572,6 +610,20 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**30. september 2026 — Notat-indgang: én indgang for journalnotater:**
+- Ny app `notat/`:
+  - Indsæt et notat fra Noteless. Er det rette værktøj klart, åbnes det og udfyldes; ved tvivl
+    vises kandidaterne med begrundelse, og lægen vælger.
+  - Link tilbage fra værktøjet og "Teksten passer også til …".
+  - Link fra oversigten og alle startsider.
+- `udfyld.js`:
+  - Klassifikator (`Udfyld.klassificer`) og overdragelse mellem sider via fanens `sessionStorage`
+    (engangs, ryddes ved Ryd).
+  - "-" efter et ord nægter det kun, når det står alene ("feber -"), ikke i sammensatte ord
+    ("KOL-kontrol"). Tidligere kunne fx "Strep A-test" og "KOL-kontrol" læses som nægtet.
+- Ny testsuite `notat`. Service worker v1 (notat), v10 (rod), v7 (hjerte), v4 (lunge, thyreoidea,
+  diabetes) og v3 (infektion, nyre) pga. ændret `udfyld.js`, `style.css` og startsider.
 
 **29. september 2026 — "Udfyld fra journaltekst" (trin 1 af tale-til-tekst):**
 - Fælles `udfyld.js`: indsæt en journaltekst, og felterne udfyldes lokalt med faste regler, med
