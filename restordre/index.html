@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Restordre — alternativer</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#7c4a03">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Restordre">
+</head>
+<body class="theme-restordre">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">💊</span>
+      <div>
+        <h1>Restordre — alternativer</h1>
+        <p class="subtitle">Når et præparat ikke kan skaffes: tjek restordre.dk, samme indholdsstof og ækvivalente alternativer</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <span aria-current="page">Restordre</span>
+  <a href="../notat/index.html">Notat-indgang</a>
+  <a href="../oversigt.html">Alle værktøjer</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Tjek altid restordre.dk først.</strong> Siden drives af regionerne og viser dagligt — ud fra grossisternes og apotekernes lagre — hvad der kan skaffes, og hvilke alternativer apoteket vurderer. Forslagene her er generelle, tager ikke højde for lagerstatus, og ækvivalensdoserne er vejledende.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se alternativer ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Præparat i restordre" onsubmit="return false;">
+    <h2>1. Præparat i restordre</h2>
+
+    <div class="field">
+      <label for="soeg">Præparat eller indholdsstof</label>
+      <input type="text" id="soeg" list="forslagListe" autocomplete="off" placeholder="fx Ozempic, ramipril eller Eliquis">
+      <datalist id="forslagListe"></datalist>
+      <p class="field-hint">Søger i <span id="antalStoffer">ca. 450</span> indholdsstoffer og deres handelsnavne — med ækvivalente doser for de hyppigste grupper og ATC-gruppe for resten. Findes præparatet ikke: skriv indholdsstoffet (står på pakningen).</p>
+    </div>
+
+    <div class="field" id="dosisFelt" hidden>
+      <label for="dosis">Nuværende dosis (valgfrit)</label>
+      <select id="dosis"></select>
+      <p class="field-hint">Så markeres den ækvivalente dosis af alternativerne.</p>
+    </div>
+
+    <div class="field" id="valgFelt" hidden>
+      <p class="field-label">Flere præparater passer — vælg:</p>
+      <div id="valgListe" class="notat-valg"></div>
+    </div>
+
+    <details class="notat-alle" id="alleGrupper">
+      <summary>Alle lægemiddelgrupper</summary>
+      <ul id="gruppeListe"></ul>
+    </details>
+  </form>
+
+  <section class="panel result-panel" id="resultPanel" aria-live="polite">
+    <h2>2. Alternativer</h2>
+    <div id="output"><p class="field-hint">Skriv navnet på præparatet i restordre.</p></div>
+  </section>
+  <!-- Adresser for links fra tabellerne (i claude.ai-versionen erstattes de af artifact-adresser). -->
+  <div id="linkKort" hidden><a data-sti="../diabetes/behandling.html" href="../diabetes/behandling.html"></a><a data-sti="../hjerte/af.html" href="../hjerte/af.html"></a><a data-sti="../index.html" href="../index.html"></a><a data-sti="../infektion/luftveje.html" href="../infektion/luftveje.html"></a><a data-sti="../infektion/urinveje.html" href="../infektion/urinveje.html"></a><a data-sti="../lunge/astma.html" href="../lunge/astma.html"></a><a data-sti="../lunge/kol.html" href="../lunge/kol.html"></a><a data-sti="../nyre/dosis.html" href="../nyre/dosis.html"></a><a data-sti="../osteoporose.html" href="../osteoporose.html"></a><a data-sti="../praevention.html" href="../praevention.html"></a><a data-sti="../thyreoidea/hypothyreose.html" href="../thyreoidea/hypothyreose.html"></a></div>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Restordre.dk — drives af Region Syddanmark på vegne af Danske Regioner sammen med Klinisk Farmakologi, OUH, og Københavns Sønderbro Apotek; bygger på daglige data fra grossister og apotekers lagre (Region Syddanmark, oktober 2024)</li>
+    <li>Lægemiddelstyrelsen: substitution og substitutionsgrupper; Mangel på medicin; udleveringstilladelser (national udleveringstilladelse efter lægemiddellovens § 29, stk. 2, eller efter lægens ansøgning)</li>
+    <li>Folketinget, SUU alm. del bilag 53 (2019–20) og Danmarks Apotekerforening 2024: anden styrke, pakningsstørrelse eller lægemiddelform kræver som udgangspunkt ny recept</li>
+    <li>Regionernes sider om restordre på sundhed.dk (Hovedstaden, Sjælland, Nordjylland, Syddanmark)</li>
+    <li>Registeret over indholdsstoffer er grupperet efter WHO's ATC-klassifikation (niveau 4); stoffer i samme gruppe vises som mulige alternativer uden ækvivalente doser</li>
+    <li>Ækvivalenstabellerne: se kilderne under hver lægemiddelgruppe (bl.a. NICE CG181 og CG184, GINA 2024, BMS, EHRA 2021, FSRH og regionernes antibiotikavejledninger)</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra regionerne, Lægemiddelstyrelsen eller de nævnte kilder. Restordre.dk, sundhed.dk, pro.medicin.dk og Lægemiddelstyrelsen kunne ikke tilgås direkte ved udviklingen; oplysninger og ækvivalensdoser er kontrolleret via sekundære kilder og skal verificeres i produktresuméet på pro.medicin.dk før ordination. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="../udfyld.js"></script>
+<script src="data.js"></script>
+<script src="register.js"></script>
+<script src="restordre.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

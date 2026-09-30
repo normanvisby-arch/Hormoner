@@ -339,6 +339,87 @@ Notat-appen og sætter ind — eller trykker "Indsæt fra udklipsholder".
   viser valget, kopierer teksten og åbner værktøjet i en ny fane, hvor den indsættes i "Udfyld fra
   journaltekst".
 
+## Restordre — alternativer (`restordre/`)
+
+Når et præparat ikke kan skaffes. Lægen skriver præparatet (handelsnavn eller indholdsstof) — eller
+det udfyldes fra en journaltekst eller fra Notat-indgangen, når der står "restordre", "kan ikke
+skaffes" o.l. Værktøjet viser tre trin:
+
+1. **Tjek restordre.dk først.** Siden drives af Region Syddanmark på vegne af Danske Regioner. Den
+   viser dagligt, ud fra grossisternes og apotekernes lagre, hvad der kan skaffes, og apotekets
+   vurderede alternativer.
+   - restordre.dk har ingen kendt søgeadresse eller åben datakilde, så værktøjet åbner siden og
+     kopierer søgeordet.
+   - Der er også links til pro.medicin.dk (præparater med samme indholdsstof), Lægemiddelstyrelsens
+     meddelelser om forsyning og regionernes restordre-sider.
+2. **Samme indholdsstof:**
+   - Et synonympræparat kan udleveres af apoteket uden ny recept (substitution).
+   - Anden styrke, form eller pakningsstørrelse kræver som udgangspunkt ny recept.
+   - Findes intet markedsført alternativ, kan Lægemiddelstyrelsen give udleveringstilladelse (§ 29,
+     stk. 2, eller efter lægens ansøgning).
+   - Hertil stof-specifikke tips om styrker og former.
+3. **Andet præparat i samme gruppe:** en tabel med vejledende ækvivalente doser (dosisniveauer i
+   rækker, præparater i kolonner).
+   - Den nuværende dosis kan markeres.
+   - Et alternativ kan vælges til journalnotatet (præparat i restordre, restordre.dk tjekket, skift
+     til ækvivalent dosis, plan for kontrol).
+   - Undtagelser i notatet: DOAK får ingen dosis (hvert præparat har egne dosiskriterier), opioider
+     får den beregnede ækvivalente døgndosis med startdosis 50–75 % + p.n., og GLP-1 startes lavt og
+     optrappes.
+   - Under tabellen: hvordan der skiftes, hvad der kontrolleres, link til det relevante værktøj og
+     kilder.
+
+**Søgning i alle almindelige lægemidler.** Søgningen dækker to lag:
+
+- **Detaljerede grupper (31)** med ækvivalente doser (listen nedenfor, nu også gabapentinoider og
+  systemiske glukokortikoider).
+- **Et register (`register.js`)** med ca. 450 indholdsstoffer og deres almindelige danske
+  handelsnavne, grupperet efter WHO's ATC-klassifikation (niveau 4, 180 grupper).
+  - For et stof i registeret vises de øvrige stoffer i samme ATC-gruppe som mulige alternativer:
+    handelsnavne, pro.medicin.dk-link, valg til journalnotat og link til den detaljerede tabel,
+    hvor den findes. Der vises ingen dosisækvivalens.
+  - Brede eller specialiststyrede grupper har en bemærkning (`RESTORDRE_ATC_NOTE`), fx:
+    antiepileptika og ADHD-midler (specialist), LABA/SABA (ikke erstattelige), trombocythæmmere
+    efter AKS, sacubitril/valsartan (ACE-hæmmer tidligst efter 36 timer), tirzepatid (→ GLP-1),
+    insuliner (enhed for enhed), hudsteroider (samme danske styrkegruppe I–IV) og lithium.
+  - Grupper, hvor stofferne ikke kan erstatte hinanden, viser ingen liste, fx J01CA (amoxicillin
+    til luftveje og pivmecillinam kun til urinveje), og henviser til den rette tabel. Andre
+    bemærkninger: sotalol (klasse III, ikke propranolol), triple-inhalatorer (behold
+    inhalationssteroid), kombinationspræparater (stofferne hver for sig) og Toujeo → Lantus (−20 %).
+- Søges der på et kombinationspræparat ("comp", "plus", "+"), men findes kun enkeltstoffet, advarer
+  værktøjet om, at det andet indholdsstof fortsat skal gives.
+- Et navn, der passer til flere stoffer (fx budesonid til inhalation, tarm og næse, eller Magnyl),
+  giver et valg.
+- Findes præparatet ikke, siger værktøjet det og beder om indholdsstoffet (det står på pakningen)
+  med link til pro.medicin.dk.
+
+Registeret er skrevet ud fra ATC-klassifikationen og kontrolleret for format, dubletter og
+gruppenavne. Handelsnavne er kun søgeord og siger intet om aktuelt udbud.
+
+**Lægemiddelgrupper (31).**
+
+| Område | Grupper |
+|---|---|
+| Hjerte-kar | ACE-hæmmere, ARB, calciumantagonister, betablokkere, thiazider, loop-diuretika, statiner, DOAK |
+| Diabetes | GLP-1-receptoragonister (inkl. ny Rybelsus-formulering), SGLT-2-hæmmere, DPP-4-hæmmere, metformin |
+| Mave-tarm | PPI |
+| Lunger | anfaldsmedicin, inhalationssteroider (GINA), LAMA |
+| Psykiatri og neurologi | SSRI, triptaner |
+| Smerter | opioider (omregning til oral morfin; start med 50–75 %), gabapentinoider (gabapentin : pregabalin ≈ 6 : 1) |
+| Allergi | antihistaminer, adrenalin-autoinjektorer |
+| Kvindesundhed | østrogen til MHT, gestagen til endometriebeskyttelse, lokal østrogen, p-piller og minipiller |
+| Hormoner og knogler | levothyroxin, glukokortikoider (prednisolon 5 mg ≈ methylprednisolon 4 mg ≈ hydrocortison 20 mg ≈ dexamethason 0,75 mg), osteoporosemidler (inkl. denosumab-biosimilærer) |
+| Infektioner | penicillin V, antibiotika mod blærebetændelse |
+
+**Overensstemmelse og kilder.**
+- Doserne stemmer overens med de eksisterende værktøjer, der indeholder de samme lægemidler (DOAK,
+  østrogen, cystitis, DPP-4).
+- Ækvivalenserne er vejledende og kontrolleret via sekundære kilder, bl.a. NICE CG181 og CG184,
+  GINA 2024, BMS, EHRA 2021, FSRH, CDC-omregningsfaktorer, medSask og regionernes
+  antibiotikavejledninger.
+- Restordre.dk, sundhed.dk og Lægemiddelstyrelsen kunne ikke tilgås direkte. Skal verificeres i
+  produktresuméet før ordination.
+
 ## Installér som app
 
 Værktøjerne er en installerbar webapp (PWA) med eget ikon, som også virker uden internet:
@@ -636,6 +717,33 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**30. september 2026 — Restordre — alternativer:**
+- Ny app `restordre/`:
+  - 1) restordre.dk og de officielle kilder, 2) samme indholdsstof, 3) alternativer med vejledende
+    ækvivalente doser i 31 lægemiddelgrupper.
+  - Søgning i et register med ca. 450 indholdsstoffer og handelsnavne (ATC-grupper) med
+    bemærkninger for brede og specialiststyrede grupper — til brug, når en patient ringer.
+  - Journalnotat og udfyldning fra journaltekst.
+  - Uafhængig audit, rettet før merge:
+    - DOAK-niveauer er ikke indbyrdes ækvivalente, og notatet har ingen dosis.
+    - Warfarin-skift følger EHRA.
+    - Tramadol er begrænset til 300 mg ved ≥ 75 år.
+    - Oral semaglutid har ny formulering (1,5/4/9 mg).
+    - Opioidnotat med startdosis 50–75 %.
+    - Amoxicillin og pivmecillinam er ikke alternativer for hinanden.
+    - Kodein ligger under hostemidler.
+    - Nye bemærkninger om sotalol, triple-inhalatorer, kombinationspræparater, Entresto
+      (valsartan-doser) og Toujeo.
+    - Usikre handelsnavne er fjernet.
+    - Advarsel ved kombinationspræparat.
+    - Fri tekst læser ikke "Husk" o.l. som præparat.
+  - Link fra oversigten, alle startsider og Notat-indgangen.
+- Notat-indgangen sender notater med "restordre", "kan ikke skaffes" o.l. til Restordre-værktøjet med
+  præparatnavnet udfyldt. `udfyld.js` har fået felttypen `tekst`.
+- Ny testsuite `restordre`. Service worker v1 (restordre), v11 (rod), v8 (hjerte), v5 (lunge,
+  thyreoidea, diabetes), v4 (infektion, nyre) og v2 (notat) pga. ændret `udfyld.js`, `style.css` og
+  startsider.
 
 **30. september 2026 — Notat-indgang: én indgang for journalnotater:**
 - Ny app `notat/`:

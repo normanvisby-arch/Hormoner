@@ -7,6 +7,7 @@
  * Brug: Udfyld.init((L) => [ ...fund ], { vigtige: [["alder", "Alder"], ...] })
  * Et fund er et af:
  *   { type: "num", id, v, label, kilde, note }
+ *   { type: "tekst", id, v, label, kilde }   (tekstfelt, fx præparatnavn)
  *   { type: "radio", name, value, label, kilde }
  *   { type: "check", name, value, on, label, kilde }
  *   { type: "hidden", id, v, label }
@@ -426,6 +427,9 @@ window.Udfyld = (function () {
   const MED_NYRE = ["metformin", "apixaban|eliquis", "rivaroxaban|xarelto", "dabigatran|pradaxa", "edoxaban|lixiana", "gabapentin|neurontin", "pregabalin|lyrica", "tramadol", "morfin", "oxycodon", "allopurinol", "digoxin", "spironolacton", "nitrofurantoin", "trimethoprim", "lithium", "sitagliptin|januvia", "colchicin", "baclofen", "methotrexat", "valaciclovir", "alendronat", "amoxicillin", "ciprofloxacin", "clarithromycin", "metoclopramid"];
   const DIABETES = `(?<!type\\s?(?:1|i)[- ]?)(?<!gestationel )(?<!graviditets)(?:type 2-?diabetes|type 2 diabetes|t2d${E}|dm2${E}|diabetes mellitus|diabetes${E})`;
   const VAERKTOEJER = [
+    // Et udtrykkeligt "restordre" betyder, at opgaven er at finde et alternativ — vejer tungest.
+    { id: "restordre", sti: "restordre/index.html", navn: "Restordre — alternativer", app: "Restordre", udfyld: true, tegn: [
+      { v: 9, m: "restordre\\w*|kan ikke skaffes|ikke til at skaffe|forsyningsvanskelig\\w*|forsyningssvigt|leveringssvigt|mangel på (?:medicin|præparatet|lægemidlet)|udgået fra markedet" } ] },
     { id: "luftveje", sti: "infektion/luftveje.html", navn: "Luftvejsinfektion", app: "Infektioner", udfyld: true, tegn: [
       { v: 3, m: "tonsillit|faryngit|halsbetændelse|streptokokhals|strep\\.? ?a|centor" }, { v: 3, m: "otitis|mellemørebetændelse|ørebetændelse" }, { v: 3, m: "sinuit|rhinosinuit|bihulebetændelse" },
       { v: 3, m: "pneumoni|lungebetændelse|crb-?65" }, { v: 3, m: "bronkit|luftvejsinfektion" },
@@ -672,11 +676,11 @@ window.Udfyld = (function () {
       };
       fund.forEach((f) => {
         if (f.type === "note") return noter.push(f.tekst);
-        if (f.type === "num" || f.type === "hidden") {
+        if (f.type === "num" || f.type === "tekst" || f.type === "hidden") {
           const el = document.getElementById(f.id);
           if (!el) return;
           el.value = String(f.v);
-          if (f.type === "num") markér(el);
+          if (f.type !== "hidden") markér(el);
           udfyldt.push({ label: f.label, v: f.type === "num" ? vis(f.v) : f.vis || f.v, kilde: f.kilde });
           if (f.note) noter.push(`${f.label}: ${f.note}.`);
         } else if (f.type === "radio") {
