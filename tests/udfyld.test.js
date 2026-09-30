@@ -44,6 +44,56 @@ const SIDE = (f) => process.env['UDFYLD_' + f.replace(/\W/g, '_').toUpperCase()]
   check('M23 penicillinallergi -> ja', (await lib('Kendt penicillinallergi (udslæt).', 'L.allergi().status')) === 'ja');
   check('M24 køn: dreng -> mand', (await lib('5-årig dreng', 'L.koen().v')) === 'mand');
 
+  // Audit-fund (regressionstests)
+  const A = async (navn, tekst, fn, forventet) => { const v = await lib(tekst, fn); check(navn, JSON.stringify(v) === JSON.stringify(forventet), `${tekst} => ${JSON.stringify(v)}`); };
+  await A('A1 "÷" efter fund = nej', 'Feber ÷, hoste ÷.', '[L.feber().status, L.term("hoste").status]', ['nej', 'nej']);
+  await A('A2 "Feber? Nej." = nej', 'Feber? Nej. Hoste? Ja.', '[L.feber().status, L.term("hoste").status]', ['nej', 'ja']);
+  await A('A3 "Gravid? Nej" = nej', 'Gravid? Nej.', 'L.gravid().status', 'nej');
+  await A('A4 ubesvaret spørgsmål = ukendt', 'Gravid?', 'L.gravid().status', null);
+  await A('A5 "Ved feber … genkontakt" = ukendt', 'Afebril. Ved feber eller flankesmerter genkontakt.', '[L.feber().status, L.term("flankesmerter").status]', ['nej', null]);
+  await A('A6 "Hvis feber, kontakt" = ukendt', 'Hvis feber, kontakt vagtlæge.', 'L.feber().status', null);
+  await A('A7 sikkerhedsråd om nakkestivhed', 'Informeret om at søge læge ved nakkestivhed eller petekkier.', 'L.term("nakkestiv|petekki").status', null);
+  await A('A8 hypotetisk temperatur', 'Ved temp over 38,5 grader genkontakt.', 'L.feber().status', null);
+  await A('A9 "Ved us." er ikke hypotetisk', 'Ved us. belægninger på tonsillerne.', 'L.term("belægning").status', 'ja');
+  await A('A10 "Allergi: penicillin"', 'Allergi: penicillin.', 'L.allergi().status', 'ja');
+  await A('A11 "CAVE: Penicillin"', 'CAVE: Penicillin', 'L.allergi().status', 'ja');
+  await A('A12 "Tåler ikke penicillin"', 'Tåler ikke penicillin.', 'L.allergi().status', 'ja');
+  await A('A13 "Ingen kendte allergier udover penicillin"', 'Ingen kendte allergier udover penicillin.', 'L.allergi().status', 'ja');
+  await A('A14 "Allergisk over for amoxicillin"', 'Allergisk over for amoxicillin.', 'L.allergi().status', 'ja');
+  await A('A15 "Allergi: ingen"', 'Allergi: ingen.', 'L.allergi().status', 'nej');
+  await A('A16 penicillinallergi afkræftet', 'Penicillinallergi afkræftet ved provokation.', 'L.allergi().status', 'nej');
+  await A('A17 vægtændring er ikke vægt', 'Har taget 2 kg på, vejer nu 22 kg.', 'L.vaegt().v', 22);
+  await A('A18 vægttab er ikke vægt', 'Tabt 4 kg på en måned.', 'L.vaegt()', null);
+  await A('A19 fødselsvægt er ikke vægt', 'Fødselsvægt 3,5 kg, nu 8 mdr. gammel.', 'L.vaegt()', null);
+  await A('A20 dato før værdi', 'eGFR 12.03.26: 44. CRP 12.03: 45.', '[L.egfr().v, L.crp().v]', [44, 45]);
+  await A('A21 eGFR "58 for et år siden, nu 32"', 'eGFR 58 for et år siden, nu eGFR 32.', '[L.egfrTid().nu.v, L.egfrTid().foer.v]', [32, 58]);
+  await A('A22 eGFR uden tidsangivelse → laveste', 'eGFR 45. eGFR 38.', 'L.egfrTid().nu.v', 38);
+  await A('A23 eGFR med pil', 'eGFR 52 → 44.', '[L.egfrTid().nu.v, L.egfrTid().foer.v]', [44, 52]);
+  await A('A24 CRP "i dag" vinder', 'CRP 12 for 3 dage siden, i dag CRP 85.', 'L.crp().v', 85);
+  await A('A25 seponeret = nej', 'Statin seponeret pga. myalgi.', 'L.term("statin").status', 'nej');
+  await A('A26 "uden bedring … fortsat feber"', 'Uden bedring på paracetamol og fortsat feber.', 'L.feber().status', 'ja');
+  await A('A27 seneste feberoplysning gælder', 'Afebril i går, i aften temp 39,2.', 'L.feber().status', 'ja');
+  await A('A28 "nu afebril" gælder', 'Feber for 3 dage siden, nu afebril.', 'L.feber().status', 'nej');
+  await A('A29 "T 39" og "T. 38,6"', 'T 39. T. 38,6.', '[L.temp().v]', [39]);
+  await A('A30 "pneumoni udelukket"', 'Pneumoni udelukket klinisk.', 'L.term("pneumoni").status', 'nej');
+  await A('A31 "kan ikke udelukkes" = ja', 'Pneumoni kan ikke udelukkes.', 'L.term("pneumoni").status', 'ja');
+  await A('A32 familie ignoreres for sygdomme', 'Mor har diabetes.', 'L.term("diabetes", { familie: true }).status', null);
+  await A('A33 mor som kilde til barnets feber', 'Mor har målt feber hos drengen.', 'L.feber().status', 'ja');
+  await A('A34 LDL-K og vitamin K er ikke kalium', 'LDL-K 2,6. Vitamin K 2 mg.', 'L.kalium()', null);
+  await A('A35 U-kreatinin er ikke P-kreatinin', 'U-kreatinin 25 mmol/l.', 'L.kreat()', null);
+  await A('A36 ACR i mg/mmol', 'ACR 35 mg/mmol', 'L.uacr().v', 309);
+  await A('A37 ledsagerens køn tæller ikke', 'Ledsaget af sin mand. 34-årig med svie.', 'L.koen()', null);
+  await A('A38 "forsøger at blive gravid" = ukendt', 'Forsøger at blive gravid.', 'L.gravid().status', null);
+  await A('A39 vaccination er ikke meningitis', 'Vaccineret mod meningokokker.', 'L.term("meningokok").status', null);
+  await A('A40 opremsning efter "ingen" med "eller"', 'Ingen feber, hoste eller ondt i halsen.', 'L.term("hoste").status', 'nej');
+  await A('A41 opremsning uden "eller" = ukendt', 'Ingen feber, hoste i 3 dage.', 'L.term("hoste").status', null);
+  await A('A46 "men"/"fortsat" stopper opremsningsnægtelse', 'Ingen bedring, fortsat hoste og feber. Benægter dyspnø, men har ondt i halsen.', '[L.feber().status, L.term("ondt i halsen").status]', ['ja', 'ja']);
+  await A('A42 RF som reumafaktor', 'RF 32 IU/ml.', 'L.rf()', null);
+  await A('A43 eGFR (CKD-EPI) 44', 'eGFR (CKD-EPI) 44', 'L.egfr().v', 44);
+  r = await p.evaluate(() => { const t0 = performance.now(); const L = Udfyld.lib('hoste og ondt '.repeat(8000) + 'crp' + ' '.repeat(5000) + '5'); L.feber(); L.term('hoste'); L.crp(); return performance.now() - t0; });
+  check('A44 lang tekst uden tegnsætning < 2 s', r < 2000, r);
+  r = await lib('İİİ CRP 45 og feber.', 'L.crp().kilde'); check('A45 uddrag passer efter særlige bogstaver', r.includes('CRP 45'), r);
+
   // ---------------- Luftveje ----------------
   await go('infektion/luftveje.html');
   r = await udfyld('6-årig dreng, 20 kg. Ondt i halsen i 2 dage, feber 38,9, belægninger og ømme glandler, ingen hoste. Strep A positiv. Ingen kendte allergier.');
@@ -97,6 +147,34 @@ const SIDE = (f) => process.env['UDFYLD_' + f.replace(/\W/g, '_').toUpperCase()]
   r = await udfyld('Rosen på underbenet, hurtig spredning og smerter ude af proportion.');
   check('H5 alarmtegn nekrotiserende', await on('rf', 'nekrose') && (await head()).startsWith('Mistanke om nekrotiserende'), r);
 
+  r = await udfyld('Flåtbid for 2 uger siden uden reaktion. Nu rosen på underbenet, feber 38,5. 60-årig.');
+  check('H6 aktuel rosen slår gammelt flåtbid', await on('diag', 'erysipelas'), r);
+  r = await udfyld('Erysipelas på underbenet. Fodsvamp. Tidligere hundebid 2019.');
+  check('H7 gammelt hundebid og fodsvamp -> erysipelas', await on('diag', 'erysipelas'), r);
+  r = await udfyld('Byld på låret. Afebril. Ved feber eller omgivende rødme genkontakt.');
+  check('H8 sikkerhedsråd sætter ikke omgivende rødme', await on('cell', 'absces') && !(await on('cell', 'omgiv')), r);
+
+  // ---------------- Urinveje (audit) ----------------
+  await go('infektion/urinveje.html');
+  r = await udfyld('34-årig kvinde med svie og hyppig vandladning. Afebril. Ved feber eller flankesmerter genkontakt.');
+  check('U5 sikkerhedsråd giver ikke pyelonefritis', await on('billede', 'cystitis'), r);
+  r = await udfyld('25-årig kvinde, svie. Gravid? Nej. Stix: leuk ÷, nitrit ÷.');
+  check('U6 "Gravid? Nej" og "÷" i stix', !(await on('andet', 'gravid')) && await on('leuk', 'neg') && await on('nitrit', 'neg'), r);
+  r = await udfyld('Ledsaget af sin mand. 34-årig med svie og hyppig vandladning.');
+  check('U7 ledsagerens køn bruges ikke', r.includes('Ikke fundet i teksten: køn'), r);
+  r = await udfyld('Kvinde 30 år. Initialt svie. Stix positiv for leukocytter og nitrit.');
+  check('U8 "initialt" er ikke nitrit', await on('nitrit', 'pos'), r);
+
+  // ---------------- Luftveje (audit) ----------------
+  await go('infektion/luftveje.html');
+  r = await udfyld('Sinuitis for 3 uger siden, behandlet. Nu ondt i halsen og feber 38,6.');
+  check('L6 aktuel ondt i halsen slår gammel sinuitis', await on('diag', 'tonsillitis') && await on('centor', 'feber'), r);
+  r = await udfyld('5-årig, 18 kg. Ondt i halsen. Feber ÷, hoste ÷. Strep A ÷.');
+  check('L7 "÷"-notation', !(await on('centor', 'feber')) && await on('centor', 'hoste') && await on('strep', 'neg'), r);
+  r = await udfyld('Ondt i halsen. Informeret om at søge læge ved nakkestivhed eller petekkier.');
+  check('L8 sikkerhedsråd udløser ikke alarm', !(await on('rf', 'meningitis')), r);
+  r = await udfyld('Pneumoni udelukket klinisk. Hoste i 5 dage, CRP 15.');
+  check('L9 "pneumoni udelukket" -> bronkitis', await on('diag', 'bronkitis'), r);
   // ---------------- Kronisk nyresygdom ----------------
   await go('nyre/ckd.html');
   r = await udfyld('68-årig mand med type 2-diabetes og hypertension. eGFR faldet fra 52 til 44, UACR 180 mg/g. BT 142/84, kalium 4,6. Metformin, ramipril og atorvastatin. Ingen NSAID.');
@@ -109,6 +187,9 @@ const SIDE = (f) => process.env['UDFYLD_' + f.replace(/\W/g, '_').toUpperCase()]
   r = await udfyld('Diabetes. eGFR 50, tidligere eGFR 58. Ibuprofen efter behov.');
   check('C3 "tidligere" og diabetes-note og NSAID', (await val('egfr')) === '50' && (await val('egfrFoer')) === '58' && await on('syg', 't2d') && await on('med', 'nsaid') && r.includes('tolket som type 2-diabetes'), r);
 
+  r = await udfyld('45-årig kvinde med PCOS (polycystisk ovariesyndrom). Gastric bypass 2015. Amitriptylin. Mor havde diabetes. Statin seponeret. eGFR 55, UACR 40 mg/g.');
+  check('C4 PCOS, gastric bypass, amitriptylin, familie og seponeret giver ingen fund', !(await on('syg', 'pkd')) && !(await on('syg', 'ascvd')) && !(await on('syg', 't2d')) && !(await on('med', 'statin')), r);
+
   // ---------------- Dosis ----------------
   await go('nyre/dosis.html');
   check('D0 nævnte-filter skjult uden tekst', await p.locator('#naevnteLabel').isHidden());
@@ -118,6 +199,13 @@ const SIDE = (f) => process.env['UDFYLD_' + f.replace(/\W/g, '_').toUpperCase()]
   check('D1 kun nævnte lægemidler vises', rækker.length === 4 && rækker.includes('Metformin') && rækker.some((x) => x.startsWith('DOAK')) && rækker.includes('Gabapentin') && rækker.includes('Paracetamol'), JSON.stringify(rækker));
   await p.uncheck('input[name="vis"][value="naevnte"]');
   check('D2 filter kan slås fra', (await p.$$eval('#output tbody tr:not(.group-row)', (e) => e.length)) > 30);
+
+  r = await udfyld('80-årig mand. eGFR 58 for et år siden, nu eGFR 32. Tabt 4 kg, vejer nu 70 kg. Kreatinin 180. Ingen bivirkninger af Eliquis.');
+  check('D3 aktuel eGFR, vægt efter vægttab, negeret lægemiddel vises', (await val('egfr')) === '32' && (await val('vaegt')) === '70' && (await val('naevnte')).includes('DOAK'), r);
+  r = await udfyld('75-årig kvinde, eGFR 40.');
+  check('D4 ny udfyldning uden lægemidler rydder filtret', (await val('naevnte')) === '' && await p.locator('#naevnteLabel').isHidden() && r.includes('Ikke fundet i teksten: kreatinin, vægt'), r);
+  await udfyld('eGFR 40. Metformin.'); await p.click('#resetBtn'); await p.waitForTimeout(100);
+  check('D5 Nulstil rydder nævnte lægemidler', (await val('naevnte')) === '' && await p.locator('#naevnteLabel').isHidden());
 
   // Mobil
   const m = await ctx.newPage(); await m.setViewportSize({ width: 390, height: 844 }); await m.goto(SIDE('infektion/luftveje.html'));

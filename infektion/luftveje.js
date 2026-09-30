@@ -263,7 +263,7 @@
   // ---------------------------------------------------------------------
 
   if (window.Udfyld) {
-    const crpFund = (c) => ({ type: "num", id: "crp", v: c.op === "<" ? Math.max(0, c.v - 1) : c.v, label: "CRP", kilde: c.kilde, note: c.op === "<" ? `angivet som ${c.op} ${String(c.v).replace(".", ",")} — sat til ${Math.max(0, c.v - 1)}` : "" });
+    const crpFund = (c) => ({ type: "num", id: "crp", v: c.op === "<" ? Math.max(0, c.v - 1) : c.v, label: "CRP", kilde: c.kilde, note: [c.op === "<" ? `angivet som ${c.op} ${String(c.v).replace(".", ",")} — sat til ${Math.max(0, c.v - 1)}` : "", c.note || ""].filter(Boolean).join("; ") });
     const chk = (name, value, r, label, on) => (r && r.status ? { type: "check", name, value, on: on === undefined ? r.status === "ja" : on, label, kilde: r.kilde } : null);
     Udfyld.init(
       (L) => {
@@ -273,7 +273,7 @@
           { value: "otitis", staerk: "otitis|mellemørebetændelse|ørebetændelse", svag: "ørepine|øresmerter|ondt i øret" },
           { value: "sinuitis", staerk: "sinuit|rhinosinuit|bihulebetændelse", svag: "bihule|ansigtssmerter" },
           { value: "pneumoni", staerk: "pneumoni|lungebetændelse", svag: "krepitation|infiltrat" },
-          { value: "bronkitis", staerk: "bronkit", svag: "hoste" },
+          { value: "bronkitis", staerk: "bronkit", svag: `host(?:e|er|en|et|ende)?${L.E}` },
         ]);
         const d = diag ? diag.value : "tonsillitis";
         if (diag) {
@@ -291,14 +291,15 @@
         const c = L.crp();
         if (c && d !== "tonsillitis" && d !== "otitis") u.push(crpFund(c));
         const feber = L.feber();
+        if (feber.note && (d === "tonsillitis" || d === "sinuitis")) u.push({ type: "note", tekst: `Feber: ${feber.note}.` });
 
         if (d === "tonsillitis") {
           u.push(chk("centor", "feber", feber, "Centor: feber"));
           u.push(chk("centor", "belaeg", L.term("belægning|belæg|pus på tonsil|hævede tonsiller|forstørrede tonsiller|tonsilhypertrofi|eksudat"), "Centor: belægninger/hævede tonsiller"));
           u.push(chk("centor", "lymf", L.term("lymfeknude|glandler|lymfadenit|lymfadenopati"), "Centor: ømme lymfeknuder"));
-          const hoste = L.term("hoste");
+          const hoste = L.term(`host(?:e|er|en|et|ende)?${L.E}`);
           if (hoste.status) u.push({ type: "check", name: "centor", value: "hoste", on: hoste.status === "nej", label: "Centor: ingen hoste", kilde: hoste.kilde });
-          const s1 = L.find("strep\\w*\\s*-?\\s*a?\\s*-?\\s*(?:test|hurtigtest|antigentest)?\\s*[:=]?\\s*(pos\\w*|\\+|neg\\w*|-(?!\\d))") || L.find("(positiv|negativ)\\w*\\s+strep");
+          const s1 = L.find(`${L.B}strep\\w*(?:[ -]?a)?(?:[ -]?(?:test|hurtigtest|antigentest))?\\s*[:=]?\\s*(pos\\w*|\\+|neg\\w*|÷|-(?!\\d))`) || L.find("(positiv|negativ)\\w*\\s+strep");
           if (s1) u.push({ type: "radio", name: "strep", value: /^(pos|\+)/.test(s1.m[1]) ? "pos" : "neg", label: "Strep A-test", kilde: s1.kilde });
           const abs = L.term("peritonsillær absces|peritonsillit|trismus|kartoffeltale");
           if (abs.status === "ja") u.push(chk("rf", "absces", abs, "Mistanke om peritonsillær absces"));

@@ -270,13 +270,13 @@
     const chk = (name, value, r, label, on) => (r && r.status ? { type: "check", name, value, on: on === undefined ? r.status === "ja" : on, label, kilde: r.kilde } : null);
     // Stix: "leuk +", "nitrit neg", "positiv for leukocytter og nitrit".
     function stix(L, stof) {
-      const direkte = L.find(`(?:${stof})\\w*\\s*[:=]?\\s*(\\d\\s*\\+|\\++|pos\\w*|neg\\w*|spor|-(?!\\d)|0(?![,.\\d]))`);
+      const direkte = L.find(`${L.B}(?:${stof})\\w*\\s*[:=]?\\s*(\\d\\s*\\+|\\++|pos\\w*|neg\\w*|spor|÷|\\(-\\)|-(?!\\d)|0(?![,.\\d]))`);
       if (direkte) {
         const v = direkte.m[1];
         if (/spor/.test(v)) return { spor: true, kilde: direkte.kilde };
         return { value: /^(\d\s*\+|\+|pos)/.test(v) ? "pos" : "neg", kilde: direkte.kilde };
       }
-      const i = L.find(`(?:${stof})`);
+      const i = L.find(`${L.B}(?:${stof})`);
       if (!i) return null;
       const led = L.leddetFor(i.index) + L.leddetEfter(i.index);
       const pos = /(?<![a-zæøå])(positiv|pos)(?![a-zæøå])/.test(led);
@@ -293,12 +293,13 @@
         if (a) u.push({ type: "num", id: "alder", v: a.v, label: "Alder (år)", kilde: a.kilde, note: a.note });
         const w = L.vaegt();
         if (w) u.push({ type: "num", id: "vaegt", v: w.v, label: "Vægt (kg)", kilde: w.kilde });
-        const e = L.egfr();
-        if (e) u.push({ type: "num", id: "egfr", v: e.v, label: "eGFR", kilde: e.kilde, note: e.op ? `angivet som ${e.op} ${e.v}` : "" });
+        const e = L.egfrTid().nu;
+        if (e) u.push({ type: "num", id: "egfr", v: e.v, label: "eGFR", kilde: e.kilde, note: e.note || (e.op ? `angivet som ${e.op} ${e.v}` : "") });
         if (!k || k.v === "kvinde") u.push(chk("andet", "gravid", L.gravid(), "Gravid"));
         u.push(chk("andet", "allergi", L.allergi(), "Penicillinallergi"));
         // Klinisk billede
         const feber = L.feber();
+        if (feber.note) u.push({ type: "note", tekst: `Feber: ${feber.note}.` });
         const flanke = L.term("flankesmerter|flankeømhed|nyrelogeømhed|ømhed over nyrelogen|dunkeøm|pyelonefrit|urosepsis");
         const asympt = L.term("asymptomatisk|uden symptomer|ingen symptomer|symptomfri");
         const cyst = L.term("svie|dysuri|hyppig vandladning|pollakisuri|blærebetændelse|cystit|vandladningstrang|urgency");

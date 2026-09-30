@@ -363,31 +363,9 @@
         const ua = L.uacr();
         if (ua) u.push({ type: "num", id: "uacr", v: ua.v, label: "UACR (mg/g)", kilde: ua.kilde, note: ua.note || (ua.op ? `angivet som ${ua.op} ${ua.v}` : "") });
         // eGFR: "faldet fra 52 til 44", årstal, "tidligere"/"for et år siden".
-        const fraTil = L.find(`e-?gfr[^.;\\n]{0,30}?fra\\s*(\\d{1,3})\\s*til\\s*(\\d{1,3})`);
-        if (fraTil) {
-          u.push({ type: "num", id: "egfr", v: L.parseTal(fraTil.m[2]), label: "eGFR nu", kilde: fraTil.kilde });
-          u.push({ type: "num", id: "egfrFoer", v: L.parseTal(fraTil.m[1]), label: "eGFR tidligere", kilde: fraTil.kilde, note: "kontrollér, at den tidligere værdi er fra ca. 1 år siden" });
-        } else {
-          const alle = L.egfr({ alle: true });
-          const tidl = (x) => /tidligere|sidste år|for (?:ca\.?\s*)?(?:et|1) år siden|i fjor|året før|forrige/.test(x.foer + " " + x.efter.slice(0, 30));
-          const aar = (x) => {
-            const m = x.efter.slice(0, 16).match(/(20\d\d)/);
-            return m ? +m[1] : null;
-          };
-          let nu = null;
-          let foer = null;
-          if (alle.length >= 2 && alle.every((x) => aar(x))) {
-            const s = alle.slice().sort((p, q) => aar(q) - aar(p));
-            nu = s[0];
-            foer = s[s.length - 1];
-          } else {
-            nu = alle.find((x) => !tidl(x)) || null;
-            foer = alle.find((x) => tidl(x)) || null;
-            if (alle.filter((x) => !tidl(x)).length > 1) u.push({ type: "note", tekst: `Flere eGFR-værdier i teksten (${alle.map((x) => x.v).join(", ")}) — den første er brugt som "nu". Kontrollér.` });
-          }
-          if (nu) u.push({ type: "num", id: "egfr", v: nu.v, label: "eGFR nu", kilde: nu.kilde, note: nu.op ? `angivet som ${nu.op} ${nu.v}` : "" });
-          if (foer && foer !== nu) u.push({ type: "num", id: "egfrFoer", v: foer.v, label: "eGFR tidligere", kilde: foer.kilde, note: "kontrollér, at den tidligere værdi er fra ca. 1 år siden" });
-        }
+        const { nu, foer } = L.egfrTid();
+        if (nu) u.push({ type: "num", id: "egfr", v: nu.v, label: "eGFR nu", kilde: nu.kilde, note: nu.note || (nu.op ? `angivet som ${nu.op} ${nu.v}` : "") });
+        if (foer) u.push({ type: "num", id: "egfrFoer", v: foer.v, label: "eGFR tidligere", kilde: foer.kilde, note: "kontrollér, at den tidligere værdi er fra ca. 1 år siden" });
         const bt = L.bt();
         if (bt) {
           u.push({ type: "num", id: "sbp", v: bt.s, label: "Systolisk BT", kilde: bt.kilde });
@@ -396,18 +374,19 @@
         const kal = L.kalium();
         if (kal) u.push({ type: "num", id: "kalium", v: kal.v, label: "Kalium", kilde: kal.kilde });
         // Sygdomme
-        const t1 = L.term("type 1-diabetes|type 1 diabetes|t1d|dm1");
-        const t2 = L.term("type 2-diabetes|type 2 diabetes|t2d|dm2|diabetes mellitus type 2|diabetes");
+        const F = { familie: true };
+        const t1 = L.term("type 1-diabetes|type 1 diabetes|t1d|dm1", F);
+        const t2 = L.term("type 2-diabetes|type 2 diabetes|t2d|dm2|diabetes mellitus type 2|diabetes", F);
         if (t2.status === "ja" && t1.status !== "ja") {
           u.push(chk("syg", "t2d", t2, "Type 2-diabetes"));
           if (!/type 2|t2d|dm2/i.test(t2.kilde)) u.push({ type: "note", tekst: `"Diabetes" er tolket som type 2-diabetes ("${t2.kilde}").` });
         } else if (t1.status === "ja") u.push({ type: "note", tekst: "Type 1-diabetes nævnt — værktøjets diabetesråd gælder type 2." });
-        u.push(chk("syg", "hypertension", L.term("hypertension|forhøjet blodtryk|hypertoni"), "Hypertension"));
-        u.push(chk("syg", "hs", L.term("hjertesvigt|hfref|hfpef|hjerteinsufficiens"), "Hjertesvigt"));
-        u.push(chk("syg", "ascvd", L.term("iskæmisk hjertesygdom|ihs|ami|blodprop i hjertet|myokardieinfarkt|apopleksi|tci|perifer arteriesygdom|claudicatio|pci|cabg|bypass|stent"), "Hjerte-kar-sygdom"));
-        u.push(chk("syg", "pkd", L.term("polycystisk|cystenyre|adpkd"), "Polycystisk nyresygdom"));
-        u.push(chk("syg", "immun", L.term("nyretransplant|transplanteret|immunsuppr"), "Immunsuppression/transplanteret"));
-        u.push(chk("syg", "haematuri", L.term("hæmaturi|blod i urinen"), "Hæmaturi"));
+        u.push(chk("syg", "hypertension", L.term("hypertension|forhøjet blodtryk|hypertoni", F), "Hypertension"));
+        u.push(chk("syg", "hs", L.term("hjertesvigt|hfref|hfpef|hjerteinsufficiens", F), "Hjertesvigt"));
+        u.push(chk("syg", "ascvd", L.term(`iskæmisk hjertesygdom|ihs${L.E}|ami${L.E}|blodprop i (?:hjertet|hjernen)|myokardieinfarkt|apopleksi|tci${L.E}|perifer arteriesygdom|claudicatio|pci${L.E}|cabg|(?:koronar|hjerte-?)bypass|stent`, F), "Hjerte-kar-sygdom"));
+        u.push(chk("syg", "pkd", L.term(`polycystisk\\w*\\s+nyre\\w*|cystenyre\\w*|adpkd`, F), "Polycystisk nyresygdom"));
+        u.push(chk("syg", "immun", L.term("nyretransplant|transplanteret|immunsuppr", F), "Immunsuppression/transplanteret"));
+        u.push(chk("syg", "haematuri", L.term("hæmaturi|blod i urinen", F), "Hæmaturi"));
         u.push(chk("syg", "arvelig", L.term("arvelig nyresygdom|familiær nyresygdom|nyresygdom i familien"), "Arvelig nyresygdom"));
         u.push(chk("syg", "resistent", L.term("behandlingsresistent hypertension|resistent hypertension|4 (?:blodtrykspræparater|antihypertensiva)|fire (?:blodtrykspræparater|antihypertensiva)"), "Resistent hypertension"));
         for (const [key, monster] of Object.entries(MED)) {

@@ -266,8 +266,10 @@
         if (d === "cellulitis") {
           const abs = L.term("absces|byld|fluktuer");
           if (abs.status === "ja") u.push(chk("cell", "absces", abs, "Byld"));
-          const om = L.term("omgivende rødme|cellulit|feber|lymfangit");
+          const om = L.term("omgivende rødme|cellulit|lymfangit");
+          const feber = L.feber();
           if (om.status === "ja") u.push(chk("cell", "omgiv", om, "Omgivende rødme/feber"));
+          else if (feber.status === "ja") u.push(chk("cell", "omgiv", feber, "Omgivende rødme/feber"));
         }
         if (d === "impetigo") {
           const ud = L.term("udbredt|mange elementer|flere steder|spredt|generaliseret|ingen effekt af");
@@ -279,12 +281,12 @@
           const dyr = L.vaelg([
             { value: "menneske", staerk: "menneskebid|menneske|knytnæve|knoslag" },
             { value: "kat", staerk: `kattebid|kat${E}|katte` },
-            { value: "hund", staerk: "hundebid|hund" },
+            { value: "hund", staerk: `hundebid|hund(?:en|e|ene)?${E}` },
           ]);
           if (dyr) u.push({ type: "radio", name: "dyr", value: dyr.value, label: "Bidt af", kilde: dyr.kilde });
-          const inf = L.term("inficeret|pus|purulent|lymfangit|rødme og hævelse|hævelse og rødme");
+          const inf = L.term(`inficeret|pus${E}|purulent|lymfangit|rødme og hævelse|hævelse og rødme`);
           if (inf.status === "ja") u.push(chk("bid", "inficeret", inf, "Tegn på infektion"));
-          const ris = L.term(`hånd|hånden|finger|fingre|fod|foden|fødder|led${E}|over led|ansigt|dybt|punktur|kønsorgan`);
+          const ris = L.term(`hånd(?:en|led)?${E}|fingre?${E}|fingeren|fod(?:en)?${E}|fødder|led${E}|over led|ansigt|dybt|punktur|kønsorgan`);
           if (ris.status === "ja") u.push(chk("bid", "risiko", ris, "Risikolokalisation/dybt sår"));
           const imm = L.term("diabetes|immunsuppr|miltløs|splenektom|levercirrose");
           if (imm.status === "ja") u.push(chk("bid", "immun", imm, "Nedsat immunforsvar"));

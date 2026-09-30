@@ -25,6 +25,8 @@
   }
   document.getElementById("resetBtn").addEventListener("click", () => {
     form.reset();
+    // Skjulte felter nulstilles ikke af form.reset().
+    document.getElementById("naevnte").value = "";
     update();
   });
   function copyText(text) {
@@ -243,8 +245,8 @@
     Udfyld.init(
       (L) => {
         const u = [];
-        const e = L.egfr({ alle: true });
-        if (e.length) u.push({ type: "num", id: "egfr", v: e[0].v, label: "eGFR", kilde: e[0].kilde, note: e.length > 1 ? `flere eGFR-værdier (${e.map((x) => x.v).join(", ")}) — den første er brugt` : e[0].op ? `angivet som ${e[0].op} ${e[0].v}` : "" });
+        const e = L.egfrTid().nu;
+        if (e) u.push({ type: "num", id: "egfr", v: e.v, label: "eGFR", kilde: e.kilde, note: e.note || (e.op ? `angivet som ${e.op} ${e.v}` : "") });
         const a = L.alder();
         if (a) u.push({ type: "num", id: "alder", v: a.v, label: "Alder (år)", kilde: a.kilde });
         const w = L.vaegt();
@@ -254,14 +256,15 @@
         if (kr) u.push({ type: "num", id: "kreat", v: kr.v, label: "P-kreatinin (µmol/l)", kilde: kr.kilde });
         const k = L.koen();
         if (k) u.push({ type: "radio", name: "koen", value: k.v, label: "Køn", kilde: k.kilde });
-        const fundne = MIDLER.filter((m) => SYNONYMER[m.navn] && L.term(SYNONYMER[m.navn]).status === "ja");
+        // Ethvert nævnt lægemiddel tæller (også "ingen bivirkninger af Eliquis") — filtret skjuler kun rækker.
+        const fundne = MIDLER.filter((m) => SYNONYMER[m.navn] && L.alle(new RegExp(`${L.B}(?:${SYNONYMER[m.navn]})`, "g")).length);
         if (fundne.length) {
           u.push({ type: "hidden", id: "naevnte", v: fundne.map((m) => m.navn).join("|"), label: "Lægemidler nævnt", vis: fundne.map((m) => m.navn.split(" (")[0]).join(", ") });
           u.push({ type: "check", name: "vis", value: "naevnte", on: true, label: "Vis kun nævnte lægemidler" });
         }
         return u;
       },
-      { vigtige: [["egfr", "eGFR"]], eksempel: "Fx: 82-årig kvinde, 58 kg, kreatinin 128, eGFR 38. Fast medicin: metformin 1 g × 2, Eliquis 5 mg × 2, gabapentin 300 mg × 3, Pinex." }
+      { vigtige: [["egfr", "eGFR"], ["kreat", "kreatinin"], ["vaegt", "vægt"], ["koen", "køn (bruges i Cockcroft-Gault)"]], eksempel: "Fx: 82-årig kvinde, 58 kg, kreatinin 128, eGFR 38. Fast medicin: metformin 1 g × 2, Eliquis 5 mg × 2, gabapentin 300 mg × 3, Pinex." }
     );
   }
 
