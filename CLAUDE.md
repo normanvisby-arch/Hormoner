@@ -4,7 +4,8 @@ Danske beslutningsstøtteværktøjer til en praktiserende læge i syv selvstænd
 **kvindesundhed** (klimakterie/MHT, prævention, MRS-scoring, osteoporose — repoets rod),
 **hjerte-kar** (`hjerte/`), **lunger** (`lunge/`: KOL og astma), **hypothyreose** (`thyreoidea/`),
 **type 2-diabetes** (`diabetes/`), **infektioner** (`infektion/`: antibiotika) og **nyrer**
-(`nyre/`: kronisk nyresygdom og dosis efter nyrefunktion). Brugeren er læge; al tekst i værktøjerne og svar til brugeren er på
+(`nyre/`: kronisk nyresygdom og dosis efter nyrefunktion) — plus **Notat-indgangen** (`notat/`),
+der modtager et journalnotat og sender det til det rette værktøj. Brugeren er læge; al tekst i værktøjerne og svar til brugeren er på
 dansk. Klinisk indhold skal være korrekt, kildebelagt og ærligt om usikkerhed — hellere et interval
 eller "usikker" end et falsk præcist tal.
 
@@ -37,10 +38,15 @@ eller "usikker" end et falsk præcist tal.
   lokalt med faste regler og negationsdetektion; intet sendes). Bruges foreløbig i infektion og
   nyre; hver side har sin konfiguration nederst i sin `.js` (`Udfyld.init`). Script-tagget skal stå
   før sidens egen `.js`, og filen skal i den brugende apps `sw.js`. Test: `tests/udfyld.test.js`.
+- `notat/` (Notat-indgang): `index.html` + `notat.js`, egen manifest (`scope: "../"`), `sw.js` og
+  `icons/`. Klassifikatoren (`VAERKTOEJER` og `klassificer` i `udfyld.js`) giver point pr. værktøj;
+  sikkert valg → værktøjet åbnes og udfyldes via `sessionStorage` (`udfyld.overdrag`, engangs), ellers
+  vælger lægen. Nyt værktøj med udfyldning: tilføj det i `VAERKTOEJER` (med `udfyld: true`), i
+  listen i `notat/index.html` og i `tests/notat.test.js`. Test: `tests/notat.test.js`.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
   **Hæv `VERSION` i `sw.js`** og i den berørte apps `*/sw.js` (hjerte, lunge, thyreoidea,
-  diabetes, infektion, nyre), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
+  diabetes, infektion, nyre, notat), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
   `valg.js`, `udfyld.js`) caches af alle apps.
 - `README.md`: klinisk logik, datagrundlag og ændringslog (opdateres ved hver ændring).
 - `tests/`: Playwright-suiter. `tests/run_all.sh` kører dem alle mod en lokal server.

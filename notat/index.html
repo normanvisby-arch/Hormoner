@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notat-indgang</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#334e68">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Notat">
+</head>
+<body class="theme-notat">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">📝</span>
+      <div>
+        <h1>Notat-indgang</h1>
+        <p class="subtitle">Indsæt et journalnotat fra Noteless eller en diktering — det rette værktøj findes og udfyldes</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="rydBtn" class="btn btn-ghost" type="button">Ryd</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <span aria-current="page">Notat-indgang</span>
+  <a href="../oversigt.html">Alle værktøjer</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Privatliv:</strong> Teksten behandles kun i browseren med faste regler og sendes ingen steder hen. Den ligger i fanens midlertidige hukommelse, så den kan gives videre til værktøjet, og slettes, når fanen lukkes, eller når du trykker Ryd. Kontrollér altid de udfyldte felter.
+</div>
+
+<main class="notat-layout">
+  <section class="panel" aria-label="Journalnotat">
+    <h2 class="notat-h2">1. Indsæt notatet</h2>
+    <label for="notatTekst" class="sr-only">Journalnotat</label>
+    <textarea id="notatTekst" rows="10" autocomplete="off" spellcheck="false" placeholder="Fx: 34-årig kvinde med svie og hyppig vandladning i 2 dage, afebril, ingen flankesmerter. Stix: leuk +, nitrit +. Ikke gravid. Ingen kendte allergier."></textarea>
+    <div class="udfyld-actions">
+      <button id="findBtn" class="btn btn-primary" type="button">Find værktøj og udfyld</button>
+      <button id="hentBtn" class="btn btn-outline" type="button" hidden>Indsæt fra udklipsholder</button>
+    </div>
+    <label class="checkbox"><input type="checkbox" id="direkte" checked> Gå direkte til værktøjet, når det er sikkert</label>
+
+    <h2 class="notat-h2">2. Værktøj</h2>
+    <div id="resultat" class="notat-resultat" aria-live="polite"><p class="field-hint">Indsæt et notat — sæt ind (Ctrl/⌘+V) starter søgningen med det samme.</p></div>
+
+    <details id="alle" class="notat-alle">
+      <summary>Vælg selv blandt alle værktøjer</summary>
+      <ul id="vaerktoejer">
+        <li><a data-id="luftveje" href="../infektion/luftveje.html">Luftvejsinfektion</a> <span class="field-hint">Infektioner · udfyldes</span></li>
+        <li><a data-id="urinveje" href="../infektion/urinveje.html">Urinvejsinfektion</a> <span class="field-hint">Infektioner · udfyldes</span></li>
+        <li><a data-id="hud" href="../infektion/hud.html">Hud- og bløddelsinfektion</a> <span class="field-hint">Infektioner · udfyldes</span></li>
+        <li><a data-id="ckd" href="../nyre/ckd.html">Kronisk nyresygdom</a> <span class="field-hint">Nyrer · udfyldes</span></li>
+        <li><a data-id="dosis" href="../nyre/dosis.html">Dosis efter nyrefunktion</a> <span class="field-hint">Nyrer · udfyldes</span></li>
+        <li><a data-id="af" href="../hjerte/af.html">Atrieflimren — antikoagulation</a> <span class="field-hint">Hjerte-kar</span></li>
+        <li><a data-id="cvrisiko" href="../hjerte/cvrisiko.html">CV-risiko (SCORE2)</a> <span class="field-hint">Hjerte-kar</span></li>
+        <li><a data-id="kol" href="../lunge/kol.html">KOL</a> <span class="field-hint">Lunger</span></li>
+        <li><a data-id="astma" href="../lunge/astma.html">Astma</a> <span class="field-hint">Lunger</span></li>
+        <li><a data-id="hypothyreose" href="../thyreoidea/hypothyreose.html">Hypothyreose</a> <span class="field-hint">Hypothyreose</span></li>
+        <li><a data-id="diabetes" href="../diabetes/behandling.html">Type 2-diabetes — behandling</a> <span class="field-hint">Type 2-diabetes</span></li>
+        <li><a data-id="aarskontrol" href="../diabetes/aarskontrol.html">Type 2-diabetes — årskontrol</a> <span class="field-hint">Type 2-diabetes</span></li>
+        <li><a data-id="klimakterie" href="../index.html">Klimakteriet — hormonbehandling</a> <span class="field-hint">Kvindesundhed</span></li>
+        <li><a data-id="praevention" href="../praevention.html">Prævention</a> <span class="field-hint">Kvindesundhed</span></li>
+        <li><a data-id="osteoporose" href="../osteoporose.html">Osteoporose</a> <span class="field-hint">Kvindesundhed</span></li>
+      </ul>
+    </details>
+  </section>
+
+  <div class="note-app" role="note" data-app-only>
+    <p><strong>Installér som app:</strong> så har du én indgang på skrivebordet — kopiér notatet i Noteless, åbn Notat, og tryk "Indsæt fra udklipsholder". <button class="btn btn-primary" type="button" data-install hidden>Installér som app</button></p>
+  </div>
+</main>
+
+<footer class="sources">
+  <h2>Sådan virker det</h2>
+  <ul>
+    <li>Teksten gennemgås med faste regler (ingen sprogmodel): diagnoser, symptomer, fund, laboratorieværdier og lægemidler giver point til hvert værktøj. Nægtede fund ("ingen feber", "strep A ÷"), hypotetiske formuleringer ("ved feber genkontakt") og familieanamnese ("mor har KOL") tæller ikke.</li>
+    <li>Er ét værktøj klart bedst (mindst 3 point, mindst 1,5 gang så mange som nummer to og mindst 2 point foran), åbnes det og udfyldes med det samme. Ellers vises kandidaterne med de ord, der pegede på dem, så du kan vælge.</li>
+    <li>Automatisk udfyldning findes foreløbig i luftveje, urinveje, hud, kronisk nyresygdom og dosis efter nyrefunktion. De øvrige værktøjer åbnes uden udfyldning.</li>
+    <li>I værktøjet vises, hvad der er udfyldt og hvorfra, et link tilbage hertil, hvis værktøjet er forkert, og andre værktøjer, teksten også passer til.</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj til almen praksis. Det erstatter ikke den kliniske vurdering. Ingen patientdata sendes nogen steder hen.</p>
+</footer>
+
+<script src="../udfyld.js"></script>
+<script src="notat.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

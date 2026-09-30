@@ -20,12 +20,17 @@ window.Udfyld = (function () {
   const E = "(?![a-zæøåé0-9])";
   // Nægtelse før et fund (højst ca. otte ord før) og efter et fund ("feber: nej", "strep A ÷").
   const NEG = new RegExp(`${B}(ingen|ikke|uden|benægter|benægtes|negativ|neg\\.?|afkræft\\w*|aldrig|intet|ej|seponer\\w*|pauser\\w*|ophørt|stoppet)${E}|(?:^|\\s)÷\\s*$`);
-  const NEG_EFTER = /^\s*[:=]?\s*(?:er\s+|var\s+|blev\s+)?(nej|neg(?![a-zæøå])|negativ|÷|\(-\)|ikke til stede|benægtes|afkræftet|udelukket|seponeret|pauseret|ophørt|stoppet|udtrappet|-(?![\d>]))/;
+  // "-" er kun nægtelse, når det står alene ("feber -"), ikke i sammensatte ord ("KOL-kontrol").
+  const NEG_EFTER = /^\s*[:=]?\s*(?:er\s+|var\s+|blev\s+)?(nej|neg(?![a-zæøå])|negativ|÷|\(-\)|ikke til stede|benægtes|afkræftet|udelukket|seponeret|pauseret|ophørt|stoppet|udtrappet|-(?![\d>a-zæøåé]))/;
   // Led, hvor nægtelsen ikke rækker ind: "uden bedring, men fortsat feber".
-  const SKIFT = new RegExp(`${B}(?:men|dog|stadig|fortsat|nu|til gengæld|derimod)${E}`);
+  const SKIFT = new RegExp(`${B}(?:men|dog|stadig|fortsat|nu|til gengæld|derimod|udover|ud over|bortset fra|foruden)${E}`);
   // Hypotetisk omtale, råd og ønsker: "hvis feber", "informeret om at søge læge ved nakkestivhed".
-  const HYPO = new RegExp(`${B}(?:hvis|såfremt|i tilfælde af|obs\\.?\\s*(?:for|på)|informeret|instrueret|vejledt|oplyst om|rådgivet|(?:at|bør|skal)\\s+søge|forebyg\\w*|vaccin\\w*|ønske\\w*|planlæg\\w*|forsøg\\w*|(?:at|vil|kan)\\s+blive)${E}`);
+  // Råd og betingelser gælder altid; ønsker og planer ("ønsker p-piller") kun ved udfyldning af felter.
+  const HYPO = new RegExp(`${B}(?:hvis|såfremt|i tilfælde af|obs\\.?\\s*(?:for|på)|informeret|instrueret|vejledt|oplyst om|rådgivet|(?:at|bør|skal)\\s+søge|vaccin\\w*)${E}`);
+  const HYPO_OENSKE = new RegExp(`${B}(?:forebyg\\w*|ønske\\w*|planlæg\\w*|forsøg\\w*|(?:at|vil|kan)\\s+blive)${E}`);
   const HYPO_START = /^\s*ved(?![a-zæøå])(?!\s+(?:us|undersøg|obj|klinisk|stix|auskult|palp|insp|indlæg|kontrol|konsultation|besøg|lyt|tilsyn|fremmøde|ankomst|henvendelse|tlf|telefon|opkald|visitation|modtagelse))/;
+  // Råd med "ved" efter: "Genkontakt ved feber", "Kontakt lægen ved flankesmerter", "Panodil ved feber".
+  const HYPO_VED = new RegExp(`${B}(?:(?:gen)?kontakt\\w*|henvend\\w*|søg\\w*|ring\\w*|retur\\w*|sikkerhedsnet|råd\\w*|panodil|pamol|pinex|paracetamol|ibuprofen|ipren|pn|p\\.n\\.)${E}[^.;\\n]{0,40}${B}ved${E}`);
   const HYPO_EFTER = new RegExp(`${B}(?:genkontakt\\w*|kontakte?\\s+(?:igen|os|lægen|læge|vagtlægen|lægevagten|1813|112)|søge?\\s+(?:læge|lægevagt|skadestue))${E}`);
   // Familieanamnese: "mor har diabetes", "disp. til hjertesygdom".
   const FAMILIE = new RegExp(`${B}(?:(?:mor|moder|far|fader|søster|bror|broder|forældre|søskende|bedstemor|bedstefar|mormor|morfar|farmor|farfar|onkel|tante)\\s+(?:har|havde|med|fik|døde|haft|er)|disp\\.?|disposition|familie\\w*|familiær\\w*|arvelig\\w*)${E}`);
@@ -107,7 +112,8 @@ window.Udfyld = (function () {
       return ud;
     }
 
-    // "Ingen feber, hoste eller ondt i halsen": nægtelsen gælder hele opremsningen.
+    // "Ingen feber, hoste eller ondt i halsen": nægtelsen gælder hele opremsningen — og et råd
+    // ("Genkontakt ved feber, flankesmerter eller …") gælder også hele opremsningen.
     function listeNaegtet(i) {
       const a = ledStart(i);
       if (t[a - 1] !== "," || ord(t.slice(a, i)).length > 3 || SKIFT.test(t.slice(a, i))) return null;
@@ -115,6 +121,7 @@ window.Udfyld = (function () {
       for (let n = 0; n < 6; n++) {
         const s = ledStart(j);
         const seg = t.slice(s, j);
+        if (hypoTekst(seg, false)) return "?";
         if (NEG.test(seg) && !SKIFT.test(seg)) {
           let slut = i;
           while (slut < t.length && !erSaetning(t, slut) && slut - i < 300) slut++;
@@ -127,13 +134,16 @@ window.Udfyld = (function () {
     }
 
     // Klassificér én forekomst: "ja", "nej" eller "?" (hypotetisk, spørgsmål, familie, uklar opremsning).
-    const hypotetisk = (i, slut) => {
+    const hypoTekst = (s, oenske = true) => HYPO.test(s) || HYPO_VED.test(s) || (oenske && HYPO_OENSKE.test(s)) || HYPO_START.test(s);
+    const hypotetisk = (i, slut, oenske = true) => {
       const helt = t.slice(ledStart(i), i);
-      return HYPO.test(helt) || HYPO_START.test(helt) || HYPO_EFTER.test(leddetEfter(slut));
+      return hypoTekst(helt, oenske) || HYPO_EFTER.test(leddetEfter(slut));
     };
     // familie: true for sygdomme, hvor "mor har diabetes" ikke må tælle som patientens egen.
-    function klassificer(i, slut, { familie = false } = {}) {
-      if (hypotetisk(i, slut)) return "?";
+    // emne: true, når det kun gælder, hvad teksten handler om (Notat-indgangen) — så tæller ønsker
+    // ("ønsker p-piller") og ubesvarede spørgsmål ("SCORE2?", "Start levothyroxin?").
+    function klassificer(i, slut, { familie = false, emne = false } = {}) {
+      if (hypotetisk(i, slut, !emne)) return "?";
       if (familie && FAMILIE.test(t.slice(ledStart(i), i))) return "?";
       const dele = leddetFor(i).split(SKIFT);
       const foer = ord(dele[dele.length - 1]).slice(-8).join(" ");
@@ -145,7 +155,7 @@ window.Udfyld = (function () {
         const svar = leddetEfter(k + 1);
         if (/^\s*(nej|neg\w*|÷|-(?!\d)|ingen)/.test(svar)) return "nej";
         if (/^\s*(ja|\+|pos\w*)/.test(svar)) return "ja";
-        return "?";
+        return emne ? "ja" : "?";
       }
       const liste = listeNaegtet(i);
       if (liste) return liste;
@@ -154,6 +164,7 @@ window.Udfyld = (function () {
 
     const L = {
       tekst,
+      lav: t,
       B,
       E,
       // Ord eller udtryk: "ja", hvis mindst én forekomst er bekræftet; "nej", hvis de afkræftes;
@@ -406,6 +417,191 @@ window.Udfyld = (function () {
   }
 
   // ----------------------------------------------------------------------
+  // Hvilket værktøj passer teksten til? (Notat-indgangen)
+  // ----------------------------------------------------------------------
+
+  // Hvert tegn er et begreb med vægt 3 (diagnose/entydigt), 2 (typisk fund) eller 1 (svagt).
+  // Et begreb tæller én gang og kun, hvis det ikke er nægtet, hypotetisk eller (fam) familiens.
+  // grp samler begreber med et loft (fx højst 4 point for lægemidler).
+  const MED_NYRE = ["metformin", "apixaban|eliquis", "rivaroxaban|xarelto", "dabigatran|pradaxa", "edoxaban|lixiana", "gabapentin|neurontin", "pregabalin|lyrica", "tramadol", "morfin", "oxycodon", "allopurinol", "digoxin", "spironolacton", "nitrofurantoin", "trimethoprim", "lithium", "sitagliptin|januvia", "colchicin", "baclofen", "methotrexat", "valaciclovir", "alendronat", "amoxicillin", "ciprofloxacin", "clarithromycin", "metoclopramid"];
+  const DIABETES = `(?<!type\\s?(?:1|i)[- ]?)(?<!gestationel )(?<!graviditets)(?:type 2-?diabetes|type 2 diabetes|t2d${E}|dm2${E}|diabetes mellitus|diabetes${E})`;
+  const VAERKTOEJER = [
+    { id: "luftveje", sti: "infektion/luftveje.html", navn: "Luftvejsinfektion", app: "Infektioner", udfyld: true, tegn: [
+      { v: 3, m: "tonsillit|faryngit|halsbetændelse|streptokokhals|strep\\.? ?a|centor" }, { v: 3, m: "otitis|mellemørebetændelse|ørebetændelse" }, { v: 3, m: "sinuit|rhinosinuit|bihulebetændelse" },
+      { v: 3, m: "pneumoni|lungebetændelse|crb-?65" }, { v: 3, m: "bronkit|luftvejsinfektion" },
+      { v: 3, m: "ondt i halsen|halssmerter|synkesmerter" }, { v: 3, m: "ørepine|øresmerter|ondt i øret|trommehinde" },
+      { v: 2, m: "krepitation|knitren" }, { v: 2, m: "ansigtssmerter|smerter over (?:kæbe|pande)hul" }, { v: 2, m: `snot${E}|snotter|nasalt sekret|forkøle\\w*` },
+      { v: 2, m: "takypnø|hurtig vejrtrækning|besværet vejrtrækning|indtrækninger" },
+      { v: 1, m: `host(?:e|er|en|ende)?${E}|belægning|glandler` }, { v: 1, m: `feber|febril|crp${E}` } ] },
+    { id: "urinveje", sti: "infektion/urinveje.html", navn: "Urinvejsinfektion", app: "Infektioner", udfyld: true, tegn: [
+      { v: 3, m: `cystit|blærebetændelse|uvi${E}|urinvejsinfektion|dysuri|urosepsis|svie ved (?:vandladning|miktion)` }, { v: 3, m: "pyelonefrit|nyrebækkenbetændelse" }, { v: 3, m: "bakteriuri" },
+      { v: 2, m: "svie(?! i (?:halsen|øjnene|huden|munden))" }, { v: 2, m: "hyppig vandladning|pollakisuri|vandladningstrang|urgency" }, { v: 2, m: `stix${E}|urinstix|nitrit|urindyrkning` },
+      { v: 2, m: "flankesmerter|nyreloge\\w*|ømhed over nyrelog\\w*|dunkeøm" }, { v: 2, m: "ildelugtende urin|uklar urin|grumset urin|urinen lugter" },
+      { v: 1, m: "kulderystelser" }, { v: 2, m: `blærekateter|kateter|kad${E}` }, { v: 1, m: "leukocytter" }, { v: 1, m: `feber|febril|crp${E}` } ] },
+    { id: "hud", sti: "infektion/hud.html", navn: "Hud- og bløddelsinfektion", app: "Infektioner", udfyld: true, tegn: [
+      { v: 3, m: `erysipelas|rosen${E}|cellulit|lymfangit` }, { v: 3, m: "byld|(?<!peritonsillær )(?<!peritonsillært )absces|furunkel|sårinfektion|inficeret sår|fodsår|sår på (?:fod|foden|tå|tåen|storetå|storetåen|hæl|hælen|underben|underbenet|finger|fingeren)" }, { v: 3, m: "impetigo|børnesår" },
+      { v: 3, m: `erythema migrans|borreli|flåtbid|skovflåt|flåt${E}` }, { v: 3, m: `hundebid|kattebid|menneskebid|bidsår|bidt af|bidt i|bidt${E}` },
+      { v: 2, m: "rødme|fluktuer" }, { v: 3, m: "varm og hævet|hævet og varm|rødt?,? varmt?|varmt?,? rødt?|rød,? hævet og varm" }, { v: 2, m: "skarpt afgrænset" }, { v: 2, m: `pus${E}|purulent|inficeret` },
+      { v: 1, m: `sår${E}|udslæt|fodsvamp` }, { v: 1, m: `feber|febril|crp${E}` } ] },
+    { id: "ckd", sti: "nyre/ckd.html", navn: "Kronisk nyresygdom", app: "Nyrer", udfyld: true, tegn: [
+      { v: 3, m: `kronisk nyresygdom|ckd${E}|nyreinsufficiens|nyresvigt|nefropati|kdigo|kfre`, fam: true },
+      { v: 3, m: `albuminuri|mikroalbuminuri|proteinuri|uacr|u-?acr|acr${E}|u-?albumin|albumin\\s*\\/\\s*kreatinin|albumin-?kreatinin` },
+      { v: 2, m: `faldende egfr|fald i egfr|egfr (?:er )?faldet|faldende nyrefunktion` }, { v: 2, m: `e-?gfr|gfr${E}|nedsat nyrefunktion` }, { v: 1, m: "kreatinin|nefrolog" } ] },
+    { id: "dosis", sti: "nyre/dosis.html", navn: "Dosis efter nyrefunktion", app: "Nyrer", udfyld: true, lofter: { med: 2, medBaggrund: 1 }, tegn: [
+      { v: 3, m: "dosis\\w*|dosering\\w*|nyredosis|medicingennemgang|medicinjuster\\w*|(?:kan|må) (?:pt\\.? |patienten |hun |han )?(?:få|tåle|tage|gives)|(?:skal|bør) \\w+ (?:reduceres|halveres|seponeres)" },
+      { v: 1, m: `e-?gfr|gfr${E}|nedsat nyrefunktion` }, { v: 2, m: "kreatininclearance|crcl|cockcroft" }, { v: 1, m: "kreatinin" },
+      ...MED_NYRE.map((m) => ({ v: 1, m: `(?:${m})${E}`, grp: "med" })) ] },
+    { id: "af", sti: "hjerte/af.html", navn: "Atrieflimren — antikoagulation", app: "Hjerte-kar", tegn: [
+      { v: 3, m: `atrieflimren|atrieflagren|atrieflimmer|(?:paroksystisk|persisterende|permanent|nyopdaget|kendt|nydiagnosticeret) af${E}(?!\\s+(?:hjemme\\w*|os${E}|læge\\w*|famil\\w*|kommun\\w*|psyk\\w*|sygehus\\w*|afd\\w*|personale\\w*|egen${E}|pleje\\w*))|af-patient|a-flimren`, fam: true }, { v: 3, m: "cha2ds2|cha₂ds₂|chads" }, { v: 2, m: `noak${E}|doak${E}|antikoagul\\w*|blodfortyndende|has-?bled` } ] },
+    { id: "cvrisiko", sti: "hjerte/cvrisiko.html", navn: "CV-risiko (SCORE2)", app: "Hjerte-kar", tegn: [
+      { v: 3, m: "score2|score-2|kardiovaskulær risiko|cv-risiko|hjerte-kar-risiko|10-års ?risiko|risikovurdering for hjerte" }, { v: 2, m: `kolesterol|ldl${E}|ldl-k|hyperkolesterol\\w*|dyslipid\\w*|lipidprofil` }, { v: 1, m: "primær forebyggelse|forebyggende statin|non-hdl" }, { v: 1, m: `ryger(?! ikke)|rygning|pakkeår` } ] },
+    { id: "kol", sti: "lunge/kol.html", navn: "KOL", app: "Lunger", tegn: [
+      { v: 3, m: `kol${E}|kronisk obstruktiv|copd|emfysem`, fam: true }, { v: 2, m: `spirometri|fev1|fev1\\/fvc` }, { v: 2, m: `mmrc|cat-?score|eksacerbation\\w*|exacerbation\\w*` }, { v: 1, m: `lama${E}|laba${E}|spiolto|spiriva|ultibro|trimbow|trelegy` } ] },
+    { id: "astma", sti: "lunge/astma.html", navn: "Astma", app: "Lunger", tegn: [
+      { v: 3, m: "astma", fam: true }, { v: 2, m: `act${E}|act-score|pef${E}|astmakontrol` }, { v: 2, m: `inhalationssteroid|ics${E}|saba${E}|ventoline|bricanyl|airomir|symbicort|seretide|flutiform|budesonid` } ] },
+    { id: "hypothyreose", sti: "thyreoidea/hypothyreose.html", navn: "Hypothyreose", app: "Hypothyreose", tegn: [
+      { v: 3, m: "hypothyre\\w*|hypothyroid\\w*|myksødem|levothyroxin|eltroxin|euthyrox|lavt stofskifte|for lavt stofskifte", fam: true }, { v: 2, m: `tsh${E}|ft4|t4\\s*[:=]?\\s*\\d|anti-?tpo|tpo-?antistof|thyreoidea|stofskifte` } ] },
+    { id: "diabetes", sti: "diabetes/behandling.html", navn: "Type 2-diabetes — behandling", app: "Type 2-diabetes", tegn: [
+      { v: 3, m: DIABETES, fam: true }, { v: 2, m: `hba1c|glp-?1|sglt-?2|semaglutid|ozempic|wegovy|rybelsus|dulaglutid|trulicity|liraglutid|victoza|empagliflozin|jardiance|dapagliflozin|forxiga` }, { v: 1, m: "metformin|glimepirid|insulin" } ] },
+    { id: "aarskontrol", sti: "diabetes/aarskontrol.html", navn: "Type 2-diabetes — årskontrol", app: "Type 2-diabetes", tegn: [
+      { v: 3, m: "årskontrol|diabeteskontrol|diabetesårskontrol|årsstatus" }, { v: 2, m: "fodundersøgelse|fodstatus|monofilament|øjenscreening|øjenundersøgelse|retinopati|neuropati" }, { v: 3, m: DIABETES, fam: true } ] },
+    { id: "klimakterie", sti: "index.html", navn: "Klimakteriet — hormonbehandling", app: "Kvindesundhed", tegn: [
+      { v: 3, m: "klimakteri\\w*|overgangsalder\\w*|menopaus\\w*|perimenopaus\\w*|hedeture|hedestigninger|svedeture" }, { v: 3, m: `mht${E}|hrt${E}|hormonbehandling i overgangsalderen` }, { v: 2, m: "østrogen\\w*|estradiol|progesteron|vaginal tørhed|natlig sveden|mrs-?score" } ] },
+    { id: "praevention", sti: "praevention.html", navn: "Prævention", app: "Kvindesundhed", tegn: [
+      { v: 3, m: `prævention|antikonception|p-?piller|p-?pille|minipille|nødprævention|fortrydelsespille|ellaone|norlevo|p-?stav|nexplanon|p-?ring|nuvaring|p-?plaster|depo-?provera` },
+      { v: 3, m: `spiral${E}|hormonspiral|kobberspiral|mirena|kyleena|jaydess` } ] },
+    { id: "osteoporose", sti: "osteoporose.html", navn: "Osteoporose", app: "Kvindesundhed", tegn: [
+      { v: 3, m: "osteoporose|osteopeni|knogleskørhed|dxa|t-score|lavenergibrud|lavenergifraktur|lavenergitraume", fam: true }, { v: 3, m: "alendronat|zoledron\\w*|aclasta|denosumab|prolia|bisfosfonat|teriparatid|romosozumab|evenity" }, { v: 2, m: `frax${E}|kompressionsfraktur|sammenfaldsbrud|hoftebrud|håndledsbrud` } ] },
+  ];
+
+  // Kendte sygdomme, fast medicin og tidligere forløb ("Kendt med KOL", "Medicin: Eltroxin",
+  // "tidl. otitis som barn") er baggrund — de giver højst 1 point, så de ikke overdøver det aktuelle.
+  const BAGGRUND = /(?:^|[^a-zæøå])(kendt(?: med)?|diagnoser|tidl\.?|tidligere|fast medicin|vanlig medicin|medicin|udover|ud over|anamnestisk|som barn|dispositioner|allergier|komorbiditet\w*|sygdomme|følges for|behandles for|i behandling for)(?![a-zæøå])/;
+  const OVERSKRIFT = /^\s*(?:#+\s*|\*\*|-\s*)?([a-zæøå .\/-]{2,40}?)(?:\*\*)?\s*:?\s*$/;
+  function baggrund(L, i) {
+    const t = L.lav;
+    let s = i;
+    const forkortelse = (j) => t[j] === "." && /(?:^|[^a-zæøå])(?:tidl|pt|evt|ca|kl|obs|tlf|stk|dvs|bl\.a|f\.eks|ift|jf|hhv)$/.test(t.slice(Math.max(0, j - 6), j));
+    while (s > 0 && (!/[.;!?\n]/.test(t[s - 1]) || forkortelse(s - 1)) && i - s < 300) s--;
+    if (BAGGRUND.test(t.slice(s, i))) return true;
+    // Under en overskrift som "Kendt med:", "Diagnoser:" eller "Fast medicin:" (til næste overskrift).
+    let slut = t.lastIndexOf("\n", i - 1);
+    for (let n = 0; n < 25 && slut > 0; n++) {
+      const start = t.lastIndexOf("\n", slut - 1) + 1;
+      const linje = t.slice(start, slut);
+      const m = linje.match(OVERSKRIFT);
+      if (m && m[1].trim().split(/\s+/).length <= 4 && (/:\s*$/.test(linje) || /^\s*(#|\*\*)/.test(linje))) return BAGGRUND.test(m[1]);
+      slut = start - 1;
+    }
+    return false;
+  }
+
+  // Returnerer kandidaterne sorteret efter point og en vurdering af, om valget er sikkert.
+  function klassificer(tekst) {
+    const L = lib(tekst);
+    const kand = VAERKTOEJER.map((v) => {
+      let point = 0;
+      let anker = 0;
+      const pr = {};
+      const fund = [];
+      v.tegn.forEach((tg) => {
+        const r = L.term(tg.m, { familie: !!tg.fam, emne: true });
+        if (r.status !== "ja") return;
+        const jaer = r.fund.filter((x) => x.k === "ja");
+        // Et aktuelt fund vinder over baggrund; findes kun baggrund, tæller begrebet højst 1 point.
+        const aktuel = jaer.find((x) => !baggrund(L, x.m.index));
+        const f = aktuel || jaer[0];
+        const vaegt = aktuel ? tg.v : Math.min(1, tg.v);
+        const loft = tg.grp && v.lofter ? v.lofter[tg.grp] : Infinity;
+        const brugt = tg.grp ? pr[tg.grp] || 0 : 0;
+        let plus = Math.min(vaegt, loft - brugt);
+        // Fast medicin (baggrund) giver samlet højst lofter[grp + "Baggrund"] point.
+        const bgNavn = tg.grp + "Baggrund";
+        if (tg.grp && !aktuel && v.lofter && v.lofter[bgNavn] !== undefined) plus = Math.min(plus, v.lofter[bgNavn] - (pr[bgNavn] || 0));
+        if (plus <= 0) return;
+        if (tg.grp) pr[tg.grp] = brugt + plus;
+        if (tg.grp && !aktuel) pr[bgNavn] = (pr[bgNavn] || 0) + plus;
+        point += plus;
+        if (plus >= 3) anker += 2;
+        else if (plus === 2) anker += 1;
+        fund.push(L.tekst.slice(f.m.index, f.m.index + f.m[0].length) + (aktuel ? "" : " (baggrund)"));
+      });
+      return { id: v.id, sti: v.sti, navn: v.navn, app: v.app, udfyld: !!v.udfyld, point, anker, fund: [...new Set(fund)] };
+    })
+      .filter((k) => k.point > 0)
+      .sort((a, b) => b.point - a.point || b.anker - a.anker);
+    const [a, b] = kand;
+    // Et notat med flere nummererede problemer ("1) … 2) …") vælges aldrig automatisk.
+    const flereProblemer = (tekst.match(/(?:^|\n)\s*\d{1,2}[).]\s+\S/g) || []).length >= 2 || /flere (?:ting|problemer|problemstillinger)/i.test(tekst);
+    // Sikkert: et tydeligt tegn (en diagnose eller to typiske fund), mindst 3 point og klart foran nummer to.
+    const sikker = !flereProblemer && !!a && a.point >= 3 && a.anker >= 2 && (!b || (a.point >= 1.5 * b.point && a.point - b.point >= 2));
+    return { kandidater: kand, valgt: sikker ? a : null, sikker };
+  }
+
+  // Overdragelse mellem sider: teksten ligger kun i fanens sessionStorage (slettes, når fanen
+  // lukkes, eller ved Ryd) og sendes ingen steder hen.
+  const NOEGLE_OVERDRAG = "udfyld.overdrag";
+  const NOEGLE_NOTAT = "udfyld.notat";
+  const lager = {
+    hent(k) {
+      try {
+        return sessionStorage.getItem(k);
+      } catch (e) {
+        return null;
+      }
+    },
+    gem(k, v) {
+      try {
+        sessionStorage.setItem(k, v);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    },
+    slet(k) {
+      try {
+        sessionStorage.removeItem(k);
+      } catch (e) {}
+    },
+  };
+  // Repoets rod ud fra udfyld.js' egen adresse (virker ikke i claude.ai, hvor scriptet er indlejret).
+  const ROD = (function () {
+    try {
+      const src = document.currentScript && document.currentScript.src;
+      return src ? new URL("./", src).href : null;
+    } catch (e) {
+      return null;
+    }
+  })();
+  const adresse = (sti) => (ROD ? new URL(sti, ROD).href : null);
+  // Overdragelsen gælder kun den side, den er sendt til, og kun i 30 sekunder; notatet til
+  // "tilbage" gemmes i 15 minutter — så en tekst aldrig hænger ved til næste patient.
+  const OVERDRAG_MS = 30 * 1000;
+  const NOTAT_MS = 15 * 60 * 1000;
+  function gemNotat(tekst) {
+    return lager.gem(NOEGLE_NOTAT, JSON.stringify({ tekst, t: Date.now() }));
+  }
+  function hentNotat() {
+    try {
+      const o = JSON.parse(lager.hent(NOEGLE_NOTAT));
+      if (o && typeof o.tekst === "string" && Date.now() - o.t < NOTAT_MS) return o.tekst;
+    } catch (e) {}
+    lager.slet(NOEGLE_NOTAT);
+    return null;
+  }
+  function send(tekst, sti) {
+    const url = adresse(sti);
+    if (!url || !lager.gem(NOEGLE_OVERDRAG, JSON.stringify({ sti, tekst, t: Date.now() })) || lager.hent(NOEGLE_OVERDRAG) === null) return false;
+    gemNotat(tekst);
+    location.href = url;
+    return true;
+  }
+  const glem = () => {
+    lager.slet(NOEGLE_OVERDRAG);
+    lager.slet(NOEGLE_NOTAT);
+  };
+
+  // ----------------------------------------------------------------------
   // Brugerflade
   // ----------------------------------------------------------------------
 
@@ -450,7 +646,9 @@ window.Udfyld = (function () {
       ta.value = "";
       rapport.innerHTML = "";
       ryd();
+      glem();
     });
+    let fraNotat = false;
 
     const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
     const vis = (v) => String(v).replace(".", ",");
@@ -499,9 +697,43 @@ window.Udfyld = (function () {
       const mangler = (opts.vigtige || []).filter(([id]) => !fund.some((f) => f.id === id || f.name === id));
       rapport.innerHTML = `${udfyldt.length ? `<p><strong>Udfyldt (${udfyldt.length}):</strong></p><ul>${udfyldt.map((u) => `<li>${esc(u.label)}: <strong>${esc(u.v)}</strong>${u.kilde ? ` <span class="field-hint">— "${esc(u.kilde)}"</span>` : ""}</li>`).join("")}</ul>` : "<p>Ingen felter kunne udfyldes ud fra teksten.</p>"}
         ${noter.length ? `<p><strong>Bemærk:</strong></p><ul>${noter.map((n) => `<li>${esc(n)}</li>`).join("")}</ul>` : ""}
-        ${mangler.length ? `<p class="field-hint">Ikke fundet i teksten: ${mangler.map(([, l]) => esc(l)).join(", ")}.</p>` : ""}`;
+        ${mangler.length ? `<p class="field-hint">Ikke fundet i teksten: ${mangler.map(([, l]) => esc(l)).join(", ")}.</p>` : ""}
+        ${forslag(tekst)}`;
     });
+
+    // Andre værktøjer, teksten også passer til (kun i appen, hvor siderne kan overdrage teksten).
+    const her = VAERKTOEJER.find((v) => ROD && location.href.split(/[?#]/)[0] === adresse(v.sti));
+    function forslag(tekst) {
+      const tilbage = fraNotat && ROD ? `<p class="udfyld-fra">Teksten kom fra Notat-indgangen. <a href="${adresse("notat/index.html")}#vaelg">Forkert værktøj? Vælg et andet</a></p>` : "";
+      if (!ROD) return tilbage;
+      const andre = klassificer(tekst).kandidater.filter((k) => k.udfyld && k.point >= 3 && (!her || k.id !== her.id));
+      if (!andre.length) return tilbage;
+      return `${tilbage}<p class="field-hint">Teksten passer også til: ${andre.map((k) => `<button type="button" class="btn btn-outline btn-small" data-send="${esc(k.sti)}">${esc(k.navn)}</button>`).join(" ")}</p>`;
+    }
+    rapport.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-send]");
+      if (b) send(ta.value, b.dataset.send);
+    });
+
+    // Tekst overdraget fra Notat-indgangen: udfyld med det samme — kun én gang, kun på den side,
+    // den er sendt til, og kun hvis den er frisk. Nøglen slettes altid.
+    let overdraget = null;
+    try {
+      overdraget = JSON.parse(lager.hent(NOEGLE_OVERDRAG));
+    } catch (e) {}
+    lager.slet(NOEGLE_OVERDRAG);
+    if (overdraget && her && overdraget.sti === her.sti && Date.now() - overdraget.t < OVERDRAG_MS && typeof overdraget.tekst === "string") {
+      fraNotat = true;
+      panel.open = true;
+      ta.value = overdraget.tekst;
+      // Efter sidens egen opstart, så felterne er klar; derefter fokus på rapporten (skærmlæsere).
+      setTimeout(() => {
+        panel.querySelector("#udfyldBtn").click();
+        rapport.setAttribute("tabindex", "-1");
+        rapport.focus();
+      }, 0);
+    }
   }
 
-  return { init, lib };
+  return { init, lib, klassificer, send, glem, adresse, gemNotat, hentNotat, vaerktoejer: VAERKTOEJER, noegler: { overdrag: NOEGLE_OVERDRAG, notat: NOEGLE_NOTAT } };
 })();
