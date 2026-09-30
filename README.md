@@ -363,6 +363,9 @@ skaffes" o.l. Værktøjet viser tre trin:
    - Den nuværende dosis kan markeres.
    - Et alternativ kan vælges til journalnotatet (præparat i restordre, restordre.dk tjekket, skift
      til ækvivalent dosis, plan for kontrol).
+   - Undtagelser i notatet: DOAK får ingen dosis (hvert præparat har egne dosiskriterier), opioider
+     får den beregnede ækvivalente døgndosis med startdosis 50–75 % + p.n., og GLP-1 startes lavt og
+     optrappes.
    - Under tabellen: hvordan der skiftes, hvad der kontrolleres, link til det relevante værktøj og
      kilder.
 
@@ -370,7 +373,7 @@ skaffes" o.l. Værktøjet viser tre trin:
 
 - **Detaljerede grupper (31)** med ækvivalente doser (listen nedenfor, nu også gabapentinoider og
   systemiske glukokortikoider).
-- **Et register (`register.js`)** med ca. 440 indholdsstoffer og deres almindelige danske
+- **Et register (`register.js`)** med ca. 450 indholdsstoffer og deres almindelige danske
   handelsnavne, grupperet efter WHO's ATC-klassifikation (niveau 4, 180 grupper).
   - For et stof i registeret vises de øvrige stoffer i samme ATC-gruppe som mulige alternativer:
     handelsnavne, pro.medicin.dk-link, valg til journalnotat og link til den detaljerede tabel,
@@ -378,7 +381,13 @@ skaffes" o.l. Værktøjet viser tre trin:
   - Brede eller specialiststyrede grupper har en bemærkning (`RESTORDRE_ATC_NOTE`), fx:
     antiepileptika og ADHD-midler (specialist), LABA/SABA (ikke erstattelige), trombocythæmmere
     efter AKS, sacubitril/valsartan (ACE-hæmmer tidligst efter 36 timer), tirzepatid (→ GLP-1),
-    insuliner (enhed for enhed), hudsteroider (samme styrkegruppe) og lithium.
+    insuliner (enhed for enhed), hudsteroider (samme danske styrkegruppe I–IV) og lithium.
+  - Grupper, hvor stofferne ikke kan erstatte hinanden, viser ingen liste, fx J01CA (amoxicillin
+    til luftveje og pivmecillinam kun til urinveje), og henviser til den rette tabel. Andre
+    bemærkninger: sotalol (klasse III, ikke propranolol), triple-inhalatorer (behold
+    inhalationssteroid), kombinationspræparater (stofferne hver for sig) og Toujeo → Lantus (−20 %).
+- Søges der på et kombinationspræparat ("comp", "plus", "+"), men findes kun enkeltstoffet, advarer
+  værktøjet om, at det andet indholdsstof fortsat skal gives.
 - Et navn, der passer til flere stoffer (fx budesonid til inhalation, tarm og næse, eller Magnyl),
   giver et valg.
 - Findes præparatet ikke, siger værktøjet det og beder om indholdsstoffet (det står på pakningen)
@@ -713,9 +722,22 @@ en server. Konsekvenser af det valg:
 - Ny app `restordre/`:
   - 1) restordre.dk og de officielle kilder, 2) samme indholdsstof, 3) alternativer med vejledende
     ækvivalente doser i 31 lægemiddelgrupper.
-  - Søgning i et register med ca. 440 indholdsstoffer og handelsnavne (ATC-grupper) med
+  - Søgning i et register med ca. 450 indholdsstoffer og handelsnavne (ATC-grupper) med
     bemærkninger for brede og specialiststyrede grupper — til brug, når en patient ringer.
   - Journalnotat og udfyldning fra journaltekst.
+  - Uafhængig audit, rettet før merge:
+    - DOAK-niveauer er ikke indbyrdes ækvivalente, og notatet har ingen dosis.
+    - Warfarin-skift følger EHRA.
+    - Tramadol er begrænset til 300 mg ved ≥ 75 år.
+    - Oral semaglutid har ny formulering (1,5/4/9 mg).
+    - Opioidnotat med startdosis 50–75 %.
+    - Amoxicillin og pivmecillinam er ikke alternativer for hinanden.
+    - Kodein ligger under hostemidler.
+    - Nye bemærkninger om sotalol, triple-inhalatorer, kombinationspræparater, Entresto
+      (valsartan-doser) og Toujeo.
+    - Usikre handelsnavne er fjernet.
+    - Advarsel ved kombinationspræparat.
+    - Fri tekst læser ikke "Husk" o.l. som præparat.
   - Link fra oversigten, alle startsider og Notat-indgangen.
 - Notat-indgangen sender notater med "restordre", "kan ikke skaffes" o.l. til Restordre-værktøjet med
   præparatnavnet udfyldt. `udfyld.js` har fået felttypen `tekst`.

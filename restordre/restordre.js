@@ -46,7 +46,7 @@
   ];
 
   // ATC-grupper med en detaljeret ækvivalenstabel i data.js.
-  const DETALJE_ATC = { C09AA: "ace", C09CA: "arb", C08CA: "ccb", C07AB: "bb", C07AG: "bb", C03AA: "thiazid", C03BA: "thiazid", C03CA: "loop", C10AA: "statin", B01AF: "doak", B01AE: "doak", A10BJ: "glp1", A10BK: "sglt2", A10BH: "dpp4", A10BA: "metformin", A02BC: "ppi", R03AC: "saba", R03BA: "ics", R03BB: "lama", N06AB: "ssri", N02CC: "triptan", N02AA: "opioid", N02AX: "opioid", R06AE: "antihist", R06AX: "antihist", C01CA: "adrenalin", H02AB: "steroid", N03AX: "gabapentinoid", G03CA: ["oestrogen", "lokalOestrogen"], G03DA: "gestagen", G03AA: "ppiller", G03AC: "ppiller", H03AA: "levothyroxin", M05BA: "osteoporose", M05BX: "osteoporose", J01CE: "penicillin", J01XE: "uvi", J01EA: "uvi", J01EB: "uvi" };
+  const DETALJE_ATC = { C09AA: "ace", C09CA: "arb", C08CA: "ccb", C07AB: "bb", C07AG: "bb", C03AA: "thiazid", C03BA: "thiazid", C03CA: "loop", C10AA: "statin", B01AF: "doak", B01AE: "doak", A10BJ: "glp1", A10BK: "sglt2", A10BH: "dpp4", A10BA: "metformin", A02BC: "ppi", R03AC: "saba", R03BA: "ics", R03BB: "lama", N06AB: "ssri", N02CC: "triptan", N02AA: "opioid", N02AX: "opioid", R05DA: "opioid", R06AE: "antihist", R06AX: "antihist", C01CA: "adrenalin", H02AB: "steroid", N03AX: "gabapentinoid", G03CA: ["oestrogen", "lokalOestrogen"], G03DA: "gestagen", G03AA: "ppiller", G03AC: "ppiller", H03AA: "levothyroxin", M05BA: "osteoporose", M05BX: "osteoporose", J01CE: "penicillin", J01CA: "uvi", J01XE: "uvi", J01EA: "uvi", J01EB: "uvi" };
 
   // ---------------------------------------------------------------- Søgeindeks
   // Detaljerede stoffer (data.js).
@@ -110,7 +110,11 @@
     const hits = find(soeg.value);
     // Samme præparat som allerede valgt (fx når feltet mister fokus): gør intet — en ny tegning
     // ville fjerne det link eller den knap, lægen er ved at klikke på.
-    if (hits.length === 1 && valgt && valgt === hits[0]) return;
+    // Ændret tekst (fx "Losartan comp" → "Losartan"): tegn igen, men behold dosis og valg.
+    if (hits.length === 1 && valgt && valgt === hits[0]) {
+      if (soeg.value !== sidstTegnet) vis();
+      return;
+    }
     if (hits.length === 1) return vaelg(hits[0]);
     valgt = null;
     dosisFelt.hidden = true;
@@ -196,7 +200,9 @@
   const ligesom = (r) => REGISTER.filter((x) => x.atc === r.atc && x !== r);
 
   function registerAlternativer(r) {
-    const andre = ligesom(r);
+    const note = (window.RESTORDRE_ATC_NOTE || {})[r.atc];
+    // Nogle ATC-grupper samler stoffer, der ikke kan erstatte hinanden (fx amoxicillin og pivmecillinam).
+    const andre = note && note.skjulListe ? [] : ligesom(r);
     const g = G.find((x) => iGruppe(r.atc, x.id));
     let body = `<p><strong>ATC-gruppe ${esc(r.atc)}:</strong> ${esc(ATC[r.atc])}.</p>`;
     if (andre.length) {
@@ -207,11 +213,10 @@
         )
         .join("")}</ul>`;
       body += `<p class="field-hint">Stoffer i samme ATC-gruppe er ikke nødvendigvis ligeværdige — indikation, dosis, bivirkninger og interaktioner skal vurderes, og dosis findes i produktresuméet. Registeret siger ikke, om et stof er markedsført eller kan skaffes.</p>`;
-    } else {
+    } else if (!(note && note.skjulListe)) {
       body += `<p>Der er ingen andre stoffer i samme ATC-gruppe i værktøjets register. Brug restordre.dk og apoteket, overvej udleveringstilladelse, eller konferér med speciallæge om behandlingsskift.</p>`;
     }
     // Gruppe-bemærkning (brede grupper, specialistbehandling) og evt. relevant tabel.
-    const note = (window.RESTORDRE_ATC_NOTE || {})[r.atc];
     if (note) body = `<p class="rest-note"><strong>Bemærk:</strong> ${esc(note.tekst)}</p>` + body;
     const relevant = note && note.gruppe ? G.find((x) => x.id === note.gruppe) : !BRED.has(r.atc) ? g : null;
     if (relevant) body += `<p><a href="#" data-gruppe-vis="${esc(relevant.id)}">Se ækvivalente doser for ${esc(relevant.navn.toLowerCase())} →</a></p>`;
@@ -224,16 +229,21 @@
     if (valgt.type === "register") {
       const r = valgt;
       const linjer = [`${stor(r.stof)} i restordre (restordre.dk tjekket ${idag}).`];
-      linjer.push(valgtAlt ? `Skiftet til ${stor(valgtAlt)} — dosis efter produktresumé.` : "Alternativ: [vælg i listen eller skriv selv].");
+      const skjul = ((window.RESTORDRE_ATC_NOTE || {})[r.atc] || {}).skjulListe;
+      linjer.push(valgtAlt ? `Skiftet til ${stor(valgtAlt)} — dosis efter produktresumé.` : skjul ? "Alternativ: [skriv selv]." : "Alternativ: [vælg i listen eller skriv selv].");
       return linjer.join("\n");
     }
     const { g, s } = valgt;
     const rk = dosis.value === "" ? null : +dosis.value;
     const alt = valgtAlt && g.stoffer.find((c) => c.id === valgtAlt);
     const linjer = [`${s.navn}${rk !== null && g.raekker ? ` ${g.raekker[rk].doser[s.id]}` : ""} i restordre (restordre.dk tjekket ${idag}).`];
-    if (alt) linjer.push(`Skiftet til ${alt.navn}${rk !== null && g.raekker ? ` ${g.raekker[rk].doser[alt.id]}` : ""} — vejledende ækvivalent dosis.`);
-    else linjer.push("Alternativ: [vælg i tabellen eller skriv selv].");
-    const kontrol = (g.skift || []).find((x) => /kontrollér|kontrol|følg|opfølgning/i.test(x));
+    const altDosis = alt && rk !== null && g.raekker ? g.raekker[rk].doser[alt.id] : "";
+    if (alt && g.egneKriterier) linjer.push(`Skiftet til ${alt.navn} — dosis efter præparatets egne kriterier (alder, vægt, nyrefunktion, interaktioner; ved atrieflimren: se Atrieflimren-værktøjet).`);
+    else if (alt && g.notatForm === "opioid") linjer.push(`Skiftet til ${alt.navn}${altDosis ? `: beregnet ækvivalent døgndosis ${altDosis} — startdosis 50–75 % heraf + p.n.-dosis` : " — dosis: start med 50–75 % af den beregnede ækvivalente døgndosis + p.n.-dosis"}.`);
+    else if (alt && g.notatForm === "optrap") linjer.push(`Skiftet til ${alt.navn}${altDosis ? ` (omtrentlig ækvivalent dosis ${altDosis})` : ""} — startes på lav vedligeholdelsesdosis og optrappes.`);
+    else if (alt) linjer.push(`Skiftet til ${alt.navn}${altDosis ? ` ${altDosis}` : ""} — ${g.id === "gabapentinoid" ? "omtrent ækvivalent dosis" : "vejledende ækvivalent dosis"}.`);
+    else linjer.push(g.raekker && g.stoffer.length > 1 ? "Alternativ: [vælg i tabellen eller skriv selv]." : "Alternativ: [skriv selv].");
+    const kontrol = g.plan || (g.skift || []).find((x) => /kontrollér|kontrol|følg|opfølgning/i.test(x)) || (g.forslag || []).find((x) => /kontrollér|kontrol|følg|opfølgning/i.test(x));
     if (kontrol) linjer.push(`Plan: ${kontrol}`);
     return linjer.join("\n");
   }
@@ -246,8 +256,10 @@
       <div class="output-actions"><button type="button" class="btn btn-primary" id="kopierNotat">Kopiér notat</button><span class="copy-status" id="notatStatus" aria-live="polite"></span></div>`
     );
 
+  let sidstTegnet = null;
   function vis() {
     if (!valgt) return;
+    sidstTegnet = soeg.value;
     const soegeord = soeg.value.trim() || navnPaa(valgt);
     if (valgt.type === "register") {
       const r = valgt;
@@ -257,7 +269,11 @@
     }
     const { g, s } = valgt;
     const rk = dosis.value === "" ? null : +dosis.value;
-    output.innerHTML = restordreBoks(soegeord) + samme(s.samme ? esc(s.samme) : null) + alternativer(g, s, rk) + skift(g) + notatBoks();
+    // Kombinationspræparat ("Losartan Comp", "… plus", "a + b"), der kun er fundet som enkeltstof.
+    const kombi = /(?:^|[^a-zæøå])(?:comp|plus|duo|forte comp)(?![a-zæøå])|\+/i.test(soeg.value)
+      ? box("box-red", "Kombinationspræparat?", `<p>Søgningen ligner et kombinationspræparat, men værktøjet fandt kun enkeltstoffet <strong>${esc(s.navn)}</strong>. Tabellen gælder kun dette stof — det andet indholdsstof (fx hydrochlorthiazid) skal fortsat gives, fx som separat tablet. Tjek indholdsstofferne på pakningen eller <a href="${PROMEDICIN(soeg.value.trim())}" target="_blank" rel="noopener">pro.medicin.dk</a>.</p>`)
+      : "";
+    output.innerHTML = kombi + restordreBoks(soegeord) + samme(s.samme ? esc(s.samme) : null) + alternativer(g, s, rk) + skift(g) + notatBoks();
   }
 
   function kopier(tekst, status) {
@@ -324,6 +340,9 @@
   const printBtn = document.getElementById("printBtn");
   if (printBtn) printBtn.addEventListener("click", () => window.print());
 
+  // Handelsnavne, der også er almindelige ord ("husk at …"), bruges ikke til at finde præparatet i fri tekst.
+  const ALMINDELIGE = new Set(["husk", "magnesia", "nix", "treo"]);
+
   // Udfyld fra journaltekst / Notat-indgangen: find præparatet — helst det, der nævnes tættest på "restordre".
   if (window.Udfyld) {
     Udfyld.init(
@@ -332,10 +351,12 @@
         const r = t.search(/restordre|kan ikke skaffes|ikke til at skaffe|forsyningsvanskelig|forsyningssvigt|leveringssvigt|udgået|mangel på/);
         let bedst = null;
         INDEKS.forEach((x) => {
-          const monster = x.type === "detalje" ? x.s.soeg : x.ord.filter((o) => o.length >= 4).map(reEsc).join("|");
+          const monster = x.type === "detalje" ? x.s.soeg : x.ord.filter((o) => o.length >= 4 && !ALMINDELIGE.has(o)).map(reEsc).join("|");
           if (!monster) return;
           L.alle(new RegExp(`${B}(?:${monster})${E}`, "g")).forEach((m) => {
-            const afstand = r < 0 ? m.index : Math.abs(m.index - r);
+            // Afstand til udløseren — fra navnets slutning, når navnet står før ("Ozempic er i restordre").
+            const slut = m.index + m[0].length;
+            const afstand = r < 0 ? m.index : slut <= r ? r - slut : Math.abs(m.index - r);
             if (!bedst || afstand < bedst.afstand) bedst = { afstand, m };
           });
         });

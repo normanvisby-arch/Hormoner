@@ -76,7 +76,7 @@ window.RESTORDRE_GRUPPER = [
   {
     id: "bb", navn: "Betablokkere", kategori: "Hjerte-kar",
     stoffer: [
-      { id: "metoprolol", navn: "Metoprololsuccinat depot", soeg: "metoprolol|selo-?zok", samme: "Depottabletter 25–200 mg (kan deles efter delekærv)." },
+      { id: "metoprolol", navn: "Metoprololsuccinat depot", soeg: "metoprolol|selo-?zok", samme: "Depottabletter 25–200 mg (kan deles efter delekærv). Metoprololtartrat (ikke-depot) gives × 2 dagligt i samme døgndosis." },
       { id: "bisoprolol", navn: "Bisoprolol", soeg: "bisoprolol|emconcor", samme: "Tabletter 1,25–10 mg." },
       { id: "carvedilol", navn: "Carvedilol", soeg: "carvedilol", samme: "Tabletter 3,125–25 mg, gives × 2 dagligt." },
       { id: "nebivolol", navn: "Nebivolol", soeg: "nebivolol|nebilet", samme: "Tabletter 5 mg (kan deles)." },
@@ -140,7 +140,7 @@ window.RESTORDRE_GRUPPER = [
       { niveau: "Ca. 49 %", doser: { atorva: "40 mg (49 %)", rosuva: "20 mg (48 %)", simva: "—", prava: "—" } },
       { niveau: "Ca. 55 %", doser: { atorva: "80 mg (55 %)", rosuva: "40 mg (53 %)", simva: "—", prava: "—" } },
     ],
-    tabelNote: "Procenterne er forventet LDL-reduktion (NICE). Højintensiv statin (≥ 50 %, ESC): atorvastatin 40–80 mg eller rosuvastatin 20–40 mg.",
+    tabelNote: "Procenterne er forventet LDL-reduktion (NICE). Højintensiv statin (≥ 50 %, ESC): atorvastatin 40–80 mg eller rosuvastatin 20–40 mg. Rosuvastatin er kontraindiceret ved CrCl < 30; 40 mg kun ved svær hyperkolesterolæmi (ikke ved CrCl < 60 eller asiatisk herkomst).",
     skift: [
       "Direkte skift til samme LDL-reduktion.",
       "Kontrollér lipider efter 4–12 uger.",
@@ -160,12 +160,14 @@ window.RESTORDRE_GRUPPER = [
       { niveau: "Standarddosis", doser: { apixaban: "5 mg × 2", rivaroxaban: "20 mg × 1", edoxaban: "60 mg × 1", dabigatran: "150 mg × 2" } },
       { niveau: "Reduceret dosis (kriterierne er forskellige!)", doser: { apixaban: "2,5 mg × 2 — ≥ 2 af: alder ≥ 80, vægt ≤ 60 kg, kreatinin ≥ 133; eller CrCl 15–29", rivaroxaban: "15 mg × 1 — CrCl 15–49", edoxaban: "30 mg × 1 — CrCl 15–50, vægt ≤ 60 kg eller visse P-gp-hæmmere", dabigatran: "110 mg × 2 — alder ≥ 80 eller verapamil (kontraindiceret ved CrCl < 30)" } },
     ],
-    tabelNote: "Dosis afgøres af hvert præparats egne kriterier — ikke af den gamle dosis. Brug Atrieflimren-værktøjet til at beregne dosis ud fra alder, vægt, kreatininclearance og interaktioner.",
+    egneKriterier: true,
+    plan: "Beregn kreatininclearance og tjek interaktioner; start det nye præparat ved næste planlagte dosis.",
+    tabelNote: "Rækkerne er IKKE ækvivalente på tværs: en reduceret dosis af ét præparat betyder ikke reduceret dosis af et andet. Dosis afgøres af hvert præparats egne kriterier — ikke af den gamle dosis. Brug Atrieflimren-værktøjet til at beregne dosis ud fra alder, vægt, kreatininclearance og interaktioner.",
     link: { href: "../hjerte/af.html", tekst: "Beregn dosis i Atrieflimren-værktøjet" },
     skift: [
       "Stop det gamle præparat, og start det nye på tidspunktet for næste planlagte dosis (EHRA).",
       "Beregn kreatininclearance (Cockcroft-Gault) og tjek interaktioner før skiftet.",
-      "Kan ingen DOAK skaffes: warfarin med INR-styring (kræver opstart og tæt kontrol).",
+      "Kan ingen DOAK skaffes: warfarin kræver overlap, indtil INR ≥ 2, efter EHRA's skema (fx dabigatran: start warfarin 3–5 dage før stop afhængigt af CrCl; edoxaban: halv dosis under overlappet) — eller LMWH som bro. Konferér ved tvivl.",
     ],
     kilder: ["EHRA Practical Guide 2021: skift mellem DOAK ved næste doseringstidspunkt", "Produktresuméer (via Atrieflimren-værktøjet, se dets kildeliste)"],
   },
@@ -181,11 +183,13 @@ window.RESTORDRE_GRUPPER = [
     ],
     raekker: [
       { niveau: "Startdosis", doser: { sema: "0,25 mg", dula: "0,75 mg", lira: "0,6 mg", oral: "3 mg (ny: 1,5 mg)" } },
-      { niveau: "Lav vedligeholdelse", doser: { sema: "0,5 mg", dula: "1,5 mg", lira: "1,2 mg", oral: "7 mg (ny: 4 mg)" } },
-      { niveau: "Middel", doser: { sema: "1 mg", dula: "3 mg", lira: "1,8 mg", oral: "14 mg (ny: 9 mg)" } },
+      { niveau: "Lav vedligeholdelse", doser: { sema: "0,5 mg", dula: "1,5 mg", lira: "1,2 mg", oral: "7–14 mg (ny: 4–9 mg)" } },
+      { niveau: "Middel", doser: { sema: "1 mg", dula: "3 mg", lira: "1,8 mg", oral: "— (14 mg er højeste)" } },
       { niveau: "Høj", doser: { sema: "2 mg", dula: "4,5 mg", lira: "—", oral: "—" } },
     ],
-    tabelNote: "Der findes ingen præcis ækvivalens — rækkerne er omtrentlige. Semaglutid sænker HbA1c og vægt mere end dulaglutid og liraglutid.",
+    notatForm: "optrap",
+    plan: "Optrap efter tolerance (kvalme); tjek tilskudsklausulen for det nye præparat.",
+    tabelNote: "Der findes ingen præcis ækvivalens — rækkerne er omtrentlige. Oral semaglutid 7–14 mg giver omtrent samme eksponering som s.c. 0,5 mg. Semaglutid sænker HbA1c og vægt mere end dulaglutid og liraglutid. Wegovy (2,4 og 7,2 mg) er vægttabsdoser og ikke med i tabellen.",
     skift: [
       "Ugentlig → ugentlig: tag den nye på den dag, den næste dosis af den gamle skulle være taget (ikke før — ellers dobbelt dosis samme uge).",
       "Daglig liraglutid → ugentlig: start dagen efter sidste liraglutid.",
@@ -221,7 +225,7 @@ window.RESTORDRE_GRUPPER = [
     ],
     raekker: [
       { niveau: "Normal nyrefunktion", doser: { sita: "100 mg × 1", lina: "5 mg × 1", saxa: "5 mg × 1", vilda: "50 mg × 2" } },
-      { niveau: "Nedsat nyrefunktion", doser: { sita: "eGFR 30–44: 50 mg; < 30: 25 mg", lina: "5 mg × 1 (ingen justering)", saxa: "eGFR < 45: 2,5 mg", vilda: "50 mg × 1 (se produktresumé)" } },
+      { niveau: "Nedsat nyrefunktion", doser: { sita: "eGFR 30–44: 50 mg; < 30: 25 mg", lina: "5 mg × 1 (ingen justering)", saxa: "eGFR < 45: 2,5 mg", vilda: "CrCl < 50: 50 mg × 1" } },
     ],
     skift: ["Direkte skift. Linagliptin er nemmest ved nedsat nyrefunktion."],
     link: { href: "../nyre/dosis.html", tekst: "Se Dosis efter nyrefunktion" },
@@ -355,14 +359,16 @@ window.RESTORDRE_GRUPPER = [
       { id: "morfin", navn: "Morfin oral", soeg: "morfin|contalgin|oramorph", samme: "Tabletter, depottabletter og mikstur." },
       { id: "oxy", navn: "Oxycodon oral", soeg: "oxycodon|oxynorm|oxycontin", samme: "Kapsler, depottabletter og mikstur." },
       { id: "hydro", navn: "Hydromorfon oral", soeg: "hydromorfon|palladon", samme: "" },
-      { id: "tram", navn: "Tramadol", soeg: "tramadol|tradolan", samme: "Maks. 400 mg/døgn." },
-      { id: "kodein", navn: "Kodein", soeg: "kodein|codein|kodimagnyl", samme: "Maks. 240 mg/døgn." },
+      { id: "tram", navn: "Tramadol", soeg: "tramadol|tradolan|mandolgin", samme: "Maks. 400 mg/døgn (300 mg ≥ 75 år)." },
+      { id: "kodein", navn: "Kodein", soeg: "kodein|codein", samme: "Maks. 240 mg/døgn." },
     ],
     raekker: [
       { niveau: "Døgndosis svarende til oral morfin 30 mg", doser: { morfin: "30 mg", oxy: "15–20 mg", hydro: "6 mg", tram: "150–300 mg", kodein: "200 mg" } },
-      { niveau: "Svarende til oral morfin 60 mg", doser: { morfin: "60 mg", oxy: "30–40 mg", hydro: "12 mg", tram: "— (over maks.)", kodein: "— (over maks.)" } },
+      { niveau: "Svarende til oral morfin 60 mg", doser: { morfin: "60 mg", oxy: "30–40 mg", hydro: "12 mg", tram: "300 mg (faktor 0,2; ved faktor 0,1 over maks.)", kodein: "— (over maks.)" } },
       { niveau: "Svarende til oral morfin 120 mg", doser: { morfin: "120 mg", oxy: "60–80 mg", hydro: "24 mg", tram: "—", kodein: "—" } },
     ],
+    notatForm: "opioid",
+    plan: "Tæt opfølgning de første dage (effekt, sedation, respiration, obstipation); justér dosis efter effekt.",
     tabelNote: "Omregningsfaktorer til oral morfin: oxycodon 1,5–2, hydromorfon 5, tramadol 0,1–0,2, kodein 0,15. Tallene er beregnede ækvivalenser — start IKKE på fuld ækvivalent dosis (se nedenfor). Transdermale opioider er ikke medtaget.",
     skift: [
       "Start med 50–75 % af den beregnede ækvivalente døgndosis (ufuldstændig krydstolerance), og giv p.n.-dosis.",
@@ -383,6 +389,7 @@ window.RESTORDRE_GRUPPER = [
       { niveau: "Middel", doser: { gaba: "1.800 mg/døgn (600 mg × 3)", prega: "300 mg/døgn (150 mg × 2)" } },
       { niveau: "Høj", doser: { gaba: "3.600 mg/døgn (1.200 mg × 3)", prega: "600 mg/døgn (300 mg × 2)" } },
     ],
+    plan: "Direkte skift ved næste planlagte dosis; opfølgning efter 1–2 uger (effekt, svimmelhed, sedation).",
     tabelNote: "Omtrentligt forhold gabapentin : pregabalin = 6 : 1 (døgndosis). Begge dosisreduceres ved nedsat nyrefunktion. Ved epilepsi: konferér med neurolog.",
     link: { href: "../nyre/dosis.html", tekst: "Se Dosis efter nyrefunktion" },
     skift: [
@@ -397,8 +404,8 @@ window.RESTORDRE_GRUPPER = [
       { id: "pred", navn: "Prednisolon", soeg: "prednisolon", samme: "Tabletter 1, 2,5, 5 og 25 mg." },
       { id: "prednison", navn: "Prednison", soeg: "prednison", samme: "" },
       { id: "methyl", navn: "Methylprednisolon", soeg: "methylprednisolon|medrol", samme: "" },
-      { id: "hydro", navn: "Hydrocortison", soeg: "hydrocortison tablet|hydrocortone", samme: "Bruges især som substitution ved binyrebarkinsufficiens." },
-      { id: "dexa", navn: "Dexamethason", soeg: "dexamethason", samme: "" },
+      { id: "hydro", navn: "Hydrocortison", soeg: "hydrocortison tablet", samme: "Bruges især som substitution ved binyrebarkinsufficiens." },
+      { id: "dexa", navn: "Dexamethason", soeg: "dexamethason|dexametason", samme: "" },
     ],
     raekker: [
       { niveau: "Svarende til prednisolon 5 mg", doser: { pred: "5 mg", prednison: "5 mg", methyl: "4 mg", hydro: "20 mg", dexa: "0,75 mg" } },
@@ -463,6 +470,7 @@ window.RESTORDRE_GRUPPER = [
       "Gestagenbehandlingen (Utrogestan/Mirena) fortsætter uændret.",
       "Vurder effekt og blødningsmønster efter ca. 3 måneder.",
     ],
+    plan: "Vurder effekt og blødningsmønster efter ca. 3 måneder.",
     kilder: ["BMS: HRT preparations and equivalent alternatives (via Klimakterieguidens kildeliste)"],
   },
   {
@@ -486,7 +494,7 @@ window.RESTORDRE_GRUPPER = [
   {
     id: "lokalOestrogen", navn: "Lokal vaginal østrogen", kategori: "Kvindesundhed",
     stoffer: [
-      { id: "vagi", navn: "Estradiol 10 mikrog. vaginaltablet", soeg: "vagifem|vagirux|vagidonna", samme: "" },
+      { id: "vagi", navn: "Estradiol 10 mikrog. vaginaltablet", soeg: "vagifem|vagirux", samme: "" },
       { id: "ovestin", navn: "Østriol (creme/vagitorier)", soeg: "ovestin|østriol|estriol", samme: "" },
       { id: "estring", navn: "Estradiol vaginalring", soeg: "estring", samme: "7,5 mikrog./24 t, skiftes hver 3. måned." },
     ],
@@ -524,6 +532,7 @@ window.RESTORDRE_GRUPPER = [
       "Kontrollér TSH 6–8 uger efter skift af præparat — optagelsen kan variere (snævert terapeutisk interval).",
       "Liothyronin (T3) er ikke et alternativ.",
     ],
+    plan: "Kontrollér TSH 6–8 uger efter skift.",
     link: { href: "../thyreoidea/hypothyreose.html", tekst: "Se Hypothyreose" },
     kilder: ["MHRA / ATA: kontrol af TSH efter skift af levothyroxinpræparat", "Hypothyreose-værktøjets kildeliste"],
   },
@@ -533,7 +542,7 @@ window.RESTORDRE_GRUPPER = [
       { id: "alen", navn: "Alendronat", soeg: "alendronat|fosamax", samme: "Tablet 70 mg ugentligt." },
       { id: "rise", navn: "Risedronat", soeg: "risedronat|optinate", samme: "Tablet 35 mg ugentligt." },
       { id: "zol", navn: "Zoledronsyre", soeg: "zoledronsyre|aclasta", samme: "Infusion 5 mg årligt." },
-      { id: "deno", navn: "Denosumab", soeg: "denosumab|prolia|jubbonti|obodence|stoboclo|ospomyv|ponlimsi", samme: "Flere biosimilære præparater er godkendt i EU siden 2024 (fx Jubbonti, Obodence) — samme dosis." },
+      { id: "deno", navn: "Denosumab", soeg: "denosumab|prolia|jubbonti|obodence|stoboclo", samme: "Flere biosimilære præparater er godkendt i EU siden 2024 (fx Jubbonti, Obodence) — samme dosis." },
     ],
     raekker: [
       { niveau: "Sædvanlig dosis", doser: { alen: "70 mg × 1 ugentligt", rise: "35 mg × 1 ugentligt", zol: "5 mg i.v. årligt", deno: "60 mg s.c. hver 6. måned" } },
@@ -565,7 +574,7 @@ window.RESTORDRE_GRUPPER = [
     stoffer: [
       { id: "pivm", navn: "Pivmecillinam", soeg: "pivmecillinam|selexid", samme: "Tabletter 200 og 400 mg." },
       { id: "nitro", navn: "Nitrofurantoin", soeg: "nitrofurantoin|furadantin", samme: "" },
-      { id: "trim", navn: "Trimethoprim", soeg: "trimethoprim", samme: "" },
+      { id: "trim", navn: "Trimethoprim", soeg: "trimethoprim|trimetoprim", samme: "" },
       { id: "sulfa", navn: "Sulfamethizol", soeg: "sulfamethizol|lucosil", samme: "" },
     ],
     raekker: [

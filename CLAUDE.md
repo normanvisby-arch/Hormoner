@@ -45,7 +45,7 @@ eller "usikker" end et falsk præcist tal.
   listen i `notat/index.html` og i `tests/notat.test.js`. Test: `tests/notat.test.js`.
 - `restordre/` (Restordre — alternativer): `index.html`, `restordre.js`, vidensbasen `data.js`
   (grupper med stoffer, ækvivalensrækker, råd om samme stof, skift og kilder) og `register.js`
-  (ca. 440 indholdsstoffer med ATC-gruppe og handelsnavne, gruppenavne og `RESTORDRE_ATC_NOTE` for
+  (ca. 450 indholdsstoffer med ATC-gruppe og handelsnavne, gruppenavne og `RESTORDRE_ATC_NOTE` for
   brede/specialiststyrede grupper). Handelsnavne kun, når de sikkert findes i Danmark. Egen manifest,
   `sw.js` og `icons/`. Doser skal stemme med de øvrige værktøjer (DOAK = `hjerte/af.js`, østrogen =
   `app.js`, cystitis = `infektion/urinveje.js`, DPP-4 = `nyre/dosis.js`). Test:
