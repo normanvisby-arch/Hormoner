@@ -42,7 +42,7 @@
     if (ARTIFACT) {
       kopier(tekst).then((ok) => {
         const st = document.getElementById("kopiStatus");
-        if (st) st.textContent = ok ? "Teksten er kopieret — indsæt den i \"Udfyld fra journaltekst\" øverst i værktøjet." : "Kopiér teksten manuelt (markér og Ctrl/⌘+C), og indsæt den i værktøjet.";
+        if (st) st.textContent = ok ? "Teksten er kopieret — indsæt den i \"Udfyld fra journaltekst\" øverst i værktøjet." : "Kopiér teksten manuelt (markér og Ctrl/⌘+C), og indsæt den i \"Udfyld fra journaltekst\" øverst i værktøjet.";
       });
       window.open(adr(id), "_blank", "noopener");
       return;

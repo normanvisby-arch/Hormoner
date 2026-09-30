@@ -187,9 +187,11 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
     // claude.ai: teksten kopieres, og værktøjet åbnes i en ny fane.
     await p.fill('#notatTekst', '34-årig kvinde med svie og hyppig vandladning. Stix: leuk +, nitrit +.'); await p.click('#findBtn'); await p.waitForTimeout(300);
     check('X1 ingen automatisk videresendelse i claude.ai', p.url() === NOTAT && (await p.locator('.notat-kort').count()) >= 1);
-    const [pop] = await Promise.all([p.waitForEvent('popup', { timeout: 3000 }).catch(() => null), p.click('[data-aabn="urinveje"]')]);
-    check('X2 åbner urinveje-artifactet i ny fane', pop && pop.url().startsWith('https://claude.ai/artifact/7r2JYpbQxFpaxZaiz9kBqN'), pop ? pop.url() : 'ingen popup');
-    if (pop) await pop.close();
+    await p.evaluate(() => { window.open = (u, m) => { window.__aabnet = [u, m]; return null; }; });
+    await p.click('[data-aabn="urinveje"]'); await p.waitForTimeout(200);
+    const aabnet = await p.evaluate(() => window.__aabnet);
+    check('X2 åbner urinveje-artifactet i ny fane', aabnet && aabnet[0] === 'https://claude.ai/artifact/7r2JYpbQxFpaxZaiz9kBqN' && aabnet[1] === '_blank', JSON.stringify(aabnet));
+    check('X4 forklarer, at teksten skal indsættes', (await p.locator('#kopiStatus').innerText()).includes('Udfyld fra journaltekst'));
     check('X3 ingen hent-knap i claude.ai', await p.locator('#hentBtn').isHidden());
   }
 
