@@ -1,18 +1,16 @@
 /*
- * Service worker for type 2-diabetes-appen: gemmer alle filer, så appen virker uden
+ * Service worker for Restordre-værktøjet: gemmer alle filer, så appen virker uden
  * internet. Netværket prøves først, så opdateringer slår igennem ved næste
  * åbning med forbindelse. Hæv VERSION, når filer tilføjes eller ændres.
  */
-const VERSION = "v5";
-const CACHE = `diabetes-${VERSION}`;
+const VERSION = "v1";
+const CACHE = `restordre-${VERSION}`;
 const FILES = [
   "./",
   "index.html",
-  "behandling.html",
-  "behandling.js",
-  "aarskontrol.html",
-  "aarskontrol.js",
-  "huskeskema.html",
+  "data.js",
+  "register.js",
+  "restordre.js",
   "manifest.webmanifest",
   "icons/icon.svg",
   "icons/icon-192.png",
@@ -21,7 +19,7 @@ const FILES = [
   "icons/apple-touch-icon.png",
   "../style.css",
   "../pwa.js",
-  "../valg.js",
+  "../udfyld.js",
 ];
 
 self.addEventListener("install", (event) => {
@@ -31,7 +29,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("diabetes-") && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith("restordre-") && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

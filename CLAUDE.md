@@ -43,6 +43,11 @@ eller "usikker" end et falsk præcist tal.
   sikkert valg → værktøjet åbnes og udfyldes via `sessionStorage` (`udfyld.overdrag`, engangs), ellers
   vælger lægen. Nyt værktøj med udfyldning: tilføj det i `VAERKTOEJER` (med `udfyld: true`), i
   listen i `notat/index.html` og i `tests/notat.test.js`. Test: `tests/notat.test.js`.
+- `restordre/` (Restordre — alternativer): `index.html`, `restordre.js` og vidensbasen `data.js`
+  (grupper med stoffer, ækvivalensrækker, råd om samme stof, skift og kilder). Egen manifest,
+  `sw.js` og `icons/`. Doser skal stemme med de øvrige værktøjer (DOAK = `hjerte/af.js`, østrogen =
+  `app.js`, cystitis = `infektion/urinveje.js`, DPP-4 = `nyre/dosis.js`). Test:
+  `tests/restordre.test.js`.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
   **Hæv `VERSION` i `sw.js`** og i den berørte apps `*/sw.js` (hjerte, lunge, thyreoidea,
