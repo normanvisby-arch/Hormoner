@@ -14,6 +14,7 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
   await p.goto(NOTAT); await p.waitForTimeout(150);
 
   // ---------------- Klassifikation ----------------
+  let r0;
   const K = async (navn, tekst, top, sikker) => {
     const r = await p.evaluate((t) => { const r = Udfyld.klassificer(t); return { s: r.sikker, top: r.kandidater[0] ? r.kandidater[0].id : null, k: r.kandidater.slice(0, 3).map((k) => k.id + ':' + k.point) }; }, tekst);
     check(navn, r.top === top && r.s === sikker, JSON.stringify(r));
@@ -43,12 +44,36 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
   await K('K23 familieanamnese tæller ikke', 'Mor har KOL. Pt. med ondt i halsen og feber.', 'luftveje', true);
   await K('K24 sikkerhedsråd tæller ikke', 'Ondt i halsen, feber. Ved flankesmerter eller svie genkontakt.', 'luftveje', true);
   await K('K25 nægtede fund tæller ikke', 'Ingen svie, ingen hyppig vandladning. Ondt i halsen og feber.', 'luftveje', true);
+  // Audit: komorbiditet, medicinlister, råd og ordforvekslinger
+  await K('K27 medicinliste overdøver ikke cystitis', 'Svie og hyppig vandladning. Fast medicin: Metformin, Eliquis, Gabapentin, Allopurinol, Tramadol, Spironolacton. eGFR 55. Stix nitrit +.', 'urinveje', true);
+  await K('K28 tlf. om mor med UVI og medicinliste', 'Tlf. med datter. 88-årig mor med svie og hyppig vandladning. Medicin: Eliquis, Furix, Spironolacton, Digoxin, Metformin. Seneste eGFR 44.', 'urinveje', true);
+  await K('K29 tidligere otitis som barn tæller ikke', 'Tidl. hyppige otitis og tonsillitis som barn. Nu svie ved vandladning.', 'urinveje', true);
+  await K('K30 sinuitis hos pt. med kendt hypothyreose', 'Kendt med hypothyreose (Eltroxin). Nu 12 dage med ansigtssmerter, snot og forkølelse. Bihulebetændelse?', 'luftveje', true);
+  await K('K31 erysipelas hos pt. med KOL og astma', 'Rosen på underbenet, skarpt afgrænset rødme. Kendt KOL og astma. Spiriva, Symbicort.', 'hud', true);
+  await K('K32 otitis hos barn med kendt astma', '3-årig med ørepine og feber. Kendt astma, Airomir ved behov.', 'luftveje', true);
+  await K('K33 "Kan pt. få nitrofurantoin?" = dosis', 'Kan pt. få nitrofurantoin? Nedsat nyrefunktion, eGFR 35.', 'dosis', true);
+  await K('K34 type 1-diabetes er ikke type 2', 'Type 1-diabetes, insulinpumpe. HbA1c 62.', 'diabetes', false);
+  await K('K35 "bid i tungen" er ikke dyrebid', 'Epileptisk anfald i nat med bid i tungen.', null, false);
+  await K('K36 "kendt af hjemmeplejen" er ikke atrieflimren', 'Kendt af hjemmeplejen. Svie og hyppig vandladning, stix nitrit pos.', 'urinveje', true);
+  await K('K37 "udover astma" nægter ikke astma', 'Ingen kendte sygdomme udover astma. Bruger Ventoline dagligt, ACT 14.', 'astma', true);
+  await K('K38 peritonsillær absces er ikke hud', 'Ondt i halsen, trismus. Mistanke om peritonsillær absces.', 'luftveje', true);
+  await K('K39 "svie i halsen" er ikke UVI', 'Svie i halsen og synkesmerter i 3 dage.', 'luftveje', true);
+  await K('K40 pyelonefritis hos CKD-patient = ikke sikker CKD', 'Feber 39, kulderystelser, dunkeøm hø. nyreloge. CKD stadie 4, eGFR 22.', 'ckd', false);
+  await K('K41 plan med råd udløser ikke urinveje', 'Ondt i halsen, feber, belægninger. Sikkerhedsnet: Genkontakt ved flankesmerter, svie eller hvis ikke bedring.', 'luftveje', true);
+  await K('K43 flere nummererede problemer vælges aldrig automatisk', 'Årsag: Flere ting.\n1) Hedeture og natlig sveden, ønsker MHT.\n2) Kontrol af hypothyreose, TSH 3,1.\n3) Hoste i 1 uge.', 'klimakterie', false);
+  await K('K44 inficeret sår på fod hos diabetiker = hud', 'Type 2-diabetes. Sår på storetå med rødme og pus. Monofilament nedsat.', 'hud', true);
+  await K('K45 "rødt, varmt og hævet underben" = hud', 'Rødt, varmt og hævet underben siden i går. Feber 38,6. Fodsvamp.', 'hud', true);
+  await K('K46 KAD og uklar urin = urinveje', 'Plejehjemsbeboer med KAD, uklar urin og feber 38,4. Kendt CKD.', 'urinveje', true);
+  await K('K47 dosisspørgsmål i CKD med pneumoni = tvivl', 'Pneumoni hos 80-årig med CKD 4, eGFR 20. Dosis af amoxicillin?', 'ckd', false);
+  r0 = await p.evaluate(() => Udfyld.klassificer('Otitis. Kendt KOL og T2D.').kandidater.map((k) => k.fund.join('/')).join(' '));
+  check('K42 baggrund markeres i begrundelsen', r0.includes('(baggrund)'), r0);
   let r = await p.evaluate(() => Udfyld.klassificer('Ingen svie. Kulderystelser.').kandidater.map((k) => k.fund.join('/')).join(' '));
   check('K26 nægtet ord vises ikke som begrundelse', !/svie/i.test(r), r);
 
   if (!ARTIFACT) {
     // ---------------- Direkte videre ved sikkert valg ----------------
-    const indsaet = async (t) => { await p.evaluate((t) => { const ta = document.getElementById('notatTekst'); ta.value = t; ta.dispatchEvent(new Event('paste')); }, t); };
+    // Som et rigtigt indsæt: paste-hændelsen kommer, før teksten står i feltet.
+    const indsaet = async (t) => { await p.evaluate((t) => { const ta = document.getElementById('notatTekst'); ta.value = ''; const dt = new DataTransfer(); dt.setData('text/plain', t); if (ta.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }))) ta.value = t; }, t); };
     await indsaet('6-årig dreng, 20 kg. Ondt i halsen i 2 dage, feber 38,9, belægninger og ømme glandler, ingen hoste. Strep A positiv. Ingen kendte allergier.');
     await p.waitForURL('**/infektion/luftveje.html', { timeout: 5000 }).catch(() => {}); await p.waitForTimeout(400);
     check('D1 sikkert valg åbner luftveje', p.url().endsWith('infektion/luftveje.html'), p.url());
@@ -59,8 +84,7 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
     await p.reload(); await p.waitForTimeout(300);
     check('D2 genindlæsning udfylder ikke igen', (await p.inputValue('#alder')) === '');
     // Tilbage via linket: valgene vises, ingen automatisk videresendelse.
-    await p.goBack(); await p.waitForTimeout(200); await p.goForward(); await p.waitForTimeout(200);
-    await p.evaluate(() => { sessionStorage.setItem('udfyld.overdrag', sessionStorage.getItem('udfyld.notat')); }); await p.reload(); await p.waitForTimeout(400);
+    await p.evaluate(() => Udfyld.send(Udfyld.hentNotat(), 'infektion/luftveje.html')); await p.waitForTimeout(500);
     await p.click('.udfyld-fra a'); await p.waitForTimeout(400);
     check('D3 tilbage til notat-indgangen', p.url().includes('notat/index.html'), p.url());
     check('D3 teksten er bevaret, og valg vises uden videresendelse', (await p.inputValue('#notatTekst')).includes('Strep A') && (await p.locator('.notat-kort').count()) >= 1 && p.url().includes('notat/'));
@@ -95,6 +119,42 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
     check('A1 ingen genkendelse: vælg selv, listen er åben', (await p.locator('#resultat').innerText()).includes('kunne ikke knyttes') && (await p.locator('#alle').getAttribute('open')) !== null);
     await p.fill('#notatTekst', 'Rosen på underbenet, 70 kg.'); await p.click('#alle a[data-id="hud"]'); await p.waitForURL('**/infektion/hud.html', { timeout: 5000 }).catch(() => {}); await p.waitForTimeout(400);
     check('A2 valg fra listen udfylder hud', p.url().endsWith('infektion/hud.html') && await p.isChecked('input[name="diag"][value="erysipelas"]') && (await p.inputValue('#vaegt')) === '70');
+
+    // ---------------- Audit: ny patient, gamle overdragelser, blokeret lager ----------------
+    await p.goto(NOTAT); await p.waitForTimeout(200);
+    await p.fill('#notatTekst', '34-årig kvinde, 62 kg, svie og hyppig vandladning. Penicillinallergi. Stix nitrit pos.'); await p.click('#findBtn'); await p.waitForTimeout(600);
+    await p.goto(ROOT + 'oversigt.html'); await p.goto(NOTAT); await p.waitForTimeout(200);
+    check('N1 Notat åbnet igen starter tomt (ingen gammel patienttekst)', (await p.inputValue('#notatTekst')) === '');
+    await p.goto(NOTAT + '#vaelg'); await p.reload(); await p.waitForTimeout(200);
+    check('N2 "tilbage" (#vaelg) viser den gemte tekst', (await p.inputValue('#notatTekst')).includes('62 kg'));
+    await p.focus('#notatTekst');
+    await p.evaluate(() => { const ta = document.getElementById('notatTekst'); const dt = new DataTransfer(); dt.setData('text/plain', '6-årig dreng, 20 kg, ondt i halsen, feber, belægninger. Strep A positiv. Tonsillitis.'); if (ta.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }))) ta.value += dt.getData('text/plain'); });
+    await p.waitForURL('**/infektion/luftveje.html', { timeout: 5000 }).catch(() => {}); await p.waitForTimeout(400);
+    check('N3 indsæt erstatter den gendannede tekst (ingen sammenblanding)', p.url().endsWith('luftveje.html') && (await p.inputValue('#alder')) === '6' && (await p.inputValue('#vaegt')) === '20' && !(await p.isChecked('input[name="andet"][value="allergi"]')), p.url());
+    // En gammel eller fremmed overdragelse bruges ikke.
+    await p.evaluate(() => sessionStorage.setItem('udfyld.overdrag', JSON.stringify({ sti: 'infektion/urinveje.html', tekst: 'Rosen 80 kg', t: Date.now() })));
+    await p.goto(ROOT + 'infektion/hud.html'); await p.waitForTimeout(300);
+    check('N4 overdragelse til en anden side udfylder ikke', (await p.inputValue('#vaegt')) === '' && await p.evaluate(() => sessionStorage.getItem('udfyld.overdrag') === null));
+    await p.evaluate(() => sessionStorage.setItem('udfyld.overdrag', JSON.stringify({ sti: 'infektion/hud.html', tekst: 'Rosen 80 kg', t: Date.now() - 60000 })));
+    await p.reload(); await p.waitForTimeout(300);
+    check('N5 forældet overdragelse udfylder ikke', (await p.inputValue('#vaegt')) === '');
+    // Indsæt af et lille stykke i en tekst, man skriver, springer ikke videre.
+    await p.goto(NOTAT); await p.waitForTimeout(200);
+    await p.fill('#notatTekst', '34-årig kvinde med svie og hyppig vandladning i 2 dage, afebril, ingen flankesmerter. Stix: ');
+    await p.evaluate(() => { const ta = document.getElementById('notatTekst'); const dt = new DataTransfer(); dt.setData('text/plain', 'nitrit +'); ta.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); ta.value += 'nitrit +'; });
+    await p.waitForTimeout(400);
+    check('N6 lille indsat stykke starter ikke automatisk', p.url().includes('notat/'));
+    await p.click('#rydBtn');
+    // Blokeret sessionStorage: bliv på siden med besked.
+    const pb = await ctx.newPage(); await pb.addInitScript(() => { Storage.prototype.setItem = function () { throw new Error('blokeret'); }; });
+    await pb.goto(NOTAT); await pb.waitForTimeout(200);
+    await pb.fill('#notatTekst', '34-årig kvinde med svie og hyppig vandladning. Stix: leuk +, nitrit +.'); await pb.click('#findBtn'); await pb.waitForTimeout(500);
+    check('N7 blokeret lager: bliver og forklarer', pb.url().includes('notat/') && (await pb.locator('#resultat').innerText()).includes('kunne ikke overføres'), pb.url());
+    await pb.close();
+    // "Bedste bud" kun ved sikkert valg
+    await p.fill('#notatTekst', 'UVI hos 70-årig med kronisk nyresygdom, eGFR 28. Svie, stix nitrit pos.'); await p.click('#findBtn'); await p.waitForTimeout(300);
+    check('N8 intet "Bedste bud" ved tvivl', (await p.locator('.notat-bedst').count()) === 0 && (await p.locator('#resultat').innerText()).includes('passer til flere'));
+    await p.click('#rydBtn');
 
     // ---------------- Præference ----------------
     await p.goto(NOTAT); await p.waitForTimeout(200); await p.click('#rydBtn');

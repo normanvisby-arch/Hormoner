@@ -283,15 +283,35 @@ Notat-appen og sætter ind — eller trykker "Indsæt fra udklipsholder".
 
 - **Valg af værktøj:** `Udfyld.klassificer` (i `udfyld.js`) giver point til 15 værktøjer:
   - Diagnoser og entydige udtryk giver 3 point, typiske fund 2 og svage tegn 1.
-  - Hvert begreb tæller én gang. Lægemidler, der doseres efter nyrefunktion, giver højst 4 point
-    til dosis-værktøjet.
-  - Nægtede fund, sikkerhedsråd ("ved flankesmerter genkontakt"), vaccination og familieanamnese
-    ("mor har KOL") tæller ikke. Ønsker ("ønsker p-piller") og ubesvarede spørgsmål ("SCORE2?",
-    "Start levothyroxin?") tæller.
-- **Sikkert valg:** mindst 3 point, mindst 1,5 gang så mange som nummer to og mindst 2 point foran.
-  - Kan værktøjet udfyldes, åbnes det med det samme og udfyldes.
-  - Ellers vises kandidaterne med de ord, der pegede på dem, og lægen vælger. Det samme sker, hvis
-    "Gå direkte til værktøjet" er slået fra. Listen over alle værktøjer kan altid foldes ud.
+  - Hvert begreb tæller én gang.
+  - Lægemidler, der doseres efter nyrefunktion, giver dosis-værktøjet højst 2 point, og højst 1,
+    hvis de står i en fast medicinliste.
+- **Baggrund tæller næsten ikke:** kendte sygdomme, fast medicin og tidligere forløb giver højst
+  1 point og vises som "(baggrund)" i begrundelsen. Det gælder fx "Kendt med hypothyreose",
+  "Medicin: Eltroxin", "tidl. otitis som barn" og alt under overskrifter som "Kendt med:",
+  "Diagnoser:" og "Fast medicin:". Så overdøver en komorbiditet ikke det aktuelle problem.
+- **Tæller ikke:**
+  - nægtede fund ("strep A ÷", "ingen svie")
+  - råd og sikkerhedsnet ("Genkontakt ved feber, flankesmerter …", "Kontakt lægen ved …",
+    "Panodil ved feber") — også resten af opremsningen
+  - vaccination og familieanamnese ("mor har KOL")
+  - "af" som forholdsord, "bid i tungen", "svie i halsen", peritonsillær absces som hudbyld,
+    type 1-diabetes som type 2 og "T4" uden tal
+- **Tæller:** ønsker ("ønsker p-piller") og ubesvarede spørgsmål ("SCORE2?", "Kan pt. få
+  nitrofurantoin?").
+- **Sikkert valg:**
+  - mindst 3 point og et tydeligt tegn (en diagnose eller to typiske fund)
+  - mindst 1,5 gang så mange point som nummer to og mindst 2 point foran
+  - aldrig ved flere nummererede problemer ("1) … 2) …")
+- **Når valget er sikkert:** Kan værktøjet udfyldes, åbnes det med det samme og udfyldes. Ellers
+  vises kandidaterne med de ord, der pegede på dem, og lægen vælger. "Bedste bud" vises kun ved et
+  sikkert valg. Listen over alle værktøjer kan altid foldes ud.
+- **Automatisk start:** en søgning starter af sig selv, når der sættes ind i et tomt felt, eller
+  når det indsatte er det meste af teksten. Et lille stykke, der sættes ind i en tekst, man selv
+  skriver, starter ikke en søgning.
+- **Kontrol mod eksempler:** 93 realistiske notater fra auditten (Noteless-stil med overskrifter,
+  medicinlister, komorbiditet, telefonkonsultationer og flere problemer). Ingen giver nu et sikkert,
+  men forkert valg; før rettelserne var der 9.
 - **Udfyldes automatisk:** luftveje, urinveje, hud, kronisk nyresygdom og dosis efter
   nyrefunktion. Atrieflimren, CV-risiko, KOL, astma, hypothyreose, type 2-diabetes (behandling og
   årskontrol), klimakteriet, prævention og osteoporose genkendes og åbnes, men udfyldes ikke endnu.
@@ -301,9 +321,15 @@ Notat-appen og sætter ind — eller trykker "Indsæt fra udklipsholder".
   - "Teksten passer også til …" sender teksten videre til et andet værktøj med udfyldning, fx fra
     urinveje til kronisk nyresygdom.
 - **Privatliv:** teksten gives videre i fanens `sessionStorage`.
-  - Nøglen `udfyld.overdrag` bruges én gang og slettes, når målsiden har læst den.
-  - `udfyld.notat` bruges til "tilbage" og slettes, når fanen lukkes, eller ved Ryd (i Notat eller
-    i værktøjets udfyld-panel).
+  - Overdragelsen (`udfyld.overdrag`) gælder kun den side, den er sendt til, og kun i 30 sekunder.
+    Den slettes, så snart en side med udfyldning åbnes.
+  - Notatet til "tilbage" (`udfyld.notat`) udløber efter 15 minutter og slettes ved Ryd.
+  - Åbnes Notat igen, er feltet tomt. Teksten vises kun, når man kommer tilbage via "Forkert
+    værktøj?".
+  - Sættes en ny tekst ind i en vist, gammel tekst (også efter browserens tilbage-knap), erstatter
+    den den gamle, så to patienters tekst aldrig blandes.
+  - Kan teksten ikke gives videre (blokeret lager), bliver Notat på siden, kopierer teksten og
+    forklarer.
   - Intet sendes over netværket, og der bruges ingen sprogmodel. Kun indstillingen "Gå direkte"
     gemmes i `localStorage`.
 - **App:** egen manifest, service worker og ikon. `scope` er `../`, så værktøjerne åbner i samme
@@ -619,7 +645,16 @@ en server. Konsekvenser af det valg:
   - Link fra oversigten og alle startsider.
 - `udfyld.js`:
   - Klassifikator (`Udfyld.klassificer`) og overdragelse mellem sider via fanens `sessionStorage`
-    (engangs, ryddes ved Ryd).
+    (engangs, kun til den valgte side, 30 sekunder; notatet til "tilbage" 15 minutter).
+  - Råd som "Genkontakt ved feber, flankesmerter …" og "Kontakt lægen ved …" tæller ikke som fund,
+    heller ikke ved udfyldning. Tidligere kunne en cystitis med sikkerhedsnet i planen blive
+    udfyldt som øvre UVI.
+- Uafhængig audit (93 notater og brugerfladen):
+  - Rettet: sammenblanding af to patienters tekst, råd læst som fund, fast medicin og komorbiditet
+    der overdøvede det aktuelle problem, dosisspørgsmål, type 1-diabetes, diabetisk fodsår,
+    ordforvekslinger, gamle overdragelser, blokeret lager, "Bedste bud" ved tvivl og automatisk
+    start ved et lille indsat stykke.
+  - Sikre, men forkerte valg: fra 9 til 0.
   - "-" efter et ord nægter det kun, når det står alene ("feber -"), ikke i sammensatte ord
     ("KOL-kontrol"). Tidligere kunne fx "Strep A-test" og "KOL-kontrol" læses som nægtet.
 - Ny testsuite `notat`. Service worker v1 (notat), v10 (rod), v7 (hjerte), v4 (lunge, thyreoidea,

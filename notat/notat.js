@@ -11,22 +11,9 @@
   const alle = document.getElementById("alle");
   const hentBtn = document.getElementById("hentBtn");
   const links = Array.from(document.querySelectorAll("#vaerktoejer a[data-id]"));
-  const K = Udfyld.noegler;
   // I claude.ai er siderne selvstændige artifacts: teksten kopieres i stedet for at blive givet videre.
   const ARTIFACT = links.some((a) => /^https:\/\/claude\.ai\//.test(a.getAttribute("href")));
   const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
-  const hent = (k) => {
-    try {
-      return sessionStorage.getItem(k);
-    } catch (e) {
-      return null;
-    }
-  };
-  const gem = (k, v) => {
-    try {
-      sessionStorage.setItem(k, v);
-    } catch (e) {}
-  };
   const vaerktoej = (id) => Udfyld.vaerktoejer.find((v) => v.id === id);
   const adr = (id) => (links.find((a) => a.dataset.id === id) || {}).href;
 
@@ -60,16 +47,24 @@
       window.open(adr(id), "_blank", "noopener");
       return;
     }
-    gem(K.notat, tekst);
-    if (v && v.udfyld && tekst.trim() && Udfyld.send(tekst, v.sti)) return;
+    Udfyld.gemNotat(tekst);
+    if (v && v.udfyld && tekst.trim()) {
+      if (Udfyld.send(tekst, v.sti)) return;
+      // Teksten kunne ikke gives videre (fx blokeret lager): bliv, kopiér og forklar.
+      kopier(tekst).then((ok) => {
+        res.insertAdjacentHTML("afterbegin", `<p class="udfyld-fra" role="alert">Teksten kunne ikke overføres til værktøjet i denne browser.${ok ? " Den er kopieret —" : ""} Åbn <a href="${esc(adr(id))}">${esc(v.navn)}</a>, og indsæt teksten i "Udfyld fra journaltekst".</p>`);
+      });
+      return;
+    }
     location.href = adr(id);
   }
 
   function kort(k, bedst) {
     const knap = ARTIFACT ? `Kopiér teksten og åbn` : k.udfyld ? `Udfyld ${esc(k.navn)}` : `Åbn ${esc(k.navn)}`;
+    const app = k.navn.startsWith(k.app) ? "" : ` <span class="field-hint">${esc(k.app)}</span>`;
     const hint = k.udfyld ? "" : `<p class="field-hint">Udfyldes ikke automatisk endnu — værktøjet åbnes tomt.</p>`;
     return `<div class="notat-kort${bedst ? " notat-bedst" : ""}">
-      <div class="notat-kort-top"><strong>${esc(k.navn)}</strong> <span class="field-hint">${esc(k.app)}</span>${bedst ? ' <span class="tag tag-recommend">Bedste bud</span>' : ""}</div>
+      <div class="notat-kort-top"><strong>${esc(k.navn)}</strong>${app}${bedst ? ' <span class="tag tag-recommend">Bedste bud</span>' : ""}</div>
       <p class="field-hint">Fundet i teksten: ${k.fund.map((f) => `"${esc(f)}"`).join(", ")}</p>${hint}
       <button type="button" class="btn ${bedst ? "btn-primary" : "btn-outline"}" data-aabn="${esc(k.id)}">${knap}</button>
     </div>`;
@@ -81,7 +76,7 @@
       res.innerHTML = "<p>Indsæt et notat først.</p>";
       return;
     }
-    gem(K.notat, tekst);
+    Udfyld.gemNotat(tekst);
     const r = Udfyld.klassificer(tekst);
     if (auto && r.sikker && r.valgt.udfyld && direkte.checked && !ARTIFACT) {
       res.innerHTML = `<p>Åbner <strong>${esc(r.valgt.navn)}</strong> og udfylder …</p>`;
@@ -95,7 +90,7 @@
     else if (k.length > 1) intro = "<p><strong>Teksten passer til flere værktøjer</strong> — vælg det rigtige:</p>";
     else intro = "<p><strong>Kun svage tegn i teksten</strong> — kontrollér valget:</p>";
     const artiNote = ARTIFACT && k.length ? '<p class="field-hint">I claude.ai åbnes værktøjet i en ny fane, og teksten kopieres, så du kan indsætte den i "Udfyld fra journaltekst".</p>' : "";
-    res.innerHTML = intro + k.map((x, i) => kort(x, i === 0 && (r.sikker || k.length === 1 || x.point > k[1].point))).join("") + artiNote + '<p class="field-hint" id="kopiStatus" aria-live="polite"></p>';
+    res.innerHTML = intro + k.map((x, i) => kort(x, i === 0 && r.sikker)).join("") + artiNote + '<p class="field-hint" id="kopiStatus" aria-live="polite"></p>';
     alle.open = !k.length;
   }
 
@@ -110,7 +105,24 @@
     aabn(a.dataset.id);
   });
   document.getElementById("findBtn").addEventListener("click", () => vis(true));
-  ta.addEventListener("paste", () => setTimeout(() => vis(true), 0));
+  let gendannet = false;
+  ta.addEventListener("input", () => (gendannet = false));
+  ta.addEventListener("paste", (e) => {
+    const indsat = e.clipboardData ? e.clipboardData.getData("text") : "";
+    if (gendannet && indsat) {
+      // Den tidligere tekst (fra "tilbage") erstattes — ny tekst hæftes aldrig på en gammel.
+      e.preventDefault();
+      ta.value = indsat;
+      gendannet = false;
+      vis(true);
+      return;
+    }
+    const foer = ta.value.trim().length;
+    setTimeout(() => {
+      const nu = ta.value.trim().length;
+      if (!foer || (indsat && indsat.trim().length >= 0.8 * nu)) vis(true);
+    }, 0);
+  });
   ta.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) vis(true);
   });
@@ -133,8 +145,16 @@
     });
   }
 
-  // Tilbage fra et værktøj: vis valgene igen (uden at springe videre automatisk).
-  const gemt = hent(K.notat);
-  if (gemt && !ta.value) ta.value = gemt;
-  if (ta.value.trim()) vis(false);
+  // Tilbage fra et værktøj ("Forkert værktøj?"): vis teksten og valgene igen, uden at springe videre.
+  // Åbnes Notat på anden vis, starter feltet tomt, så en ny patients tekst aldrig blandes med en gammel.
+  const gemt = Udfyld.hentNotat();
+  if (location.hash === "#vaelg" && gemt) {
+    ta.value = gemt;
+    gendannet = true;
+    vis(false);
+  } else ta.value = "";
+  // Tilbage-knappen kan vise siden fra browserens cache med den gamle tekst: så erstatter indsæt den.
+  window.addEventListener("pageshow", (e) => {
+    if (e.persisted && ta.value.trim()) gendannet = true;
+  });
 })();

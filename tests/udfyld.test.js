@@ -88,6 +88,11 @@ const SIDE = (f) => process.env['UDFYLD_' + f.replace(/\W/g, '_').toUpperCase()]
   await A('A40 opremsning efter "ingen" med "eller"', 'Ingen feber, hoste eller ondt i halsen.', 'L.term("hoste").status', 'nej');
   await A('A41 opremsning uden "eller" = ukendt', 'Ingen feber, hoste i 3 dage.', 'L.term("hoste").status', null);
   await A('A46 "men"/"fortsat" stopper opremsningsnægtelse', 'Ingen bedring, fortsat hoste og feber. Benægter dyspnø, men har ondt i halsen.', '[L.feber().status, L.term("ondt i halsen").status]', ['ja', 'ja']);
+  await A('A47 "Genkontakt ved feber, flankesmerter …" er råd', 'Afebril. Sikkerhedsnet: Genkontakt ved feber, flankesmerter eller hvis ikke bedring.', '[L.feber().status, L.term("flankesmerter").status]', ['nej', null]);
+  await A('A48 "Kontakt lægen ved feber" er råd', 'Ingen feber. Råd: Kontakt lægen ved feber eller flankesmerter.', '[L.feber().status, L.term("flankesmerter").status]', ['nej', null]);
+  await A('A49 "Genkontakt ved hoste, åndenød" nægter ikke hoste-fundet', 'Ingen hoste. Genkontakt ved hoste, åndenød eller ørepine.', 'L.term("hoste").status', 'nej');
+  await A('A50 "Panodil ved feber" er ikke feber', 'Ondt i halsen. Panodil ved feber.', 'L.feber().status', null);
+  await A('A51 "KOL-kontrol" er ikke nægtet', 'KOL-kontrol i dag.', 'L.term("kol").status', 'ja');
   await A('A42 RF som reumafaktor', 'RF 32 IU/ml.', 'L.rf()', null);
   await A('A43 eGFR (CKD-EPI) 44', 'eGFR (CKD-EPI) 44', 'L.egfr().v', 44);
   r = await p.evaluate(() => { const t0 = performance.now(); const L = Udfyld.lib('hoste og ondt '.repeat(8000) + 'crp' + ' '.repeat(5000) + '5'); L.feber(); L.term('hoste'); L.crp(); return performance.now() - t0; });
@@ -160,6 +165,8 @@ const SIDE = (f) => process.env['UDFYLD_' + f.replace(/\W/g, '_').toUpperCase()]
   check('U5 sikkerhedsråd giver ikke pyelonefritis', await on('billede', 'cystitis'), r);
   r = await udfyld('25-årig kvinde, svie. Gravid? Nej. Stix: leuk ÷, nitrit ÷.');
   check('U6 "Gravid? Nej" og "÷" i stix', !(await on('andet', 'gravid')) && await on('leuk', 'neg') && await on('nitrit', 'neg'), r);
+  r = await udfyld('34-årig kvinde, svie og hyppig vandladning. Afebril. Sikkerhedsnet: Genkontakt ved feber, flankesmerter eller hvis ikke bedring.');
+  check('U9 råd i planen giver ikke øvre UVI', await on('billede', 'cystitis'), r);
   r = await udfyld('Ledsaget af sin mand. 34-årig med svie og hyppig vandladning.');
   check('U7 ledsagerens køn bruges ikke', r.includes('Ikke fundet i teksten: køn'), r);
   r = await udfyld('Kvinde 30 år. Initialt svie. Stix positiv for leukocytter og nitrit.');
