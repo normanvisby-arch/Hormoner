@@ -142,7 +142,7 @@ const HUD = process.env.BASE_HUD || LUFT.replace('luftveje.html', 'hud.html');
   await cb('cell', 'omgiv'); check('H6 absces + cellulitis -> dicloxacillin', (await head()).includes('drænage og dicloxacillin'));
   await go(HUD); await r('diag', 'impetigo'); check('H7 impetigo lokal -> antiseptisk', (await head()).startsWith('Lokaliseret impetigo') && (await rec()).length === 0);
   await r('udbred', 'udbredt'); await fill({ alder: 4, vaegt: 15 });
-  check('H8 udbredt barn 15 kg -> flucloxacillin 200 mg × 4', JSON.stringify(await rec()).includes('Flucloxacillin mikstur | 200 mg × 4'), JSON.stringify(await rec()));
+  check('H8 udbredt barn 15 kg -> flucloxacillin 190 mg (3,8 ml) × 4', JSON.stringify(await rec()).includes('Flucloxacillin mikstur | 190 mg × 4') && JSON.stringify(await rec()).includes('3,8 ml (190 mg) × 4'), JSON.stringify(await rec()));
   await go(HUD); await r('diag', 'em'); await fill({ alder: 40 });
   check('H9 EM voksen -> 1,5 mio. IE × 3 i 10 dage', JSON.stringify(await rec()).includes('1,5 mio. IE (990 mg) × 3 dagligt i 10 dage'));
   await cb('andet', 'allergi'); check('H10 EM allergi -> doxycyclin 100 mg × 2 i 10 dage', JSON.stringify(await rec()).includes('Doxycyclin | 100 mg × 2 dagligt i 10 dage'));
@@ -162,6 +162,57 @@ const HUD = process.env.BASE_HUD || LUFT.replace('luftveje.html', 'hud.html');
   await cb('rf', 'nekrose'); check('H18 nekrotiserende -> akut', (await head()).startsWith('Mistanke om nekrotiserende'));
   n = await note(); check('H18 journal', n.includes('Plan: akut henvisning'), n);
   await p.click('#resetBtn'); check('H19 reset', (await head()).startsWith('Erysipelas') && (await p.inputValue('#alder')) === '');
+
+  // ---------------- Mikstur til børn: dosis i ml og pakning ----------------
+  const alle = async () => p.$$eval('#output tbody tr', (trs) => trs.map((tr) => tr.innerText.replace(/\s+/g, ' ')));
+  const raek = async (navn) => (await alle()).find((t) => t.startsWith(navn)) || '';
+  await go(LUFT); await r('diag', 'pneumoni'); await fill({ alder: 6, vaegt: 20 });
+  o = await raek('Penicillin V');
+  check('X1 penicillin V-mikstur 20 kg: 6,5 ml × 3, 1 × 125 ml (Primve) eller 1 × 200 ml (Primcillin); 2,5 ml margin er ikke "knapt"', !o.includes('knapt') && !o.includes('Stort volumen') && o.includes('Penicillin V mikstur 50 mg/ml — 6,5 ml (325 mg) × 3 dagligt') && o.includes('1 × 125 ml (Primve) eller 1 × 200 ml (Primcillin)') && o.includes('Holdbar 10–14 dage'), o);
+  o = await raek('Clarithromycin');
+  check('X2 clarithromycin 20 kg: 50 mg/ml, 3 ml × 2, 1 × 50 ml; tekst og mikstur samme mg', o.includes('150 mg × 2 dagligt') && o.includes('Clarithromycin mikstur 50 mg/ml — 3 ml (150 mg) × 2 dagligt') && o.includes('1 × 50 ml (Klacid)') && o.includes('ikke køleskab'), o);
+  await go(HUD); await r('diag', 'erysipelas'); await fill({ alder: 4, vaegt: 16 });
+  o = await raek('Clarithromycin');
+  check('X3 clarithromycin 16 kg: 25 mg/ml (højst 5 ml), 1 × 100 ml; mg i teksten = mg i mikstur', o.startsWith('Clarithromycin') && o.includes('120 mg × 2 dagligt (15 mg/kg') && !o.includes('125 mg') && o.includes('25 mg/ml — 4,8 ml (120 mg) × 2') && o.includes('1 × 100 ml (Klacid)'), o);
+  o = await raek('Flucloxacillin');
+  check('X4 flucloxacillin 16 kg: 4,8 ml × 3 i 7 dage → 2 × 100 ml; tilskudsklausul; holdbar 7 dage', o.includes('240 mg × 3 dagligt') && !o.includes('250 mg') && o.includes('Flucloxacillin oral opløsning 50 mg/ml — 4,8 ml (240 mg) × 3') && o.includes('2 × 100 ml (Nerbutix)') && o.includes('klausuleret tilskud') && !o.includes('3 ml doseringssprøjte') && o.includes('Holdbar 7 dage'), o);
+  o = await raek('Penicillin V');
+  check('X5 samme pakning fra to præparater skrives én gang', o.includes('1 × 200 ml (Primcillin eller Primve)'), o);
+  await r('diag', 'em');
+  o = await raek('Penicillin V');
+  check('X6 EM 16 kg: 8 ml × 4 i 10 dage → 3 × 125 ml (Primve) eller 2 × 200 ml (Primcillin); 320 ml → stort volumen', o.includes('8 ml (400 mg) × 4') && o.includes('3 × 125 ml (Primve) eller 2 × 200 ml (Primcillin)') && o.includes('Stort volumen (8 ml pr. dosis, 320 ml i alt)'), o);
+  await cb('andet', 'allergi');
+  o = await raek('Azithromycin');
+  check('X7 azithromycin 16 kg: 4 ml × 1 i 3 dage → 1 × 15 ml, holdbar 5 dage', o.includes('160 mg × 1 dagligt') && o.includes('Azithromycin mikstur 40 mg/ml — 4 ml (160 mg) × 1') && o.includes('1 × 15 ml (Zitromax)') && o.includes('Holdbar 5 dage'), o);
+  await p.uncheck('input[name="andet"][value="allergi"]');
+  await fill({ alder: 11, vaegt: 39 });
+  o = await raek('Penicillin V');
+  check('X8 maksimaldosis: 39 kg EM → højst 750 mg = 15 ml; 600 ml → advarsel om stort volumen', o.includes('15 ml (750 mg) × 4') && o.includes('Stort volumen (15 ml pr. dosis, 600 ml i alt)') && !o.includes('knapt'), o);
+  await fill({ vaegt: '' });
+  o = await raek('Penicillin V');
+  check('X10 uden vægt: ingen mikstur', !o.includes('Mikstur:') && o.includes('angiv vægt'), o);
+  await go(LUFT); await r('diag', 'pneumoni'); await fill({ alder: 11, vaegt: 48 });
+  o = await raek('Penicillin V');
+  check('X9 stort barn: 800 mg = 16 ml → note om tabletter', o.includes('16 ml (800 mg) × 3') && o.includes('Stort volumen (16 ml pr. dosis') && o.includes('tabletter/kapsler er ofte lettere'), o);
+  await go(HUD); await r('diag', 'erysipelas'); await fill({ alder: 6, vaegt: 25 });
+  o = await raek('Dicloxacillin');
+  check('X11 dicloxacillin-kapsler (≥ 20 kg): ingen mikstur', !o.includes('Mikstur:'), o);
+  await go(LUFT); await r('diag', 'pneumoni'); await fill({ alder: 6, vaegt: 20 });
+  await p.check('#output input[type="radio"][value="penv"]');
+  n = await note();
+  check('X12 journalnotatet indeholder den valgte mikstur og pakning', n.includes('Valgt behandling: Penicillin V') && n.includes('6,5 ml') && n.includes('125 ml') && !n.includes('Clarithromycin mikstur'), n);
+  // Lav vægt, holdbarhed kortere end kuren og "rækker knapt uden spild".
+  await go(HUD); await r('diag', 'erysipelas'); await fill({ alder: 0, vaegt: 3 });
+  o = await raek('Penicillin V');
+  check('X13 3 kg: 1 ml (50 mg) × 3, mindste flaske', o.includes('50 mg × 3 dagligt') && o.includes('1 ml (50 mg) × 3') && o.includes('1 × 100 ml (Primcillin)'), o);
+  o = await raek('Flucloxacillin');
+  check('X14 3 kg flucloxacillin: 0,9 ml × 3 → 1 × 100 ml', o.includes('0,9 ml (45 mg) × 3') && o.includes('1 × 100 ml (Nerbutix)'), o);
+  // Holdbarhedsadvarslen udløses ikke af de nuværende regimer (kur ≤ holdbarhed) — testes direkte.
+  o = await p.evaluate(() => { const a = AB({ update() {} }); return [a.boernetekst(16, 45, 3, 1000, '', 0, { key: 'fluclox', dage: 10 }), a.boernetekst(16, 45, 3, 1000, '', 0, { key: 'fluclox', dage: 7 })]; });
+  check('X15 kur længere end holdbarheden → advarsel; ellers ikke', o[0].includes('Kuren (10 dage) er længere end holdbarheden (7 dage)') && !o[1].includes('længere end holdbarheden'), o.join(' | '));
+  await go(HUD); await r('diag', 'erysipelas'); await fill({ alder: 4, vaegt: 15 });
+  o = await raek('Flucloxacillin');
+  check('X16 flucloxacillin 15 kg: 94,5 ml → 2 × 100 ml med spild, men 1 × 100 ml rækker knapt', o.includes('2 × 100 ml (Nerbutix)') && o.includes('Uden spildmargin rækker 1 × 100 ml (Nerbutix) knapt — 5,5 ml til overs'), o);
 
   const m = await ctx.newPage(); await m.setViewportSize({ width: 390, height: 844 });
   for (const u of [LUFT, URIN, HUD]) {

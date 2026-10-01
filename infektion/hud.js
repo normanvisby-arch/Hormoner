@@ -30,20 +30,21 @@
   // Regimer
   // ---------------------------------------------------------------------
 
+  const kurDage = (d) => parseInt(String(d).split(/[–-]/).pop(), 10) || 7;
   function penV(s, tag, rec) {
-    if (barn(s)) return { key: "penv", navn: "Penicillin V", dosering: boernetekst(s.vaegt, 50, 3, 800, "i 7 dage"), note: "Region Midtjylland (2025).", tag, rec };
+    if (barn(s)) return { key: "penv", navn: "Penicillin V", dosering: boernetekst(s.vaegt, 50, 3, 800, "i 7 dage", 0, { key: "penv", dage: 7 }), note: "Region Midtjylland (2025).", tag, rec };
     return { key: "penv", navn: "Penicillin V", dosering: "1 mio. IE (660 mg) eller 800 mg × 4 dagligt i 5–7 dage", note: "Region Hovedstaden (2025). Region Midtjylland: 1 mio. IE × 3 i 7 dage.", tag, rec };
   }
   function diclox(s, tag, rec, dage) {
     if (barn(s)) {
       const lille = !isNaN(s.vaegt) && s.vaegt < 20;
-      return { key: "diclox", navn: lille ? "Flucloxacillin mikstur" : "Dicloxacillin", dosering: boernetekst(s.vaegt, 45, 3, 1000, `i ${dage || 7} dage`, lille ? 0 : 250), note: lille ? "Under 20 kg: mikstur." : "Kapsler à 250 og 500 mg — dosis afrundet til hel kapsel.", tag, rec };
+      return { key: "diclox", navn: lille ? "Flucloxacillin mikstur" : "Dicloxacillin", dosering: boernetekst(s.vaegt, 45, 3, 1000, `i ${dage || 7} dage`, lille ? 0 : 250, lille ? { key: "fluclox", dage: kurDage(dage || 7) } : null), note: lille ? "Under 20 kg: mikstur." : "Kapsler à 250 og 500 mg — dosis afrundet til hel kapsel.", tag, rec };
     }
     return { key: "diclox", navn: "Dicloxacillin", dosering: `1 g × 3 dagligt i ${dage || 7} dage`, note: "Tages på tom mave (1 time før eller 2 timer efter et måltid).", tag, rec };
   }
   function makrolid(s, tag, rec, dage) {
     const gravidNote = s.gravid ? " Graviditet: kun efter nøje overvejelse — se pro.medicin.dk." : "";
-    if (barn(s)) return { key: "clari", navn: "Clarithromycin", dosering: boernetekst(s.vaegt, 15, 2, 500, `i ${dage || 7} dage`), note: "Mange interaktioner." + gravidNote, tag, rec };
+    if (barn(s)) return { key: "clari", navn: "Clarithromycin", dosering: boernetekst(s.vaegt, 15, 2, 500, `i ${dage || 7} dage`, 0, { key: "clari", dage: kurDage(dage || 7) }), note: "Mange interaktioner." + gravidNote, tag, rec };
     return { key: "roxi", navn: "Roxithromycin", dosering: `150 mg × 2 dagligt i ${dage || "5–7"} dage`, note: `Alternativ: clarithromycin 500 mg × 2 i 7 dage (Region Midtjylland). Makrolider dækker stafylokokker usikkert.${gravidNote}`, tag, rec };
   }
 
@@ -102,7 +103,7 @@
       if (s.allergi) r.rows = [makrolid(s, "Anbefalet (penicillinallergi)", true, barn(s) ? "5–7" : undefined)];
       else if (barn(s)) {
         const lille = !isNaN(s.vaegt) && s.vaegt < 20;
-        r.rows = [{ key: "diclox-imp", navn: lille ? "Flucloxacillin mikstur" : "Dicloxacillin", dosering: boernetekst(s.vaegt, 50, 4, 1000, "i 5–7 dage", lille ? 0 : 250), note: lille ? "Børn under 20 kg (Region Hovedstaden)." : "Kapsler fra 20 kg (Region Hovedstaden) — dosis afrundet til hel kapsel à 250 mg.", tag: "Anbefalet", rec: true }, makrolid(s, "Ved penicillinallergi", false, "5–7")];
+        r.rows = [{ key: "diclox-imp", navn: lille ? "Flucloxacillin mikstur" : "Dicloxacillin", dosering: boernetekst(s.vaegt, 50, 4, 1000, "i 5–7 dage", lille ? 0 : 250, lille ? { key: "fluclox", dage: 7 } : null), note: lille ? "Børn under 20 kg (Region Hovedstaden)." : "Kapsler fra 20 kg (Region Hovedstaden) — dosis afrundet til hel kapsel à 250 mg.", tag: "Anbefalet", rec: true }, makrolid(s, "Ved penicillinallergi", false, "5–7")];
       } else r.rows = [diclox(s, "Anbefalet", true, "5–7"), makrolid(s, "Ved penicillinallergi", false)];
       r.ab = true;
     }
@@ -119,14 +120,14 @@
     const alderUkendt = barn(s) && isNaN(s.alder);
     if (!s.allergi) {
       r.rows = barn(s)
-        ? [{ key: "penv-em", navn: "Penicillin V", dosering: boernetekst(s.vaegt, 100, 4, 750, "i 10 dage (maks. 3 g/døgn)"), note: "100 mg (0,15 mio. IE)/kg/døgn fordelt på 4 doser (Region Hovedstaden).", tag: "Anbefalet", rec: true }]
+        ? [{ key: "penv-em", navn: "Penicillin V", dosering: boernetekst(s.vaegt, 100, 4, 750, "i 10 dage (maks. 3 g/døgn)", 0, { key: "penv", dage: 10 }), note: "100 mg (0,15 mio. IE)/kg/døgn fordelt på 4 doser (Region Hovedstaden).", tag: "Anbefalet", rec: true }]
         : [{ key: "penv-em", navn: "Penicillin V", dosering: "1,5 mio. IE (990 mg) × 3 dagligt i 10 dage", note: "Højere dosis end ved andre infektioner.", tag: "Anbefalet", rec: true }];
     }
     const allergiTag = s.allergi ? "Anbefalet (penicillinallergi)" : "Ved penicillinallergi";
     if (barn(s) && s.alder >= 8) {
       r.rows.push({ key: "doxy-em", navn: "Doxycyclin", dosering: s.alder >= 12 && !(s.vaegt < 40) ? "100 mg × 2 dagligt i 10 dage" : boernetekst(s.vaegt, 4, 2, 100, "i 10 dage"), note: "Børn fra 8 år (maks. 100 mg pr. dosis). Dispergible tabletter à 100 mg kan deles.", tag: allergiTag, rec: s.allergi });
     } else if (barn(s) && s.alder < 8) {
-      r.rows.push({ key: "azi-em", navn: "Azithromycin", dosering: boernetekst(s.vaegt, 10, 1, 500, "i 3 dage"), note: "Børn under 8 år (Region Hovedstaden).", tag: allergiTag, rec: s.allergi });
+      r.rows.push({ key: "azi-em", navn: "Azithromycin", dosering: boernetekst(s.vaegt, 10, 1, 500, "i 3 dage", 0, { key: "azi", dage: 3 }), note: "Børn under 8 år (Region Hovedstaden).", tag: allergiTag, rec: s.allergi });
     } else if (!barn(s) && !s.gravid) {
       r.rows.push({ key: "doxy-em", navn: "Doxycyclin", dosering: "100 mg × 2 dagligt i 10 dage", note: "Undgå sollys (fotosensibilitet). Ikke til gravide og ammende.", tag: allergiTag, rec: s.allergi });
     }

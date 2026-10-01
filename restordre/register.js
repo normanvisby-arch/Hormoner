@@ -303,10 +303,10 @@ J01AA|tetracyclin|
 J01AA|lymecyclin|Tetralysal
 J01CA|amoxicillin|Imadrax;Amoxicillin
 J01CA|pivmecillinam|Selexid
-J01CE|phenoxymethylpenicillin (penicillin V)|Penicillin V;Primcillin;Vepicombin
+J01CE|phenoxymethylpenicillin (penicillin V)|Penicillin V;Primcillin;Primve;Vepicombin
 J01CE|benzylpenicillin|
 J01CF|dicloxacillin|Diclocil
-J01CF|flucloxacillin|
+J01CF|flucloxacillin|Nerbutix
 J01CR|amoxicillin + clavulansyre|Spektramox;Bioclavid
 J01DB|cefalexin|
 J01DB|cefadroxil|
