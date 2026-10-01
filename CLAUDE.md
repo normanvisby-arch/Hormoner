@@ -16,7 +16,9 @@ eller "usikker" end et falsk præcist tal.
   `osteoplan.html`, `osteohuskeskema.html`. `bloedningskalender.html` findes, men er fjernet fra
   navigation og oversigt efter ønske.
 - Hjerte-appen i `hjerte/`: `index.html` (startside), `cvrisiko.html` (SCORE2/SCORE2-OP/
-  SCORE2-Diabetes), `af.html` (antikoagulation ved atrieflimren), `huskeskema.html`; egen
+  SCORE2-Diabetes), `af.html` (antikoagulation ved atrieflimren), `ekg.html` (tolkning af
+  EKG-måleværdier og maskinens tekst; udfyldes fra indsat EKG-udskrift via `udfyld.js`, ordlisten
+  `UDSAGN` i `ekg.js`; test `tests/ekg.test.js`), `huskeskema.html`; egen
   `manifest.webmanifest`, `sw.js` og `icons/`, men fælles `../style.css` (rød farve via
   `body.theme-hjerte`) og `../pwa.js`. SCORE2-koefficienterne er kontrolleret mod R-pakken
   RiskScorescvd og de publicerede regneeksempler (se `tests/cvrisiko.test.js`) — ret dem kun med
@@ -35,8 +37,8 @@ eller "usikker" end et falsk præcist tal.
 - `valg.js`: fælles "Vælg til journal"-knap i behandlingstabeller (klimakterie, prævention,
   osteoporose); journalnotatet bruger det valgte i stedet for førstevalget.
 - `udfyld.js`: fælles "Udfyld fra journaltekst" (indsæt diktat-/journaltekst → felter udfyldes
-  lokalt med faste regler og negationsdetektion; intet sendes). Bruges foreløbig i infektion og
-  nyre; hver side har sin konfiguration nederst i sin `.js` (`Udfyld.init`). Script-tagget skal stå
+  lokalt med faste regler og negationsdetektion; intet sendes). Bruges i infektion, nyre,
+  restordre og hjerte/ekg; hver side har sin konfiguration nederst i sin `.js` (`Udfyld.init`). Script-tagget skal stå
   før sidens egen `.js`, og filen skal i den brugende apps `sw.js`. Test: `tests/udfyld.test.js`.
 - `notat/` (Notat-indgang): `index.html` + `notat.js`, egen manifest (`scope: "../"`), `sw.js` og
   `icons/`. Klassifikatoren (`VAERKTOEJER` og `klassificer` i `udfyld.js`) giver point pr. værktøj;
