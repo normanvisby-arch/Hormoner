@@ -16,15 +16,15 @@ const APP = ROOT + 'hjerte/';
   check('SW scope = hjerte/', reg === APP, reg);
   await p.reload(); await p.waitForTimeout(300);
   check('SW controls page', await p.evaluate(() => !!navigator.serviceWorker.controller));
-  check('3 tool cards', (await p.locator('.tool').count()) === 3);
-  for (const f of ['cvrisiko.html', 'af.html', 'huskeskema.html']) {
+  check('4 tool cards', (await p.locator('.tool').count()) === 4);
+  for (const f of ['cvrisiko.html', 'af.html', 'ekg.html', 'huskeskema.html']) {
     await p.goto(APP + f); await p.waitForTimeout(150);
     const nav = await p.locator('nav').first().innerText();
     check(f + ' nav', nav.includes('Oversigt') && nav.includes('CV-risiko') && nav.includes('Atrieflimren') && nav.includes('Huskeskema'), nav.replace(/\n/g, ' | '));
     check(f + ' manifest link', (await p.locator('link[rel="manifest"]').getAttribute('href')) === 'manifest.webmanifest');
   }
   await ctx.setOffline(true);
-  for (const f of ['index.html', 'cvrisiko.html', 'af.html', 'huskeskema.html']) {
+  for (const f of ['index.html', 'cvrisiko.html', 'af.html', 'ekg.html', 'huskeskema.html']) {
     const r = await p.goto(APP + f).catch(() => null);
     check('offline ' + f, r && r.ok() && (await p.locator('h1').count()) > 0);
   }

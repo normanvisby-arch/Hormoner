@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EKG — tolkning af måleværdier</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#a3262f">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hjerte-kar">
+</head>
+<body class="theme-hjerte">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">〰</span>
+      <div>
+        <h1>EKG — tolkning af måleværdier</h1>
+        <p class="subtitle">Indsæt teksten fra EKG-apparatet: frekvens, PR, QRS, QTc (flere formler), akser, P-varighed og voltage vurderes mod referenceværdier, og maskinens tolkning forklares</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <a href="cvrisiko.html">CV-risiko</a>
+  <a href="af.html">Atrieflimren</a>
+  <span aria-current="page">EKG</span>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Værktøjet tolker kun <em>tallene og maskinens tekst</em> — ikke selve kurven. ST-segmenter, T-takker, Q-takker, deltabølger og rytmen skal altid ses på EKG'et. Gælder voksne (≥ 18 år). Alt behandles i browseren; intet sendes, og værktøjet virker uden internet.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se tolkning ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="EKG-data" onsubmit="return false;">
+    <h2>1. EKG og patient</h2>
+
+    <fieldset class="field">
+      <legend>Køn</legend>
+      <label class="radio"><input type="radio" name="koen" value="kvinde"> Kvinde</label>
+      <label class="radio"><input type="radio" name="koen" value="mand"> Mand</label>
+      <label class="radio"><input type="radio" name="koen" value="ukendt" checked> Ikke angivet</label>
+      <p class="field-hint">Grænsen for forlænget QTc er 450 ms hos mænd og 460 ms hos kvinder.</p>
+    </fieldset>
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="18" max="110" placeholder="fx 67">
+      <span class="input-warning" id="alderWarning" aria-live="polite"></span>
+    </div>
+
+    <fieldset class="field">
+      <legend>Klinik (ændrer hastegraden)</legend>
+      <label class="checkbox"><input type="checkbox" name="klinik" value="brystsmerter"> Brystsmerter nu eller inden for det seneste døgn</label>
+      <label class="checkbox"><input type="checkbox" name="klinik" value="synkope"> Synkope, nær-synkope eller svær svimmelhed</label>
+      <label class="checkbox"><input type="checkbox" name="klinik" value="hjertebanken"> Hjertebanken</label>
+      <label class="checkbox"><input type="checkbox" name="klinik" value="qtmed"> Får QT-forlængende medicin</label>
+      <label class="checkbox"><input type="checkbox" name="klinik" value="atlet"> Veltrænet (intensiv træning ≥ 4 timer om ugen)</label>
+    </fieldset>
+
+    <fieldset class="field">
+      <legend>Måleværdier</legend>
+      <div class="ekg-grid">
+        <label for="hr">Frekvens (/min)<input type="number" id="hr" min="20" max="300" inputmode="numeric"></label>
+        <label for="pr">PR (ms)<input type="number" id="pr" min="60" max="600" inputmode="numeric"></label>
+        <label for="qrs">QRS (ms)<input type="number" id="qrs" min="40" max="250" inputmode="numeric"></label>
+        <label for="qt">QT (ms)<input type="number" id="qt" min="200" max="700" inputmode="numeric"></label>
+        <label for="qtc">QTc fra apparatet (ms)<input type="number" id="qtc" min="250" max="700" inputmode="numeric"></label>
+        <label for="qtcFormel">Apparatets QTc-formel<select id="qtcFormel">
+          <option value="">Ukendt</option>
+          <option value="B">Bazett</option>
+          <option value="F">Fridericia</option>
+          <option value="H">Hodges</option>
+          <option value="Fr">Framingham</option>
+        </select></label>
+        <label for="rr">RR (ms)<input type="number" id="rr" min="200" max="3000" inputmode="numeric"></label>
+        <label for="pp">PP (ms)<input type="number" id="pp" min="200" max="3000" inputmode="numeric"></label>
+        <label for="pdur">P-varighed (ms)<input type="number" id="pdur" min="40" max="250" inputmode="numeric"></label>
+        <label for="paxe">P-akse (°)<input type="number" id="paxe" min="-180" max="360"></label>
+        <label for="qrsaxe">QRS-akse (°)<input type="number" id="qrsaxe" min="-180" max="360"></label>
+        <label for="taxe">T-akse (°)<input type="number" id="taxe" min="-180" max="360"></label>
+        <label for="sokolow">Sokolow-Lyon (mV)<input type="number" id="sokolow" min="0" max="10" step="0.01"></label>
+        <label for="cornell">Cornell-voltage (mV)<input type="number" id="cornell" min="0" max="10" step="0.01"></label>
+      </div>
+      <p class="field-hint">Tom = ikke målt. Voltage i mm omregnes: 10 mm = 1 mV.</p>
+    </fieldset>
+
+    <div class="field">
+      <label for="maskine">Maskinens tolkning</label>
+      <textarea id="maskine" rows="4" class="ekg-maskine" placeholder="fx Sinusrytme med AV-blok grad I. I øvrigt normalt EKG."></textarea>
+      <input type="hidden" id="ubekraeftet" value="">
+    </div>
+  </form>
+
+  <section class="panel result-panel" aria-label="Tolkning" id="resultPanel">
+    <h2>2. Tolkning</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<div id="linkKort" hidden><a data-sti="af.html" href="af.html">Atrieflimren</a><a data-sti="cvrisiko.html" href="cvrisiko.html">CV-risiko</a></div>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>AHA/ACCF/HRS Recommendations for the Standardization and Interpretation of the ECG (2007–2009), del II–IV: normal frekvens 50–100/min, PR 120–200 ms, QRS 110–119 ms = inkomplet grenblok/uspecifik ledningsforsinkelse og ≥ 120 ms = grenblok, QRS-akse −30° til +90° (venstre anterior fascikelblok −45° til −90°), forlænget QTc ≥ 450 ms (mænd) og ≥ 460 ms (kvinder), kort-QT-grænsen og korrektion af QT ved bred QRS</li>
+    <li>ESC 2022 Guidelines for ventrikulære arytmier og forebyggelse af pludselig hjertedød: lang-QT-syndrom ved QTc ≥ 480 ms (gentagne EKG), kort-QT-syndrom ved QTc ≤ 320 ms (eller ≤ 360 ms og arytmisk synkope), VES-byrde &gt; 10 % → kontrol af venstre ventrikels funktion</li>
+    <li>ESC 2021 Guidelines on cardiac pacing: AV-blok grad I med PR &gt; 300 ms og symptomer, der ligner pacemakersyndrom</li>
+    <li>ESH 2023 hypertensionsguideline: EKG-kriterier for venstre ventrikelhypertrofi (Sokolow-Lyon &gt; 3,5 mV; Cornell &gt; 2,8 mV hos mænd og &gt; 2,0 mV hos kvinder; Cornell-produkt &gt; 244 mV·ms) som hypertensiv organskade</li>
+    <li>Bayés de Luna et al. 2012 (konsensus): interatrielt blok ved P-varighed ≥ 120 ms; Aro et al. 2012: frontal QRS-T-vinkel ≥ 100° og risiko for arytmisk død</li>
+    <li>Drezner et al. 2017, International recommendations for ECG interpretation in athletes: normale fund hos veltrænede (sinusbradykardi ≥ 30/min, AV-blok grad I med PR &lt; 400 ms, inkomplet højresidigt grenblok, isoleret voltagekriterium for hypertrofi)</li>
+    <li>QTc-formler: Bazett (QT/√RR), Fridericia (QT/∛RR), Framingham (QT + 154 × (1 − RR)), Hodges (QT + 1,75 × (frekvens − 60)); Bogossian 2014 (QT − 50 % af QRS ved grenblok); Drew et al. 2010 (AHA): torsades-risiko ved QTc &gt; 500 ms eller stigning &gt; 60 ms</li>
+    <li>Studier af computerens EKG-tolkning (fx GE 12SL): atrieflimren overdiagnosticeres i ca. 10 % — maskinens tekst skal altid efterses</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — erstatter ikke lægens egen vurdering af kurven. Lægehåndbogen og danske kardiologiske sider kunne ikke tilgås direkte ved udviklingen; tallene er kontrolleret via sekundære kilder (bl.a. tidsskriftsresuméer og lærebogssider). Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="../udfyld.js"></script>
+<script src="ekg.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>
