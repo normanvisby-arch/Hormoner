@@ -148,6 +148,24 @@ Selvstændig app med eget manifest, ikon og service worker (installeres fra
       grenblok + fascikelblok = bifascikulært blok.
     - Atrieflimren linker til Atrieflimren-værktøjet med en advarsel om, at computeren
       overdiagnosticerer i ca. 10 %.
+  - **Sammenligning med tidligere EKG:** lægen indsætter et tidligere EKG fra samme patient efter
+    det aktuelle. Det læses med samme regler, og ændringerne vises i en tabel med vurdering.
+    - Ny bred QRS (≥ 120 ms) og QRS forlænget > 25 % (fx flecainid, ESC).
+    - Nyt AV-blok grad I og PR ≥ 300 ms.
+    - QTc-stigning > 30 og > 60 ms (ICH E14; Drew 2010). QTc sammenlignes med Fridericia for begge
+      EKG, ellers kun med apparatets værdi ved samme formel. Ved ændret QRS nævnes JT.
+    - Ny højre, venstre (≤ −45°) eller ekstrem akse, og nyt interatrielt blok.
+    - Nye og forsvundne udsagn fra maskinen, fx ny atrieflimren, nyt grenblok, nyt infarktmønster og
+      nye ST-T-forandringer.
+    - Hastegraden afhænger af klinikken, fx er nyt venstresidigt grenblok med brystsmerter "handling
+      nu".
+    - Sikkerhed:
+      - CPR-numrene i de to udskrifter sammenlignes, uden at de vises. Er de forskellige, vises ingen
+        sammenligning.
+      - En ny indsættelse øverst rydder det tidligere EKG (ny patient).
+      - Datoen læses fra udskriften eller datofeltet, og der advares, hvis det "tidligere" EKG er
+        nyere.
+    - Journalnotatet får en linje: "Sammenlignet med EKG fra …: …".
   - **Resultat:** sammenfatning (handling nu / afvigende / bemærk / normal), tabel, QTc-tabel,
     forslag til handling, hvad værktøjet ikke kan (selve kurven), og et journalnotat med en linje
     til lægens egen gennemsyn af kurven.
@@ -776,6 +794,34 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**1. oktober 2026 — EKG: sammenligning med tidligere EKG:**
+- Indsæt et tidligere EKG under det aktuelle. Ændringer i måleværdier og maskinens udsagn vises med
+  vurdering og kommer med i journalnotatet.
+- Kilder: ICH E14 (QTc-stigning > 30/60 ms), Drew 2010 og ESC/produktresumé for flecainid
+  (QRS > 25 %).
+- Uafhængig audit, rettet før merge:
+  - "Ingen væsentlige ændringer" er erstattet af "ingen ændringer over værktøjets grænser i de
+    sammenlignede værdier". Nye udsagn, som værktøjet ikke kender, vises.
+  - Kontrollen af samme patient virker også med CPR-nummer uden bindestreg, med mellemrum og med
+    erstatningsnumre. Status vises altid ("samme CPR ✓" eller "kunne ikke kontrolleres").
+  - Der kræves en minimumsændring (QRS og PR ≥ 20 ms, akse ≥ 30°), så måleusikkerhed omkring en
+    grænse ikke giver alarm. PR ≥ 300 ms prioriteres.
+  - Pacing i det ene EKG udelukker sammenligning af PR, QRS, akse og QTc.
+  - Ved ændret QRS vurderes JTc i stedet for QTc.
+  - Nye alvorlige udsagn (AV-blok II/III, akut infarkt, VT m.fl.) får mindst deres eget niveau. Nye
+    ST-T-forandringer eller nyt højresidigt grenblok med brystsmerter = handling nu (ESC 2023).
+  - Datoer: fødselsdatoer springes over, ISO-format læses, datoer i fremtiden bruges ikke.
+  - Nye fund: ny bradykardi, ny kort PR og QTc-fald efter forlænget QTc.
+  - Notat om paroksystisk atrieflimren og antikoagulation (ESC 2024).
+  - Det tidligere EKG ryddes også med "Ryd", og der vises besked, når en ny indsættelse rydder det.
+  - "Akut anteriort infarkt" genkendes nu (fejl i det eksisterende værktøj).
+- **Persondata:**
+  - CPR-numre maskeres som "[CPR]" i kildeuddragene i `udfyld.js` (gælder alle værktøjer).
+  - Linjer med CPR-nummer, navn eller patient-ID kommer aldrig med i maskinens tolkning eller i
+    journalnotatet.
+- Tests H1–H19 og Y1–Y22 i `ekg.test.js`.
+- Service worker v11 (hjerte), v7 (infektion, nyre), v5 (notat) og v4 (restordre).
 
 **1. oktober 2026 — Downloadside med QR-kode:**
 - Ny side `apps.html` ("Hent klinikværktøjerne") med alle ni apps:

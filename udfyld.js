@@ -98,7 +98,8 @@ window.Udfyld = (function () {
       while (e < t.length && BOGSTAV.test(t[e])) e++;
       const start = s > 0 && !erGraense(t, s - 1) ? "…" : "";
       const slut = e < t.length && !erGraense(t, e) ? "…" : "";
-      return start + tekst.slice(s, e).trim() + slut;
+      // CPR-numre vises aldrig i kildeuddrag (rapporten kan ses af andre og udskrives).
+      return (start + tekst.slice(s, e).trim() + slut).replace(/(?<!\d)\d{6}[- ]?\d{4}(?!\d)/g, "[CPR]");
     };
 
     // Alle forekomster af et regex uden for allerede brugte områder.
