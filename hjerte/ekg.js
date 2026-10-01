@@ -64,40 +64,51 @@
 
   // ---------------------------------------------------------------- Maskinens udsagn
   // Rækkefølgen er visningsrækkefølgen. "niveau" kan afhænge af klinikken (k).
+  const PLAN_LVH = "Venstre ventrikelhypertrofi på EKG: mål blodtryk (hjemme-/døgnblodtryk), overvej ekkokardiografi (også aortastenose og kardiomyopati) og intensivér blodtryksbehandlingen ved hypertension (ESH 2023).";
   const UDSAGN = [
-    { id: "akutmi", m: /akut\w* (?:mi|infarkt|myokardieinfarkt|skade|st-?elevations?-?infarkt)|acute (?:mi|infarct|myocardial)|stemi|\*+\s*akut/, navn: "Akut infarkt / akut skade",
-      niveau: () => "danger", tekst: "Maskinen mistænker akut infarkt. Computeren både over- og underdiagnosticerer, men udsagnet skal vurderes med det samme.",
+    { id: "akutmi", m: /akut\w* (?:mi|infarkt|myokardieinfarkt|skade|st-?elevations?-?infarkt)|infarkt\s*,?\s*(?:muligvis |mulig |sandsynligvis |formentlig )?akut|acute (?:mi|infarct|myocardial)|infarct\s*,?\s*(?:possibly |probably )?acute|injury pattern|(?:anterior|inferior|lateral|septal|anterolateral|anteroseptal|inferolateral)\w* injury|(?<![a-z])n?stemi(?![a-z])|\*+\s*(?:akut|acute)/, navn: "Akut infarkt / akut skade",
+      niveau: () => "danger", tekst: "Maskinen mistænker akut infarkt eller akut skade. Computeren både over- og underdiagnosticerer, men udsagnet skal vurderes med det samme.",
       plan: ["Vurder patienten nu: ved brystsmerter eller påvirket tilstand ring 112 / akut kardiologisk vurdering; sammenlign med tidligere EKG."] },
-    { id: "stelev", m: /st-?elevation|st elevation/, navn: "ST-elevation", hvisIkke: ["akutmi"],
-      niveau: (k) => (k.brystsmerter ? "danger" : "warn"), tekst: "ST-elevation kan være akut infarkt, perikarditis eller tidlig repolarisering (normalvariant hos unge). Kurven og klinikken afgør.",
+    { id: "stelev", m: /st[- ]?elevation[^.;]*/, navn: "ST-elevation", hvisIkke: ["akutmi"],
+      niveau: (k) => (k.brystsmerter ? "danger" : "warn"), tekst: "ST-elevation kan være akut infarkt/skade, perikarditis eller tidlig repolarisering (normalvariant hos unge mænd). Nævner maskinen flere muligheder, er den usikker — kurven og klinikken afgør.",
       plan: ["ST-elevation: vurder kurven og patienten samme dag; med brystsmerter → 112/akut kardiologisk vurdering."] },
-    { id: "vt", m: /ventrikel ?takykardi|ventrikulær takykardi|ventricular tachycardia|(?<![a-zæøå])vt(?![a-zæøå])/, navn: "Ventrikeltakykardi", niveau: () => "danger",
+    { id: "bredtaky", m: /wide (?:qrs|complex) (?:tachycardia|rhythm)|bred-?kompleks\w* (?:takykardi|rytme)|bredkomplekset? (?:takykardi|rytme)|idioventri\w*|ventrikelflimren|ventricular fibrillation|(?<![a-zæøå])asystol\w*/, navn: "Bred-kompleks-rytme/-takykardi", niveau: () => "danger",
+      tekst: "Bred-kompleks-takykardi behandles som ventrikeltakykardi, til det modsatte er bevist.", plan: ["Bred-kompleks-takykardi: vurder patienten nu — akut (112) ved påvirkning; ellers samme-dags kardiologisk vurdering."] },
+    { id: "vt", m: /(?<!supra)ventrikel ?takykardi|(?<!supra)ventrikulær takykardi|(?<!supra)ventricular tachycardia|(?<![a-zæøå])(?:ns)?vt(?![a-zæøå])/, navn: "Ventrikeltakykardi", niveau: () => "danger",
       tekst: "Bred-kompleks-takykardi skal behandles som ventrikeltakykardi, til det modsatte er bevist.", plan: ["Ventrikeltakykardi: akut (112), medmindre det er en kort, afsluttet salve hos en upåvirket patient — så samme-dags kardiologisk vurdering."] },
-    { id: "avblok3", m: /av-?blok,? (?:grad|gr\.?) ?(?:iii|3)|komplet av-?blok|(?:tredje|3\.?) ?grads? av|complete (?:heart|av) block|third degree/, navn: "AV-blok grad III (komplet)", niveau: () => "danger",
+    { id: "avblok3", m: /(?:av-?blok|a-?v[- ]block|hjerteblok),? (?:af )?(?:grad |gr\.? )?(?:iii|3)(?![0-9])|komplet (?:av-?|hjerte)blok|(?:tredje|3\.?) ?grads? (?:av|a-v)|complete (?:heart|av|a-v) block|(?:third|3rd) degree/, navn: "AV-blok grad III (komplet)", niveau: () => "danger",
       tekst: "Ingen ledning fra atrier til ventrikler; erstatningsrytmen kan svigte.", plan: ["AV-blok grad III: akut indlæggelse (pacemaker)."] },
-    { id: "wenckebach", m: /wenckebach|mobitz (?:type )?(?:i|1)(?![iv0-9])/, navn: "AV-blok grad II type 1 (Wenckebach)",
+    { id: "wenckebach", m: /wenckebach|mobitz (?:type )?(?:i|1)(?![iv0-9])|(?:grad|gr\.?|degree)\.? ?(?:ii|2)\.?,? type ?(?:i|1)(?![iv0-9])|(?:ii|2)\.? ?grads? (?:av|a-v)-?blo\w*,? type ?(?:i|1)(?![iv0-9])/, navn: "AV-blok grad II type 1 (Wenckebach)",
       niveau: (k) => (k.synkope ? "danger" : k.atlet ? "info" : "warn"), tekst: "PR forlænges, til et slag falder ud. Kan være normalt hos unge, veltrænede og om natten (vagus).",
       plan: ["AV-blok grad II type 1: hos ældre, ved symptomer eller i vågen tilstand → kardiolog (Holter); ved synkope akut."] },
-    { id: "avblok2", m: /mobitz (?:type )?(?:ii|2)(?![0-9])|av-?blok,? (?:grad|gr\.?) ?(?:ii|2)(?![i0-9])|(?:anden|2\.?) ?grads? av|2 ?: ?1[- ]?(?:av|ledning|overledning)|second degree/, navn: "AV-blok grad II", hvisIkke: ["wenckebach"],
-      niveau: () => "danger", tekst: "Mobitz type 2 og 2:1-blok kan pludselig gå over i komplet blok.", plan: ["AV-blok grad II (Mobitz 2 eller 2:1): akut/samme-dags kardiologisk vurdering (pacemakerindikation)."] },
+    { id: "avblok2", m: /mobitz (?:type )?(?:ii|2)(?![0-9])|(?:av-?blok|a-?v[- ]block),? (?:af )?(?:grad |gr\.? )?(?:ii|2)(?![i0-9])|(?:anden|2\.?) ?grads? (?:av|a-v)|(?:second|2nd) degree|high[- ]grade (?:av|a-v)|højgrad\w* av/, navn: "AV-blok grad II", hvisIkke: ["wenckebach"],
+      niveau: () => "danger", tekst: "Mobitz type 2, 2:1- og højgradsblok kan pludselig gå over i komplet blok.", plan: ["AV-blok grad II (Mobitz 2, 2:1 eller højgradsblok): akut/samme-dags kardiologisk vurdering (pacemakerindikation)."] },
+    { id: "avblok21", m: /2 ?: ?1[- ]?(?:a-?v[- ]?|av-)?(?:block|blok|ledning|overledning|conduction)/, navn: "AV-blok grad II (2:1)", hvisIkke: ["wenckebach", "avblok2", "aflagren"],
+      niveau: () => "danger", tekst: "Hvert andet P-tak overledes ikke — kan ikke skelnes fra Mobitz 2 og kan gå over i komplet blok.", plan: ["AV-blok grad II (Mobitz 2, 2:1 eller højgradsblok): akut/samme-dags kardiologisk vurdering (pacemakerindikation)."] },
     { id: "avdiss", m: /av-?dissociation|a-?v dissociation/, navn: "AV-dissociation", niveau: () => "warn",
       tekst: "Atrier og ventrikler slår uafhængigt — ved komplet AV-blok, accelereret junktional eller ventrikulær rytme.", plan: ["AV-dissociation: se kurven; kardiologisk vurdering samme dag ved bradykardi eller symptomer."] },
+    { id: "pause", m: /sinus ?(?:arrest|pause)|sinusstop|sinoatrial\w* blo\w*|sa-?blok/, navn: "Sinusarrest/pause", niveau: (k) => (k.synkope ? "danger" : "warn"),
+      tekst: "Pauser i sinusknudens aktivitet (syg sinusknude, medicin, vagus).", plan: ["Sinuspause: medicingennemgang og Holter; ved synkope eller svimmelhed → kardiolog (akut ved synkope)."] },
     { id: "af", m: /atrieflimren|atrieflimmer|atrial fibrillation|a-?flimren/, navn: "Atrieflimren", niveau: (k, v) => (v.hr > 150 ? "danger" : "warn"),
-      tekst: "Bekræft på kurven: uregelmæssigt uregelmæssig rytme uden P-takker. Computeren overdiagnosticerer atrieflimren i ca. 10 % (fx ved hyppige ekstrasystoler, sinusarytmi eller støj).",
-      plan: ["Bekræftet atrieflimren: CHA₂DS₂-VA og antikoagulation (se " + "LINK_AF" + "), frekvenskontrol (hvilepuls < 110), TSH og ekkokardiografi; akut ved brystsmerter, hjertesvigt eller hæmodynamisk påvirkning."] },
+      tekst: "Bekræft på kurven: uregelmæssigt uregelmæssig rytme uden P-takker. Computeren overdiagnosticerer atrieflimren (ca. 9 % forkerte i svensk almen praksis, Lindow 2019) — fx ved hyppige ekstrasystoler, sinusarytmi eller støj.",
+      plan: ["Bekræftet atrieflimren: CHA₂DS₂-VA og antikoagulation (se LINK_AF), frekvenskontrol (hvilepuls < 110), TSH og ekkokardiografi; akut ved brystsmerter, hjertesvigt eller hæmodynamisk påvirkning."] },
     { id: "aflagren", m: /atrieflagren|atrial flutter/, navn: "Atrieflagren", niveau: (k, v) => (v.hr > 150 ? "danger" : "warn"),
-      tekst: "Savtakket grundlinje; en frekvens omkring 150/min tyder på 2:1-overledning.", plan: ["Atrieflagren: samme antikoagulationsregler som atrieflimren (se " + "LINK_AF" + "); henvis til kardiolog (ablation er ofte førstevalg)."] },
-    { id: "svt", m: /supraventrikulær takykardi|supraventricular tachycardia|(?<![a-zæøå])svt(?![a-zæøå])/, navn: "Supraventrikulær takykardi", niveau: (k, v) => (v.hr > 150 || k.synkope ? "danger" : "warn"),
+      tekst: "Savtakket grundlinje; en frekvens omkring 150/min tyder på 2:1-overledning. Computeren tager især fejl ved flagren (ca. 1/3 forkerte, Lindow 2019).", plan: ["Atrieflagren: samme antikoagulationsregler som atrieflimren (se LINK_AF); henvis til kardiolog (ablation er ofte førstevalg)."] },
+    { id: "svt", m: /supraventrikulær takykardi|supraventricular tachycardia|(?<![a-zæøå])svt(?![a-zæøå])|avnrt|avrt|atrietakykardi|atrial tachycardia/, navn: "Supraventrikulær takykardi", niveau: (k, v) => (v.hr > 150 || k.synkope ? "danger" : "warn"),
       tekst: "Regelmæssig smalkomplekset takykardi (AVNRT, AVRT, atrietakykardi eller flagren).", plan: ["Supraventrikulær takykardi: vagusmanøvre; vedvarende anfald eller påvirket patient → akut; efter anfald henvises til kardiolog."] },
-    { id: "lbbb", m: /(?<!inkomplet )(?:venstresidigt? grenblok|venstre grenblok|(?<![a-z])lbbb|(?<!incomplete )left bundle branch block)/, navn: "Venstresidigt grenblok",
+    { id: "vrespons", m: /(?:rapid|slow|hurtig|langsom|controlled|kontrolleret) ventri\w* ?respons\w*/, navn: "Ventrikelrespons", niveau: () => "info", tekst: "Se frekvensvurderingen." },
+    { id: "ubestemt", m: /undetermined rhythm|ubestemt rytme|rytmen kan ikke bestemmes|uklar rytme/, navn: "Rytmen kan ikke bestemmes", niveau: () => "warn",
+      tekst: "Maskinen kan ikke bestemme rytmen (støj, atrieflimren/-flagren, ektopisk rytme).", plan: ["Ubestemt rytme: se kurven selv; tag nyt EKG ved støj."] },
+    { id: "pakse", m: /unusual p axis|unormal p-?akse|abnorm\w* p-?akse/, navn: "Unormal P-akse", niveau: () => "info", tekst: "Ektopisk atrierytme eller forbyttede arm-elektroder." },
+    { id: "lbbb", m: /(?<!inkomplet )(?:venstresidigt? grenblok|venstre grenblok)(?!,? inkomplet)|(?<![a-z])(?<!incomplete |i)lbbb|(?<!incomplete )left bundle branch block/, navn: "Venstresidigt grenblok",
       niveau: (k) => (k.brystsmerter || k.synkope ? "danger" : "warn"), tekst: "Næsten altid tegn på hjertesygdom (iskæmisk hjertesygdom, hypertension, kardiomyopati, aortastenose). ST-segmenterne kan ikke vurderes på vanlig vis.",
       plan: ["Venstresidigt grenblok: sammenlign med tidligere EKG; nyt grenblok → ekkokardiografi og kardiologisk vurdering; med brystsmerter → akut (kan ikke skelnes fra infarkt)."] },
-    { id: "rbbb", m: /(?<!inkomplet )(?:højresidigt? grenblok|højre grenblok|(?<![a-z])rbbb|(?<!incomplete )right bundle branch block)/, navn: "Højresidigt grenblok",
+    { id: "rbbb", m: /(?<!inkomplet )(?:højresidigt? grenblok|højre grenblok)(?!,? inkomplet)|(?<![a-z])(?<!incomplete )rbbb|(?<!incomplete )right bundle branch block/, navn: "Højresidigt grenblok",
       niveau: (k) => (k.synkope ? "warn" : "info"), tekst: "Ofte uden betydning hos raske. Nyopstået sammen med åndenød eller brystsmerter: tænk lungeemboli.",
       plan: ["Højresidigt grenblok: ingen udredning hos symptomfri; ny åndenød/brystsmerter → udeluk lungeemboli."] },
-    { id: "inkHoejre", m: /inkomplet højre\w* grenblok|incomplete right bundle/, navn: "Inkomplet højresidigt grenblok", niveau: () => "ok",
+    { id: "inkHoejre", m: /inkomplet højre\w* grenblok|højre\w* grenblok,? inkomplet|incomplete right bundle|incomplete rbbb|(?<![a-z])irbbb/, navn: "Inkomplet højresidigt grenblok", niveau: () => "ok",
       tekst: "Hyppig normalvariant, især hos unge og veltrænede." },
-    { id: "inkVenstre", m: /inkomplet venstre\w* grenblok|incomplete left bundle/, navn: "Inkomplet venstresidigt grenblok", niveau: () => "info",
+    { id: "inkVenstre", m: /inkomplet venstre\w* grenblok|venstre\w* grenblok,? inkomplet|incomplete left bundle|incomplete lbbb|(?<![a-z])ilbbb/, navn: "Inkomplet venstresidigt grenblok", niveau: () => "info",
       tekst: "Ses ved venstre ventrikelhypertrofi og hjertesygdom — vurder blodtryk og evt. ekkokardiografi." },
     { id: "lafb", m: /venstre anterior\w* (?:hemiblok|fascikelblok|fascikulært blok)|left anterior (?:fascicular|hemi)|(?<![a-z])la[fh]b(?![a-z])/, navn: "Venstre anterior fascikelblok (hemiblok)",
       niveau: () => "info", tekst: "Venstre akse (−45° til −90°). Isoleret oftest uden behandlingsbehov." },
@@ -107,57 +118,65 @@
       tekst: "Højresidigt grenblok + fascikelblok: risiko for progression til højgradigt AV-blok.", plan: ["Bifascikulært blok: ved synkope akut kardiologisk vurdering; uden symptomer kontrol og information om at reagere på svimmelhed/besvimelse."] },
     { id: "ivcd", m: /intraventrikulær\w* (?:ledningsforstyrrelse|ledningsforsinkelse|ledningsdefekt)|intraventricular conduction|(?<![a-z])ivcd(?![a-z])/, navn: "Intraventrikulær ledningsforstyrrelse",
       niveau: () => "info", tekst: "Bred QRS uden typisk grenblok-mønster; ses ved hjertesygdom, hyperkaliæmi og lægemidler (klasse I-antiarytmika, tricykliske antidepressiva)." },
-    { id: "avblok1", m: /av-?blok,? (?:grad|gr\.?) ?(?:i|1)(?![iv0-9])|(?:første|1\.?) ?grads? av-?blok|first degree a-?v|1st degree a-?v/, navn: "AV-blok grad I",
+    { id: "aberrant", m: /aberrant|aberration|aberrans/, navn: "Aberrant ledning", niveau: () => "info", tekst: "Enkelte slag ledes med grenblok-mønster — skal skelnes fra VES/VT på kurven." },
+    { id: "avblok1", m: /(?:av-?blok|a-?v[- ]block),? (?:af )?(?:grad |gr\.? )?(?:i|1)\.?(?: ?grad)?(?![iv0-9])|(?:første|1\.?) ?grads? (?:av|a-v)|(?:first|1st) degree/, navn: "AV-blok grad I",
       niveau: (k) => (k.atlet ? "ok" : "info"), tekst: "Forlænget PR (> 200 ms). Se vurderingen af PR ovenfor." },
-    { id: "ves", m: /(?:præmature?|for tidlige?) ventrikulære? (?:komplekser|kontraktioner|slag|ekstrasystoler)|ventrikulære? ekstrasystol\w*|(?<![a-zæøå])ves(?![a-zæøå])|premature ventricular|(?<![a-z])pvcs?(?![a-z])/, navn: "Ventrikulære ekstrasystoler (VES)",
+    { id: "ves", m: /(?:præmature?|for tidlige?) ventrikulære? (?:komplekser|kontraktioner|slag|ekstrasystoler)|(?<!supra)ventrikulære? ekstrasystol\w*|(?<![a-zæøå])ves(?![a-zæøå])|premature ventricular|(?<![a-z])pvcs?(?![a-z])/, navn: "Ventrikulære ekstrasystoler (VES)",
       niveau: (k) => (k.synkope ? "warn" : "info"), tekst: "Hyppige og oftest godartede hos hjerteraske. Et enkelt hvile-EKG siger ikke noget om byrden.",
-      plan: ["VES: ved hjertebanken, mange VES på hvile-EKG, salver eller bigemini, kendt hjertesygdom, synkope eller pludselig død i familien → kalium, magnesium, TSH, Holter (24–48 t) og ekkokardiografi; VES-byrde > 10 % → kontrol af venstre ventrikels funktion (ESC 2022)."] },
+      plan: ["VES: ved symptomer, mange VES/salver/bigemini, hjertesygdom, synkope eller pludselig død i familien → K, Mg, TSH, Holter og ekkokardiografi; byrde > 10 % → følg venstre ventrikels funktion (ESC 2022)."] },
     { id: "sves", m: /(?:præmature?|for tidlige?) (?:atriale|supraventrikulære?) (?:komplekser|kontraktioner|slag|ekstrasystoler)|supraventrikulære? ekstrasystol\w*|atriale? ekstrasystol\w*|(?<![a-zæøå])sves(?![a-zæøå])|premature (?:atrial|supraventricular)|(?<![a-z])pacs?(?![a-z])/, navn: "Supraventrikulære ekstrasystoler",
       niveau: () => "ok", tekst: "Almindelige og oftest uskyldige; mange kan varsle atrieflimren — vurder ved hjertebanken." },
-    { id: "bigemini", m: /bigemini|trigemini/, navn: "Bigemini/trigemini", niveau: () => "warn",
+    { id: "bigemini", m: /bigemin|trigemin/, navn: "Bigemini/trigemini", niveau: () => "warn",
       tekst: "Ekstrasystole efter hvert (andet) slag — pulsen kan måles falsk lav.", plan: ["Bigemini: elektrolytter (K, Mg), TSH, Holter og ekkokardiografi."] },
+    { id: "lvhmin", m: /minimal voltage|may be normal variant|kan være normal ?variant|voltagekriteri\w* (?:alene|isoleret)|isoleret (?:høj )?voltage/, navn: "Kun voltagekriterium — kan være normalvariant", niveau: () => "ok",
+      tekst: "Isoleret høj voltage er hyppigt normalt (unge, slanke, veltrænede)." },
     { id: "lvh", m: /venstre ?ventrik\w* ?hypertrofi|(?<![a-z])lvh(?![a-z])|left ventricular hypertrophy/, navn: "Venstre ventrikelhypertrofi",
-      niveau: (k, v) => (!isNaN(v.alder) && v.alder < 40) || k.atlet ? "info" : "warn", tekst: "Ved hypertension er hypertrofi på EKG organskade. Voltagekriterier er specifikke, men har lav sensitivitet; hos unge, slanke og veltrænede er isoleret høj voltage ofte normalt.",
-      plan: ["Venstre ventrikelhypertrofi: mål blodtryk (evt. hjemme-/døgnblodtryk), overvej ekkokardiografi (også for aortastenose og kardiomyopati) og intensivér blodtryksbehandlingen ved hypertension (ESH 2023)."] },
+      niveau: (k, v) => ((!isNaN(v.alder) && v.alder < 40) || k.atlet || v.udsagn.has("lvhmin") ? "info" : "warn"), tekst: "Ved hypertension er hypertrofi på EKG organskade. Voltagekriterier er specifikke, men har lav sensitivitet; hos unge, slanke og veltrænede er isoleret høj voltage ofte normalt.",
+      plan: [PLAN_LVH] },
     { id: "rvh", m: /højre ?ventrik\w* ?hypertrofi|(?<![a-z])rvh(?![a-z])|right ventricular hypertrophy/, navn: "Højre ventrikelhypertrofi", niveau: () => "warn",
       tekst: "Ses ved pulmonal hypertension, KOL, lungeemboli og medfødt hjertesygdom.", plan: ["Højre ventrikelhypertrofi: ekkokardiografi."] },
-    { id: "vatrie", m: /venstre ?atrie\w* (?:forstørrelse|abnormitet|belastning|dilatation)|left atrial (?:enlargement|abnormality)|p[- ]mitrale/, navn: "Venstre atriepåvirkning", niveau: () => "info",
+    { id: "vatrie", m: /venstre ?atrie-?\w*(?:forstørrelse|abnormitet|belastning|dilatation)|left atrial (?:enlargement|abnormality)|p[- ]mitrale/, navn: "Venstre atriepåvirkning", niveau: () => "info",
       tekst: "Bred eller dobbeltpuklet P — ses ved hypertension, mitralklapsygdom og hjertesvigt; disponerer for atrieflimren." },
-    { id: "hatrie", m: /højre ?atrie\w* (?:forstørrelse|abnormitet|belastning|dilatation)|right atrial (?:enlargement|abnormality)|p[- ]pulmonale/, navn: "Højre atriepåvirkning", niveau: () => "info",
+    { id: "hatrie", m: /højre ?atrie-?\w*(?:forstørrelse|abnormitet|belastning|dilatation)|right atrial (?:enlargement|abnormality)|p[- ]pulmonale/, navn: "Højre atriepåvirkning", niveau: () => "info",
       tekst: "Høj P i II — ses ved lungesygdom og pulmonal hypertension." },
+    { id: "biatrie", m: /biatri\w*/, navn: "Påvirkning af begge atrier", niveau: () => "info", tekst: "Tegn på belastning af begge atrier — overvej ekkokardiografi." },
     { id: "lavvolt", m: /lav (?:qrs-?)?volt\w*|low (?:qrs )?voltage/, navn: "Lav voltage", niveau: () => "info",
       tekst: "Kan skyldes adipositas, KOL og elektrodeplacering, men også perikardieeksudat, hypothyreose og amyloidose.", plan: ["Lav voltage: ved åndenød, hjertesvigt eller nyopstået fund → ekkokardiografi (perikardieeksudat, amyloidose); overvej TSH."] },
     { id: "langqt", m: /lang qt|forlænget qt\w*|qt-?forlængelse|prolonged qt|long qt/, navn: "Forlænget QT", niveau: () => "warn", tekst: "Se QTc-vurderingen." },
     { id: "kortqt", m: /kort qt|short qt/, navn: "Kort QT", niveau: () => "info", tekst: "Se QTc-vurderingen." },
-    { id: "gammelMI", m: /infarkt,? (?:alder ubestemt|af ukendt alder|gammelt)|gammelt? (?:\w+ )?infarkt|tidligere (?:\w+ )?infarkt|old (?:\w+ )?infarct|infarct,? age undetermined|age undetermined/, navn: "Mulig gammelt infarkt (Q-takker)",
+    { id: "kortpr", m: /kort pr|short pr/, navn: "Kort PR", niveau: () => "info", tekst: "Se efter deltabølge (præeksitation); ellers normalvariant eller lav atrierytme." },
+    { id: "venstreakse", m: /venstre ?akse|venstredrejet akse|left axis deviation/, navn: "Venstre akse", niveau: () => "info", tekst: "Se aksevurderingen." },
+    { id: "hoejreakse", m: /højre ?akse|højredrejet akse|right axis deviation/, navn: "Højre akse", niveau: () => "info", tekst: "Se aksevurderingen. Ny højre akse med åndenød: tænk lungeemboli." },
+    { id: "ekstremakse", m: /northwest axis|nordvest\w* akse|ekstrem\w* akse|extreme axis|indeterminate axis/, navn: "Ekstrem/ubestemt akse", niveau: () => "warn", tekst: "Forbyttede elektroder, ventrikulær rytme, hyperkaliæmi eller svær ledningssygdom.", plan: ["Ekstrem akse: kontrollér elektrodeplacering og tag nyt EKG; kalium."] },
+    { id: "gammelMI", m: /infarkt\s*,?\s*(?:alder ubestemt|af ukendt alder|gammelt|ældre)|gammelt? (?:\w+ )?infarkt|tidligere (?:\w+ )?infarkt|old (?:\w+ )?infarct|infarct\s*,?\s*(?:age undetermined|old)|age undetermined|alder ubestemt/, navn: "Mulig gammelt infarkt (Q-takker)",
       hvisIkke: ["akutmi"], niveau: () => "warn", tekst: "Ofte falsk positivt (elektrodeplacering, venstre ventrikelhypertrofi, grenblok, normal Q i III). \"Kan ikke udelukke\" betyder, at maskinen er usikker.",
       plan: ["Mulige Q-takker: sammenlign med tidligere EKG; nyt fund → ekkokardiografi/kardiologisk vurdering."] },
-    { id: "iskaemi", m: /st-?depression|subendokardiel|iskæmi\w*|ischemi\w*|ischaemi\w*/, navn: "ST-depression / mulig iskæmi",
-      niveau: (k) => (k.brystsmerter ? "danger" : "warn"), tekst: "ST-depression ses ved iskæmi, men også ved hypertrofi, digoxin, hypokaliæmi og takykardi.",
+    { id: "iskaemi", m: /st[- ]?depression|subendo[ck]ardi\w*|iskæmi(?!sk hjerte)\w*|ischemi(?!c heart)\w*|ischaemi(?!c heart)\w*|(?:marked|udtalt) st[- ]?(?:abnorm|forandring)\w*/, navn: "ST-depression / mulig iskæmi",
+      hvisIkke: ["akutmi"], niveau: (k) => (k.brystsmerter ? "danger" : "warn"), tekst: "ST-depression ses ved iskæmi, men også ved hypertrofi, digoxin, hypokaliæmi og takykardi.",
       plan: ["ST-depression: med aktuelle brystsmerter → akut; ellers sammenlign med tidligere EKG og overvej udredning for iskæmisk hjertesygdom."] },
-    { id: "stt", m: /uspecifik\w* (?:st|t)[- ]?(?:og t[- ]?)?(?:forandring|abnormitet|ændring)\w*|uspecifikke st-?t|t-?tak\w* (?:inversion|abnorm\w*|forandring\w*|ændring\w*)|abnorme? t-?tak\w*|negative? t-?tak\w*|t[- ]wave (?:abnormalit|inversion)\w*|nonspecific (?:st|t)/, navn: "ST-T-forandringer",
-      hvisIkke: ["iskaemi"], niveau: (k) => (k.brystsmerter ? "warn" : "info"), tekst: "Mange årsager: hypertrofi, grenblok, medicin, elektrolytter, iskæmi, normalvariant.",
+    { id: "stt", m: /(?:uspecifik\w*|non-?specific|nonspecific) (?:st|t)[- ]?(?:og t[- ]?|and t[- ]?|-t[- ]?)?(?:forandring|abnormitet|ændring|abnormalit|change|wave)\w*|uspecifik\w* t-?tak\w*|st-?t[- ](?:abnorm|forandring|change)\w*|t-?tak\w* ?(?:inversion|abnorm\w*|forandring\w*|ændring\w*)|t-?takabnorm\w*|abnorme? t-?tak\w*|negative? t-?tak\w*|inverte\w* t|t[- ]wave (?:abnormalit|inversion)\w*|repolari[sz]ation\w* (?:abnormalit|forandring|ændring)\w*|repolarisationsforandring\w*/, navn: "ST-T-forandringer",
+      hvisIkke: ["iskaemi", "akutmi"], niveau: (k) => (k.brystsmerter ? "warn" : "info"), tekst: "Mange årsager: hypertrofi, grenblok, medicin, elektrolytter, iskæmi, normalvariant.",
       plan: ["ST-T-forandringer: sammenlign med tidligere EKG; nye forandringer med symptomer → vurder for iskæmi."] },
-    { id: "tidlig", m: /tidlig repolarisering|early repolari[sz]ation/, navn: "Tidlig repolarisering", niveau: () => "ok", tekst: "Normalvariant, især hos unge mænd og veltrænede." },
-    { id: "wpw", m: /præeksitation|pre-?excitation|(?<![a-z])wpw(?![a-z])|wolff/, navn: "Præeksitation (WPW-mønster)", niveau: (k) => (k.synkope || k.hjertebanken ? "danger" : "warn"),
-      tekst: "Kort PR, deltabølge og bred QRS. Ved atrieflimren kan ledningen over den accessoriske bane blive livsfarlig.", plan: ["Præeksitation: henvis til kardiolog (risikovurdering, evt. ablation); ved hjertebanken eller synkope hurtigt."] },
+    { id: "tidlig", m: /tidlig repolarisering|early repolari[sz]ation/, navn: "Tidlig repolarisering", hvisIkke: ["stelev"], niveau: () => "ok", tekst: "Normalvariant, især hos unge mænd og veltrænede." },
+    { id: "wpw", m: /præeksitation|pre-?excitation|(?<![a-z])wpw(?![a-z])|wolff/, navn: "Præeksitation (WPW-mønster)", niveau: (k) => (k.synkope ? "danger" : "warn"),
+      tekst: "Kort PR, deltabølge og bred QRS. Ved atrieflimren kan ledningen over den accessoriske bane blive livsfarlig.", plan: ["Præeksitation: henvis til kardiolog (risikovurdering, evt. ablation) — hurtigt ved hjertebanken, akut ved synkope."] },
     { id: "brugada", m: /brugada/, navn: "Brugada-mønster", niveau: (k) => (k.synkope ? "danger" : "warn"),
       tekst: "Coved ST-elevation i V1–V2. Feber og visse lægemidler kan fremkalde mønsteret.", plan: ["Brugada-mønster: henvis til kardiolog; ved synkope akut. Feber behandles aktivt."] },
-    { id: "perikard", m: /perikardit|pericardit/, navn: "Mulig perikarditis", niveau: () => "warn", tekst: "Udbredt ST-elevation og PR-depression.", plan: ["Mulig perikarditis: klinisk vurdering samme dag (CRP, troponin, ekkokardiografi)."] },
-    { id: "pace", m: /pacemaker|(?<![a-z])pacet|paced|elektronisk (?:pacet|stimuleret)/, navn: "Pacemakerrytme", niveau: () => "info",
+    { id: "perikard", m: /perikardit|pericardit/, navn: "Mulig perikarditis", hvisIkke: ["stelev"], niveau: () => "warn", tekst: "Udbredt ST-elevation og PR-depression.", plan: ["Mulig perikarditis: klinisk vurdering samme dag (CRP, troponin, ekkokardiografi)."] },
+    { id: "pace", m: /pacemaker|pacet\w*|(?<![a-z])paced|elektronisk (?:pacet|stimuleret)|(?<![a-z])pacing/, navn: "Pacemakerrytme", niveau: () => "info",
       tekst: "Pacede komplekser: QRS, akse, ST-T og QTc kan ikke vurderes som vanligt." },
-    { id: "teknik", m: /forbyttede|ombyttede|elektrode\w* (?:fejl|ombyt\w*|forbyt\w*)|lead reversal|arm lead|artefakt|artifact|støj|baseline/, navn: "Teknisk problem", niveau: () => "warn",
+    { id: "teknik", m: /forbyttede|ombyttede|elektrode\w* (?:fejl|ombyt\w*|forbyt\w*)|lead reversal|arm lead|artefakt|artifact|støj|baseline (?:wander|drift)|technically limited|teknisk begrænset|suboptimal/, navn: "Teknisk problem", niveau: () => "warn",
       tekst: "Elektrodefejl eller støj kan give falske fund (fx forkert akse, falsk atrieflimren).", plan: ["Teknisk problem: kontrollér elektrodeplacering og tag et nyt EKG."] },
     { id: "dextro", m: /dextrokardi|dextrocardi/, navn: "Dextrokardi?", niveau: () => "info", tekst: "Oftest forbyttede arm-elektroder — tag nyt EKG." },
     { id: "ektopisk", m: /ektopisk\w* atrie\w*|lav atrie\w*|ectopic atrial|low atrial/, navn: "Ektopisk atrierytme", niveau: () => "ok", tekst: "Rytmen udgår fra et andet sted i atriet end sinusknuden; som regel uden betydning." },
     { id: "junk", m: /junktional|junctional|nodal rytme|knuderytme/, navn: "Junktional rytme", niveau: (k) => (k.synkope ? "warn" : "info"), tekst: "Rytme fra AV-knuden; ses ved høj vagustonus og AV-knude-hæmmende medicin." },
-    { id: "sinusbrady", m: /sinus ?bradykardi|sinus bradycardia/, navn: "Sinusbradykardi", niveau: (k) => (k.synkope ? "warn" : "ok"), tekst: "Se frekvensvurderingen." },
+    { id: "sinusbrady", m: /sinus ?bradykardi|sinus bradycardia/, navn: "Sinusbradykardi", niveau: (k, v) => (k.synkope ? "warn" : /udtalt sinus ?bradykardi|marked sinus bradycardia/.test(v.maskineLav) ? "info" : "ok"), tekst: "Se frekvensvurderingen. \"Udtalt\" betyder typisk under 40/min." },
     { id: "sinustaky", m: /sinus ?takykardi|sinus tachycardia/, navn: "Sinustakykardi", niveau: () => "info", tekst: "Se frekvensvurderingen." },
     { id: "sinusarytmi", m: /sinus ?arytmi|sinus arrhythmia/, navn: "Sinusarytmi", niveau: () => "ok", tekst: "Respiratorisk variation — normalt." },
     { id: "sinus", m: /sinus ?rytme|sinus rhythm/, navn: "Sinusrytme", niveau: () => "ok", tekst: "Normal rytme fra sinusknuden." },
     { id: "abnorm", m: /abnormt? ekg|abnormal ecg|unormalt? ekg/, navn: "Maskinen: unormalt EKG", niveau: () => "info", tekst: "Samlet bedømmelse — se de enkelte fund." },
     { id: "graense", m: /grænse-?ekg|grænsetilfælde|borderline/, navn: "Maskinen: grænse-EKG", niveau: () => "info", tekst: "Samlet bedømmelse — se de enkelte fund." },
-    { id: "normal", m: /(?:normalt?|normal) ekg|normal ecg|otherwise normal|i øvrigt normal\w*/, navn: "Maskinen: i øvrigt normalt", niveau: () => "ok", tekst: "Maskinen vurderer resten som normalt." },
+    { id: "normal", m: /(?<![a-zæøå])(?:normalt?|normal) ekg|(?<![a-z])normal ecg|otherwise normal|i øvrigt normal\w*/, navn: "Maskinen: i øvrigt normalt", niveau: () => "ok", tekst: "Maskinen vurderer resten som normalt." },
   ];
 
   // ---------------------------------------------------------------- Vurdering af måleværdier
@@ -165,12 +184,12 @@
     const rk = []; // rækker til tabellen: { navn, vaerdi, ref, niveau, tekst }
     const plan = [];
     const fund = []; // korte vurderinger til notat og sammenfatning
-    const uregelmaessig = v.udsagn.has("af") || v.udsagn.has("aflagren");
+    const uregelmaessig = v.uregelmaessig;
     const pacet = v.udsagn.has("pace");
     const add = (r) => {
       rk.push(r);
       if (r.niveau !== "ok" && r.kort) fund.push({ niveau: r.niveau, tekst: r.kort });
-      if (r.plan) plan.push(...[].concat(r.plan));
+      if (r.plan) plan.push(...[].concat(r.plan).filter(Boolean).map((t) => ({ n: r.niveau, t })));
     };
 
     // Frekvens
@@ -222,7 +241,15 @@
       if (pacet) Object.assign(r, { niveau: "info", tekst: "Bred QRS forventes ved ventrikulær pacing." });
       else if (v.qrs < 110) Object.assign(r, { niveau: "ok", tekst: "Normal." });
       else if (v.qrs < 120) Object.assign(r, { niveau: "info", tekst: "Let forlænget (110–119 ms): inkomplet grenblok eller uspecifik intraventrikulær ledningsforsinkelse — morfologien afgør. Oftest uden betydning hos raske.", kort: `let forlænget QRS ${fmt(v.qrs)} ms` });
-      else {
+      else if (!isNaN(v.hr) && v.hr > 100) {
+        const kendt = v.udsagn.has("sinustaky") && (v.udsagn.has("lbbb") || v.udsagn.has("rbbb") || v.udsagn.has("ivcd"));
+        Object.assign(r, {
+          niveau: kendt && !k.synkope ? "warn" : "danger",
+          tekst: `Bred-kompleks-takykardi (frekvens ${fmt(v.hr)}/min og QRS ≥ 120 ms): ventrikeltakykardi, til det modsatte er bevist.${kendt ? " Maskinen angiver sinustakykardi med kendt grenblok — bekræft på kurven og sammenlign med tidligere EKG." : ""}`,
+          kort: `bred-kompleks-takykardi (QRS ${fmt(v.qrs)} ms, ${fmt(v.hr)}/min)`,
+          plan: "Bred-kompleks-takykardi: vurder patienten nu — akut (112) ved påvirkning; ellers samme-dags kardiologisk vurdering.",
+        });
+      } else {
         const lbbb = v.udsagn.has("lbbb");
         Object.assign(r, {
           niveau: k.brystsmerter && !v.udsagn.has("rbbb") ? "danger" : "warn",
@@ -237,7 +264,7 @@
     // P-varighed
     if (!isNaN(v.pdur) && !uregelmaessig) {
       const r = { navn: "P-varighed", vaerdi: `${fmt(v.pdur)} ms`, ref: "< 120 ms" };
-      if (v.pdur >= 120) Object.assign(r, { niveau: "info", tekst: "Interatrielt blok (P ≥ 120 ms, Bayés de Luna 2012): forsinket ledning mellem atrierne. Disponerer for atrieflimren og apopleksi; ingen behandling i sig selv.", kort: `P-varighed ${fmt(v.pdur)} ms (interatrielt blok)`, plan: "Interatrielt blok: vær opmærksom på atrieflimren (pulspalpation, EKG ved hjertebanken); behandl risikofaktorer (blodtryk)." });
+      if (v.pdur >= 120) Object.assign(r, { niveau: "info", tekst: "Interatrielt blok (P ≥ 120 ms, Bayés de Luna 2012): forsinket ledning mellem atrierne. Sammenhængen med atrieflimren og apopleksi gælder især avanceret interatrielt blok (bifasisk P i II, III og aVF — se kurven); ingen behandling i sig selv.", kort: `P-varighed ${fmt(v.pdur)} ms (interatrielt blok)`, plan: "Interatrielt blok: vær opmærksom på atrieflimren (pulspalpation, EKG ved hjertebanken); behandl risikofaktorer (blodtryk)." });
       else Object.assign(r, { niveau: "ok", tekst: "Normal." });
       add(r);
     }
@@ -272,23 +299,28 @@
     }
 
     // Voltage
+    const bredQrs = (!isNaN(v.qrs) && v.qrs >= 120) || v.udsagn.has("lbbb");
+    const BRED_VOLT = "Voltagekriterier er upålidelige ved grenblok/bred QRS — vurderes ikke.";
     if (!isNaN(v.sokolow) && !pacet) {
       const r = { navn: "Sokolow-Lyon (SV1 + RV5/V6)", vaerdi: `${fmt(v.sokolow, 2)} mV`, ref: "≤ 3,5 mV" };
       const lavSpec = (!isNaN(v.alder) && v.alder < 40) || k.atlet;
-      if (v.sokolow > 3.5)
-        Object.assign(r, { niveau: lavSpec ? "info" : "warn", tekst: lavSpec ? "Voltagekriterium for venstre ventrikelhypertrofi opfyldt — men lav specificitet hos unge (< 40 år), slanke og veltrænede (isoleret voltage er normalt hos atleter)." : "Voltagekriterium for venstre ventrikelhypertrofi opfyldt (ESH 2023). Ved hypertension = organskade.", kort: `Sokolow-Lyon ${fmt(v.sokolow, 2)} mV (> 3,5)`, plan: lavSpec ? null : "Venstre ventrikelhypertrofi på EKG: mål blodtryk (hjemme-/døgnblodtryk), overvej ekkokardiografi og intensivér blodtryksbehandlingen ved hypertension." });
+      if (bredQrs) Object.assign(r, { niveau: "info", tekst: BRED_VOLT });
+      else if (v.sokolow > 3.5)
+        Object.assign(r, { niveau: lavSpec ? "info" : "warn", tekst: lavSpec ? "Voltagekriterium for venstre ventrikelhypertrofi opfyldt — men lav specificitet hos unge (< 40 år), slanke og veltrænede (isoleret voltage er normalt hos atleter)." : "Voltagekriterium for venstre ventrikelhypertrofi opfyldt (ESH 2023). Ved hypertension = organskade.", kort: `Sokolow-Lyon ${fmt(v.sokolow, 2)} mV (> 3,5)`, plan: lavSpec ? null : PLAN_LVH });
       else Object.assign(r, { niveau: "ok", tekst: "Ikke opfyldt (lav sensitivitet — udelukker ikke hypertrofi)." });
       add(r);
     }
     if (!isNaN(v.cornell) && !pacet) {
       const graense = v.koen === "kvinde" ? 2.0 : 2.8;
       const r = { navn: "Cornell-voltage (RaVL + SV3)", vaerdi: `${fmt(v.cornell, 2)} mV`, ref: v.koen === "kvinde" ? "≤ 2,0 mV (kvinder)" : v.koen === "mand" ? "≤ 2,8 mV (mænd)" : "≤ 2,8 mV (mænd) / ≤ 2,0 mV (kvinder)" };
-      const produkt = !isNaN(v.qrs) ? v.cornell * v.qrs : NaN;
-      if (v.cornell > graense) Object.assign(r, { niveau: "warn", tekst: "Cornell-kriterium for venstre ventrikelhypertrofi opfyldt (ESH 2023).", kort: `Cornell ${fmt(v.cornell, 2)} mV`, plan: "Venstre ventrikelhypertrofi på EKG: mål blodtryk (hjemme-/døgnblodtryk), overvej ekkokardiografi og intensivér blodtryksbehandlingen ved hypertension." });
+      // Cornell-produkt: (RaVL + SV3, + 0,6 mV hos kvinder) × QRS (Molloy 1992).
+      const produkt = !isNaN(v.qrs) && v.koen !== "ukendt" ? (v.cornell + (v.koen === "kvinde" ? 0.6 : 0)) * v.qrs : NaN;
+      if (bredQrs) Object.assign(r, { niveau: "info", tekst: BRED_VOLT });
+      else if (v.cornell > graense) Object.assign(r, { niveau: "warn", tekst: "Cornell-kriterium for venstre ventrikelhypertrofi opfyldt (ESH 2023).", kort: `Cornell ${fmt(v.cornell, 2)} mV`, plan: PLAN_LVH });
       else if (v.koen === "ukendt" && v.cornell > 2.0) Object.assign(r, { niveau: "info", tekst: "Opfyldt, hvis patienten er kvinde (> 2,0 mV) — angiv køn." });
       else Object.assign(r, { niveau: "ok", tekst: "Ikke opfyldt." });
-      if (!isNaN(produkt)) r.ekstra = `Cornell-produkt ${fmt(produkt)} mV·ms (${produkt > 244 ? "> 244: hypertrofi" : "≤ 244"})`;
-      if (!isNaN(produkt) && produkt > 244 && r.niveau === "ok") Object.assign(r, { niveau: "warn", tekst: "Cornell-produkt > 244 mV·ms: kriterium for venstre ventrikelhypertrofi opfyldt (ESH 2023).", kort: `Cornell-produkt ${fmt(produkt)} mV·ms` });
+      if (!isNaN(produkt)) r.ekstra = `Cornell-produkt ${fmt(produkt)} mV·ms (${produkt > 244 ? "> 244: hypertrofi" : "≤ 244"}${v.koen === "kvinde" ? "; + 0,6 mV hos kvinder" : ""})`;
+      if (!isNaN(produkt) && produkt > 244 && r.niveau === "ok" && !bredQrs) Object.assign(r, { niveau: "warn", tekst: "Cornell-produkt > 244 mV·ms: kriterium for venstre ventrikelhypertrofi opfyldt (ESH 2023).", kort: `Cornell-produkt ${fmt(produkt)} mV·ms` });
       add(r);
     }
 
@@ -301,7 +333,7 @@
     if (!isNaN(v.pp) && !isNaN(v.rr) && !uregelmaessig && !pacet && Math.abs(v.pp - v.rr) > Math.max(80, 0.15 * v.rr)) {
       tjek.push(`PP (${fmt(v.pp)} ms) og RR (${fmt(v.rr)} ms) afviger: flere P-takker end QRS-komplekser (AV-blok grad II–III) eller AV-dissociation? Se kurven.`);
       fund.push({ niveau: "warn", tekst: "PP og RR afviger (AV-blok/AV-dissociation?)" });
-      plan.push("PP ≠ RR: se kurven for AV-blok grad II–III eller AV-dissociation; ved bradykardi eller symptomer samme-dags kardiologisk vurdering.");
+      plan.push({ n: "warn", t: "PP ≠ RR: se kurven for AV-blok grad II–III eller AV-dissociation; ved bradykardi eller symptomer samme-dags kardiologisk vurdering." });
     }
     return { rk, plan, fund, tjek };
   }
@@ -311,50 +343,60 @@
     const rr = !isNaN(v.rr) ? v.rr : !isNaN(v.hr) ? 60000 / v.hr : NaN;
     const alle = !isNaN(v.qt) && !isNaN(rr) ? qtcAlle(v.qt, rr, v.hr) : null;
     const bred = !isNaN(v.qrs) && v.qrs >= 120;
-    const uregelmaessig = v.udsagn.has("af") || v.udsagn.has("aflagren");
     const pacet = v.udsagn.has("pace");
     // Primær værdi: Fridericia (mere retvisende end Bazett ved høj og lav puls); ellers apparatets QTc.
-    let primaer = alle ? alle.F : v.qtc;
-    let primNavn = alle ? "Fridericia" : `apparatets QTc${v.qtcFormel ? ` (${FORMEL[v.qtcFormel]})` : ""}`;
-    let bogossian = NaN;
-    if (bred && !isNaN(v.qt) && !isNaN(rr)) bogossian = qtcAlle(v.qt - 0.5 * v.qrs, rr, v.hr).F;
-    const graense = v.koen === "kvinde" ? 460 : v.koen === "mand" ? 450 : 460;
-    const vurderTal = bred && !isNaN(bogossian) ? bogossian : primaer;
+    const primaer = alle ? alle.F : v.qtc;
+    const primNavn = alle ? "Fridericia" : `apparatets QTc${v.qtcFormel ? ` (${FORMEL[v.qtcFormel]})` : ""}`;
+    // Ved bred QRS: skøn efter Bogossian (QT − 48,5 % ≈ 50 % af QRS), udviklet ved venstresidigt grenblok/pacing.
+    const bogossian = bred && !isNaN(v.qt) && !isNaN(rr) ? qtcAlle(v.qt - 0.5 * v.qrs, rr, v.hr).F : NaN;
+    const graense = v.koen === "kvinde" ? 460 : 450;
     const noter = [];
     const plan = [];
+    if (isNaN(primaer)) return { alle, primaer, primNavn, bogossian, niveau: "info", tekst: "QTc kan ikke vurderes — angiv RR eller frekvens.", kort: null, noter, plan, graense };
+    const vurderTal = !isNaN(bogossian) ? bogossian : primaer;
+    const vis = !isNaN(bogossian) ? `QTc-skøn ${fmt(bogossian)} ms (bred QRS)` : `QTc ${fmt(primaer)} ms`;
     let niveau = "ok";
     let kort = null;
     let tekst;
 
     if (vurderTal >= 500) {
       niveau = "danger";
-      tekst = `QTc ≥ 500 ms: høj risiko for torsades de pointes.`;
-      kort = `QTc ${fmt(primaer)} ms (≥ 500)`;
+      tekst = "QTc ≥ 500 ms: høj risiko for torsades de pointes.";
+      kort = `${vis} (≥ 500)`;
       plan.push("QTc ≥ 500 ms: seponér/pausér QT-forlængende lægemidler, mål kalium, magnesium og calcium i dag, gentag EKG; ved synkope eller hjertebanken akut. Henvis til kardiolog.");
-    } else if (vurderTal >= 480) {
-      niveau = "warn";
-      tekst = "QTc ≥ 480 ms: ved gentagne målinger uden anden forklaring forenelig med lang-QT-syndrom (ESC 2022).";
-      kort = `forlænget QTc ${fmt(primaer)} ms`;
-      plan.push("QTc ≥ 480 ms: gentag EKG, gennemgå QT-forlængende medicin (crediblemeds.org) og elektrolytter (K, Mg, Ca); vedvarende uden forklaring → kardiolog (lang-QT-syndrom).");
-    } else if (vurderTal >= graense || (v.koen === "ukendt" && vurderTal >= 450)) {
+    } else if (vurderTal >= 450 && (v.koen !== "kvinde" || vurderTal >= 460)) {
       const kunMand = v.koen === "ukendt" && vurderTal < 460;
-      niveau = kunMand ? "info" : "warn";
-      tekst = kunMand ? "QTc 450–459 ms: forlænget hos mænd, normalt hos kvinder — angiv køn." : `Forlænget QTc (≥ ${graense} ms hos ${v.koen === "kvinde" ? "kvinder" : "mænd"}, AHA 2009).`;
-      kort = `forlænget QTc ${fmt(primaer)} ms`;
-      if (!kunMand) plan.push("Forlænget QTc: gennemgå QT-forlængende medicin (crediblemeds.org), kalium og magnesium; undgå at lægge flere QT-forlængende lægemidler til; gentag EKG.");
+      const lqts = vurderTal >= 480;
+      niveau = k.synkope && !kunMand ? "danger" : kunMand ? "info" : "warn";
+      tekst = kunMand
+        ? "QTc 450–459 ms: forlænget hos mænd, normalt hos kvinder — angiv køn."
+        : lqts
+          ? "QTc ≥ 480 ms: ved gentagne målinger uden anden forklaring forenelig med lang-QT-syndrom (ESC 2022)."
+          : `Forlænget QTc (${v.koen === "ukendt" ? "≥ 450 ms hos mænd / ≥ 460 ms hos kvinder" : `≥ ${graense} ms hos ${v.koen === "kvinde" ? "kvinder" : "mænd"}`}, AHA 2009).`;
+      if (k.synkope && !kunMand) tekst += " Sammen med synkope: mistanke om lang-QT-syndrom (ESC 2022: QTc ≥ 460 ms og arytmisk synkope).";
+      kort = `forlænget ${vis.charAt(0).toLowerCase() + vis.slice(1)}`;
+      if (k.synkope && !kunMand) plan.push("Synkope og forlænget QTc: hurtig/akut kardiologisk vurdering (lang-QT-syndrom?); elektrolytter og medicingennemgang i dag.");
+      if (lqts) plan.push("QTc ≥ 480 ms: gentag EKG, gennemgå QT-forlængende medicin (crediblemeds.org) og elektrolytter (K, Mg, Ca); vedvarende uden forklaring → kardiolog (lang-QT-syndrom).");
+      else if (!kunMand) plan.push("Forlænget QTc: gennemgå QT-forlængende medicin (crediblemeds.org), kalium og magnesium; undgå at lægge flere QT-forlængende lægemidler til; gentag EKG.");
     } else if (vurderTal <= 320) {
       niveau = "warn";
       tekst = "Meget kort QTc (≤ 320 ms): kort-QT-syndrom bør overvejes (ESC 2022). Udeluk hyperkalcæmi og digoxin.";
-      kort = `meget kort QTc ${fmt(primaer)} ms`;
+      kort = `meget kort ${vis.charAt(0).toLowerCase() + vis.slice(1)}`;
       plan.push("QTc ≤ 320 ms: calcium, kalium, digoxin? Henvis til kardiolog (kort-QT-syndrom).");
     } else if (vurderTal <= 360) {
       niveau = k.synkope ? "warn" : "info";
       tekst = k.synkope ? "Kort QTc (≤ 360 ms) og synkope: kort-QT-syndrom bør overvejes (ESC 2022)." : "Kort QTc (≤ 360 ms) — sjældent af betydning uden synkope, hjertestop eller pludselig død i familien. Udeluk hyperkalcæmi og digoxin.";
-      kort = `kort QTc ${fmt(primaer)} ms`;
+      kort = `kort ${vis.charAt(0).toLowerCase() + vis.slice(1)}`;
       if (k.synkope) plan.push("Kort QTc og synkope: henvis til kardiolog.");
-    } else tekst = "Normal QTc.";
+    } else tekst = vurderTal >= 440 ? "Højnormal QTc — vær opmærksom ved QT-forlængende medicin." : "Normal QTc.";
 
-    if (!isNaN(vurderTal) && vurderTal >= 440 && vurderTal < graense && niveau === "ok") tekst = "Højnormal QTc — vær opmærksom ved QT-forlængende medicin.";
+    // Skønnet må ikke berolige, når den ukorrigerede QTc er ≥ 500 ms.
+    if (!isNaN(bogossian) && primaer >= 500 && RANG[niveau] < 2) {
+      niveau = "warn";
+      tekst += ` QTc uden korrektion for QRS er ${fmt(primaer)} ms — forlængelse kan ikke afvises ved bred QRS; vurder JT-intervallet på kurven.`;
+      kort = `QTc ${fmt(primaer)} ms ved bred QRS (skøn ${fmt(bogossian)} ms)`;
+      plan.push("QTc ≥ 500 ms ved bred QRS: vurder JT-intervallet, gennemgå QT-forlængende medicin og elektrolytter; konferér med kardiolog ved tvivl.");
+    }
     if (k.qtmed && niveau !== "ok") plan.push("Patienten får QT-forlængende medicin: vurder dosisreduktion/alternativ og kontrol-EKG (stigning > 60 ms øger risikoen, AHA 2010).");
     if (k.qtmed && niveau === "ok") noter.push("Ved QT-forlængende medicin: tag kontrol-EKG efter opstart/dosisøgning — en stigning > 60 ms øger risikoen for torsades (AHA 2010).");
 
@@ -364,8 +406,13 @@
       if (!isNaN(v.hr) && v.hr < 60 && alle.F >= thr && alle.B < thr) noter.push(`Bazett (${fmt(alle.B)} ms) underkorrigerer ved lav puls og skjuler forlængelsen — Fridericia er ${fmt(alle.F)} ms.`);
       if (!isNaN(v.qtc) && v.qtcFormel && alle[v.qtcFormel] && Math.abs(alle[v.qtcFormel] - v.qtc) > 15) noter.push(`Apparatets QTc (${fmt(v.qtc)} ms) afviger fra beregningen med ${FORMEL[v.qtcFormel]} (${fmt(alle[v.qtcFormel])} ms) — tjek QT og RR.`);
     }
-    if (bred) noter.push(isNaN(bogossian) ? "Bred QRS forlænger QT uden at repolariseringen er forlænget — QTc overvurderer risikoen." : `Bred QRS forlænger QT uden at repolariseringen er forlænget. Skøn efter Bogossian (QT − 50 % af QRS, derefter Fridericia): ${fmt(bogossian)} ms — vurderingen bygger på dette usikre skøn.`);
-    if (uregelmaessig) noter.push("Uregelmæssig rytme: QT varierer fra slag til slag — brug gennemsnittet af flere slag, og vær forsigtig med enkeltværdier.");
+    if (bred)
+      noter.push(
+        isNaN(bogossian)
+          ? "Bred QRS forlænger QT uden at repolariseringen er forlænget — QTc overvurderer risikoen."
+          : `Bred QRS forlænger QT uden at repolariseringen er forlænget. Vurderingen bygger på et usikkert skøn efter Bogossian (QT − 50 % af QRS, derefter Fridericia): ${fmt(bogossian)} ms. Formlen er udviklet ved venstresidigt grenblok og pacing${v.udsagn.has("rbbb") ? " og overkorrigerer formentlig ved højresidigt grenblok" : ""}.`
+      );
+    if (v.uregelmaessig) noter.push("Uregelmæssig rytme: QT varierer fra slag til slag — brug gennemsnittet af flere slag, og vær forsigtig med enkeltværdier.");
     if (pacet) noter.push("Pacet rytme: QTc kan ikke vurderes som vanligt.");
     if (!isNaN(v.hr) && (v.hr > 100 || v.hr < 50) && alle) noter.push("Ved puls over 100 eller under 50 er alle formler usikre — gentag gerne EKG ved puls 60–90.");
 
@@ -373,16 +420,66 @@
   }
 
   // ---------------------------------------------------------------- Udsagn fra maskinen
+  // Nægtet ("ingen atrieflimren", "VT ikke påvist", "has replaced atrial fibrillation") eller historisk
+  // ("tidligere STEMI") tæller ikke som aktuelt fund. "Kan ikke udelukke" er ikke en nægtelse.
+  const NEG_FOER = /(?:^|[^a-zæøå])(?:ingen|ikke|intet|no|not|without|uden|negativ for|replaced|erstattet)\s+(?:(?:tegn|evidence|signs?)\s+(?:på|of)\s+)?(?:[a-zæøå-]+\s+)?$/;
+  const IKKE_NEG = /(?:udelukke|udelukkes|rule out|exclude|afvise)\s+(?:[a-zæøå-]+\s+)?$/;
+  const NEG_EFTER = /^[^.;]{0,14}?(?:ikke påvist|ikke til stede|ikke længere|no longer present|is no longer|not present|udelukket|ophørt)/;
+  const HISTORISK = /(?:tidligere|gammel\w*|old|prior|previous)\s+(?:[a-zæøå-]+\s+)?$/;
+  const FYLD = /(?:^|\s)(?:lejlighedsvis|occasional|frequent|hyppige?|multiple|mulig\w*|possibl\w*|probabl\w*|sandsynlig\w*|consider|overvej|or|eller|and|og|i øvrigt|otherwise|ekg|ecg|abnormal\w*|normal\w*|ubekræftet|unconfirmed|confirmed|bekræftet|kan ikke udelukke|cannot rule out|rule out|ikke|not|the|af|of|pattern|mønster|tegn på|evidence of|is|er|present|til stede|nu|now|\d+)(?=\s|$)/g;
+
   function laesUdsagn(tekst) {
-    const t = tekst.toLowerCase().replace(/\s+/g, " ").replace(/−/g, "-");
-    const fundne = UDSAGN.filter((u) => u.m.test(t));
-    const ider = new Set(fundne.map((u) => u.id));
+    const t = tekst.toLowerCase().replace(/\s+/g, " ").replace(/[−–]/g, "-");
+    const ider = new Set();
+    const fundne = [];
+    const ramt = [];
+    const gammel = UDSAGN.find((u) => u.id === "gammelMI");
+    UDSAGN.forEach((u) => {
+      const re = new RegExp(u.m.source, "g");
+      let m;
+      let aktiv = false;
+      let historisk = false;
+      while ((m = re.exec(t))) {
+        if (!m[0]) {
+          re.lastIndex++;
+          continue;
+        }
+        ramt.push([m.index, m.index + m[0].length]);
+        const foer = t.slice(Math.max(0, m.index - 40), m.index).split(/[.;:]/).pop();
+        const efter = t.slice(m.index + m[0].length, m.index + m[0].length + 30);
+        if ((NEG_FOER.test(foer) && !IKKE_NEG.test(foer)) || NEG_EFTER.test(efter)) continue;
+        if (u.id === "akutmi" && HISTORISK.test(foer)) {
+          historisk = true;
+          continue;
+        }
+        aktiv = true;
+      }
+      if (aktiv && !ider.has(u.id)) {
+        fundne.push(u);
+        ider.add(u.id);
+      } else if (historisk && !ider.has("gammelMI")) {
+        fundne.push(gammel);
+        ider.add("gammelMI");
+      }
+    });
     // Højresidigt grenblok + fascikelblok = bifascikulært blok.
     if (ider.has("rbbb") && (ider.has("lafb") || ider.has("lpfb")) && !ider.has("bifasc")) {
       fundne.push(UDSAGN.find((u) => u.id === "bifasc"));
       ider.add("bifasc");
     }
-    return { liste: fundne.filter((u) => !(u.hvisIkke || []).some((x) => ider.has(x))), ider };
+    // Dele af teksten, som ingen regel kender: vises, så intet forsvinder i stilhed.
+    const ukendte = [];
+    let pos = 0;
+    t.split(/([.;]\s*|\s(?:med|with|samt)\s|,\s)/).forEach((del, i) => {
+      const start = pos;
+      pos += del.length;
+      if (i % 2 === 1) return;
+      const rest = del.replace(FYLD, " ").replace(/[^a-zæøå]+/g, " ").trim();
+      if (rest.length < 3) return;
+      if (ramt.some(([a, b]) => a < pos && b > start)) return;
+      ukendte.push(del.trim());
+    });
+    return { liste: fundne.filter((u) => !(u.hvisIkke || []).some((x) => ider.has(x))), ider, ukendte };
   }
 
   // ---------------------------------------------------------------- Visning
@@ -392,14 +489,22 @@
     const k = {};
     form.querySelectorAll('input[name="klinik"]').forEach((c) => (k[c.value] = c.checked));
     const maskine = document.getElementById("maskine").value.trim();
-    const { liste, ider } = laesUdsagn(maskine);
+    const { liste, ider, ukendte } = laesUdsagn(maskine);
     const v = {
       hr: num("hr"), pr: num("pr"), qrs: num("qrs"), qt: num("qt"), qtc: num("qtc"), rr: num("rr"), pp: num("pp"), pdur: num("pdur"),
       paxe: num("paxe"), qrsaxe: num("qrsaxe"), taxe: num("taxe"), sokolow: num("sokolow"), cornell: num("cornell"), alder: num("alder"),
       qtcFormel: document.getElementById("qtcFormel").value,
       koen: (form.querySelector('input[name="koen"]:checked') || { value: "ukendt" }).value,
       udsagn: ider,
+      maskineLav: maskine.toLowerCase(),
     };
+    // Uregelmæssig rytme kun, når maskinen ikke samtidig siger sinusrytme.
+    const flimmer = ider.has("af") || ider.has("aflagren");
+    const modstrid = flimmer && (ider.has("sinus") || ider.has("sinusbrady") || ider.has("sinustaky"));
+    v.uregelmaessig = flimmer && !modstrid;
+    // De internationale atletkriterier gælder 12–35 år.
+    const atletNote = k.atlet && !isNaN(v.alder) && v.alder >= 35;
+    if (atletNote) k.atlet = false;
     alderWarning.textContent = !isNaN(v.alder) && v.alder < 18 ? "Referenceværdierne gælder voksne — børn har andre normalværdier." : "";
 
     const harTal = ["hr", "pr", "qrs", "qt", "qtc", "rr", "pdur", "paxe", "qrsaxe", "taxe", "sokolow", "cornell"].some((x) => !isNaN(v[x]));
@@ -415,18 +520,24 @@
 
     // Samlet niveau og fund.
     const alleFund = [...m.fund];
+    if (modstrid) alleFund.push({ niveau: "warn", tekst: "maskinen nævner både sinusrytme og atrieflimren/-flagren — se kurven" });
+    if (ukendte.length) alleFund.push({ niveau: "warn", tekst: `${ukendte.length === 1 ? "et udsagn" : `${ukendte.length} udsagn`} fra maskinen genkendes ikke af værktøjet — læs dem selv` });
     if (q && q.kort && q.niveau !== "ok") alleFund.push({ niveau: q.niveau, tekst: q.kort });
     udsagn.forEach(({ u, niveau }) => {
-      if (niveau === "ok" || ["sinusbrady", "sinustaky", "avblok1", "langqt", "kortqt", "abnorm", "graense"].includes(u.id)) return;
+      if (niveau === "ok" || ["sinusbrady", "sinustaky", "avblok1", "langqt", "kortqt", "abnorm", "graense", "vrespons"].includes(u.id)) return;
       alleFund.push({ niveau, tekst: u.navn.charAt(0).toLowerCase() + u.navn.slice(1) });
     });
     const top = Math.max(0, ...alleFund.map((f) => RANG[f.niveau]), ...udsagn.map((x) => RANG[x.niveau]), q ? RANG[q.niveau] : 0);
-    const plan = [...new Set([...udsagn.flatMap(({ u, niveau }) => (niveau === "ok" ? [] : u.plan || [])), ...m.plan, ...(q ? q.plan : [])])];
+    // Forslag til handling: de vigtigste først, uden dubletter.
+    const planObj = [...udsagn.flatMap(({ u, niveau }) => (niveau === "ok" ? [] : (u.plan || []).map((t) => ({ n: niveau, t })))), ...m.plan, ...(q ? q.plan.map((t) => ({ n: q.niveau, t })) : [])];
+    planObj.sort((a, b) => RANG[b.n] - RANG[a.n]);
+    const plan = [...new Set(planObj.map((x) => x.t))];
 
     let html = "";
     // 1. Sammenfatning
     const sorteret = alleFund.sort((a, b) => RANG[b.niveau] - RANG[a.niveau]);
     const titel = top === 3 ? "Kræver handling nu" : top === 2 ? "Afvigende fund — bør vurderes" : top === 1 ? "Fund uden umiddelbar betydning" : "Ingen afvigende måleværdier";
+    if (atletNote) m.tjek.push("Atletkriterierne gælder 12–35 år — patienten er vurderet efter de almindelige referenceværdier.");
     const cls = top === 3 ? "box-red" : top === 2 ? "box-amber" : top === 1 ? "box-blue" : "box-green";
     html += box(cls, titel, (sorteret.length ? ul(sorteret.map((f) => `${TAG[f.niveau]} ${esc(f.tekst.charAt(0).toUpperCase() + f.tekst.slice(1))}`)) : "<p>Måleværdierne ligger inden for referenceområderne for voksne.</p>") + `<p class="field-hint">Vurderingen bygger kun på tallene og maskinens tekst — se altid selve kurven (rytme, ST-T, Q-takker, deltabølge).</p>`);
 
@@ -443,7 +554,9 @@
 
     // 3. QTc
     if (q) {
-      let body = `<p>${TAG[q.niveau]} <strong>${isNaN(q.primaer) ? "QTc kan ikke beregnes" : `QTc ${fmt(q.primaer)} ms`}</strong> ${isNaN(q.primaer) ? "" : `(${esc(q.primNavn)})`} — ${esc(q.tekst)}</p>`;
+      const hoved = isNaN(q.primaer) ? "QTc kan ikke beregnes" : !isNaN(q.bogossian) ? `QTc-skøn ${fmt(q.bogossian)} ms ved bred QRS` : `QTc ${fmt(q.primaer)} ms`;
+      const under = isNaN(q.primaer) ? "" : !isNaN(q.bogossian) ? `(Bogossian; uden korrektion for QRS ${fmt(q.primaer)} ms med Fridericia)` : `(${esc(q.primNavn)})`;
+      let body = `<p>${TAG[q.niveau]} <strong>${hoved}</strong> ${under} — ${esc(q.tekst)}</p>`;
       if (q.alle) {
         const rows = [["F", "Fridericia — QT/∛RR", "anbefales; mere retvisende end Bazett ved høj og lav puls"], ["B", "Bazett — QT/√RR", "bruges af de fleste apparater; overkorrigerer ved puls > 80"], ["Fr", "Framingham — QT + 154 × (1 − RR)", "lineær"], ["H", "Hodges — QT + 1,75 × (frekvens − 60)", "lineær"]];
         body += `<div class="drug-table-wrap"><table class="drug-table ekg-qtc"><thead><tr><th>Formel</th><th>QTc</th><th>Bemærkning</th></tr></thead><tbody>${rows
@@ -465,15 +578,17 @@
       body += udsagn.length
         ? ul(udsagn.map(({ u, niveau }) => `${TAG[niveau]} <strong>${esc(u.navn)}</strong> — ${esc(u.tekst)}`))
         : "<p>Værktøjet genkendte ingen af udsagnene — læs teksten selv.</p>";
-      body += `<p class="field-hint">Computerens tolkning er en hjælp, ikke en diagnose — fx overdiagnosticeres atrieflimren i ca. 10 %.</p>`;
+      if (ukendte.length) body += `<p><strong>Ikke genkendt — læs selv:</strong></p>${ul(ukendte.map((x) => `${TAG.warn} «${esc(x)}»`))}`;
+      body += `<p class="field-hint">Computerens tolkning er en hjælp, ikke en diagnose — fx er ca. 9 % af maskinens atrieflimren-/flagren-diagnoser forkerte (ca. 1/3 ved flagren, Lindow 2019). Værktøjet kender kun en del af maskinens udsagn.</p>`;
       html += box("", "Maskinens tolkning forklaret", body);
     }
 
     // 5. Forslag til handling
-    if (plan.length) html += box(top === 3 ? "box-red" : "box-amber", "Forslag til handling", ul(plan.map((p) => esc(p).replace("LINK_AF", lenke("af.html", "Atrieflimren-værktøjet")))));
+    if (plan.length) html += box(top === 3 ? "box-red" : top === 2 ? "box-amber" : "box-blue", "Forslag til handling", ul(plan.map((p) => esc(p).replace("LINK_AF", lenke("af.html", "Atrieflimren-værktøjet")))));
 
     // 6. Begrænsninger
-    html += `<div class="box box-blue box-collapsible"><details><summary><h3>Det kan værktøjet ikke</h3></summary>${ul([
+    html += `<div class="box box-blue box-collapsible"><details open><summary><h3>Det kan værktøjet ikke</h3></summary>${ul([
+      "Genkende alle maskinens udsagn — læs altid hele teksten.",
       "Se kurven: ST-elevation/-depression, T-inversion, Q-takker, deltabølge, Brugada-mønster, U-takker og rytmen skal vurderes på EKG'et.",
       "Sammenligne med tidligere EKG — et nyt fund vejer tungere end et kendt.",
       "Vurdere børn og unge under 18 år (andre normalværdier).",
@@ -495,15 +610,15 @@
     if (!isNaN(v.pr)) tal.push(`PR ${fmt(v.pr)} ms`);
     if (!isNaN(v.qrs)) tal.push(`QRS ${fmt(v.qrs)} ms`);
     if (!isNaN(v.qt)) tal.push(`QT ${fmt(v.qt)} ms`);
-    if (q && !isNaN(q.primaer)) tal.push(`QTc ${fmt(q.primaer)} ms (${q.primNavn}${q.alle && !isNaN(v.qtc) && v.qtcFormel ? `; apparatet ${fmt(v.qtc)} ms ${FORMEL[v.qtcFormel]}` : ""})`);
+    if (q && !isNaN(q.primaer)) tal.push(`QTc ${fmt(q.primaer)} ms (${q.primNavn}${q.alle && !isNaN(v.qtc) && v.qtcFormel ? `; apparatet ${fmt(v.qtc)} ms ${FORMEL[v.qtcFormel]}` : ""}${!isNaN(q.bogossian) ? `; skøn ved bred QRS ${fmt(q.bogossian)} ms` : ""})`);
     if (!isNaN(v.paxe) || !isNaN(v.qrsaxe) || !isNaN(v.taxe)) tal.push(`akser P/QRS/T ${[v.paxe, v.qrsaxe, v.taxe].map((a) => (isNaN(a) ? "–" : fmt(akse(a)))).join("/")}°`);
     if (!isNaN(v.pdur)) tal.push(`P ${fmt(v.pdur)} ms`);
     if (!isNaN(v.sokolow)) tal.push(`Sokolow-Lyon ${fmt(v.sokolow, 2)} mV`);
     if (!isNaN(v.cornell)) tal.push(`Cornell ${fmt(v.cornell, 2)} mV`);
-    const linjer = [`EKG ${idag}: ${tal.join(", ")}.`];
+    const linjer = [`EKG vurderet ${idag}: ${tal.join(", ")}.`];
     if (maskine) linjer.push(`Maskinens tolkning${document.getElementById("ubekraeftet").value === "1" ? " (ubekræftet)" : ""}: ${maskine.replace(/\s+/g, " ")}`);
-    linjer.push(`Vurdering af måleværdier: ${sorteret.length ? sorteret.map((f) => f.tekst).join("; ") : "inden for referenceområderne"}.`);
-    linjer.push("Kurven gennemset: [rytme, ST-T, sammenligning med tidligere EKG].");
+    linjer.push(`Fund: ${sorteret.length ? sorteret.map((f) => f.tekst).join("; ") : "måleværdier inden for referenceområderne"}.`);
+    linjer.push("Kurven: [udfyld efter eget eftersyn — rytme, ST-T, sammenligning med tidligere EKG].");
     if (plan.length) linjer.push(`Plan: ${plan.slice(0, 3).map((p) => p.replace("se LINK_AF", "se Atrieflimren-værktøjet").replace("LINK_AF", "Atrieflimren-værktøjet")).join(" ")}`);
     return linjer.join("\n");
   }
@@ -551,30 +666,41 @@
     };
     const find = (re) => re.exec(t);
     let m;
-    // Frekvens
-    if ((m = find(new RegExp(`(?:hjertefrekvens|ventrikelfrekvens|ventrikulær frekvens|vent\\.? ?rate|heart rate|(?<![a-zæøå])(?:frekvens|puls|hf|hr|rate))\\s*[:=]?\\s*${TAL}\\s*(?:spm|slag\\/min|\\/min|bpm|min-1|min⁻¹)?`, "i")))) saet("hr", "Frekvens", tal(m[1]), m, 20, 300);
+    // Frekvens: ventrikelfrekvens/hjertefrekvens først, så "frekvens/rate", til sidst puls (ikke atriefrekvens).
+    for (const navn of ["ventrikelfrekvens|ventrikulær frekvens|vent\\.? ?rate|ventricular rate|hjertefrekvens|heart rate", "(?<![a-zæøå])(?<!atrial |atrie)(?:frekvens|hf|hr|rate)", "(?<![a-zæøå])puls"]) {
+      if ((m = find(new RegExp(`(?:${navn})\\s*[:=]?\\s*${TAL}\\s*(?:spm|slag\\/min|\\/min|bpm|min-1|min⁻¹)?`, "i")))) {
+        saet("hr", "Frekvens", tal(m[1]), m, 20, 300);
+        if (fundet.has("hr")) break;
+      }
+    }
     // PR/PQ
-    if ((m = find(new RegExp(`(?<![a-zæøå-])(?:pr|pq)(?![-\\/]?\\s*(?:t|qrs)\\b)(?:[- ]?(?:interval\\w*|tid\\w*|int\\.?))?\\s*[:=]?\\s*${TAL}\\s*(ms|s)?(?![\\d\\/])`, "i")))) saet("pr", "PR", ms(tal(m[1])), m, 60, 600);
+    if ((m = find(new RegExp(`(?<![a-zæøå-])(?:pr|pq|p-r|p-q)(?![-\\/]?\\s*(?:t|qrs)\\b)(?:[- ]?(?:interval\\w*|tid\\w*|int\\.?))?\\s*[:=]?\\s*${TAL}\\s*(ms|s)?(?![\\d\\/])`, "i")))) saet("pr", "PR", ms(tal(m[1])), m, 60, 600);
     // QRS-varighed
     if ((m = find(new RegExp(`qrs\\s*(?:[- ]?(?:varighed|duration|bredde|dur\\.?|d)|(?=\\s*[:=]?\\s*\\d+(?:[.,]\\d+)?\\s*(?:ms|s)\\b))\\s*[:=]?\\s*${TAL}\\s*(?:ms|s)?`, "i")))) saet("qrs", "QRS", ms(tal(m[1])), m, 40, 250);
-    // QT / QTc (fx "QT / QTc(B) 418 / 427 ms", "QT/QTcB 418/427", "QT/QTc 418/427 ms")
-    if ((m = find(new RegExp(`(?<![a-z])qt\\s*\\/\\s*qtc\\s*(?:\\(?\\s*(bazett|fridericia|framingham|hodges|b|f|h|fr)\\s*\\)?)?\\s*[:=]?\\s*${TAL}\\s*\\/\\s*${TAL}`, "i")))) {
+    // QT / QTc (fx "QT / QTc(B) 418 / 427 ms", "QT/QTcB 418/427", "QT/QTc 418 ms / 427 ms", "QT/QTcB/QTcF 410/445/430 ms")
+    const F = "(?:\\(?\\s*(bazett|fridericia|framingham|hodges|b|f|h|fr)\\s*\\)?)?";
+    if ((m = find(new RegExp(`(?<![a-z])qt\\s*\\/\\s*qtc\\s*${F}\\s*\\/\\s*qtc\\s*${F}(?:[- ]?interval\\w*)?\\s*[:=]?\\s*${TAL}\\s*(?:ms)?\\s*\\/\\s*${TAL}\\s*(?:ms)?\\s*\\/\\s*${TAL}`, "i")))) {
+      saet("qt", "QT", ms(tal(m[3])), m, 200, 700);
+      saet("qtc", "QTc (apparatet)", ms(tal(m[4])), m, 250, 700);
+      if (m[1]) formel(m[1], m);
+    } else if ((m = find(new RegExp(`(?<![a-z])qt\\s*\\/\\s*qtc\\s*${F}(?:[- ]?interval\\w*)?\\s*[:=]?\\s*${TAL}\\s*(?:ms)?\\s*\\/\\s*${TAL}`, "i")))) {
       saet("qt", "QT", ms(tal(m[2])), m, 200, 700);
       saet("qtc", "QTc (apparatet)", ms(tal(m[3])), m, 250, 700);
       if (m[1]) formel(m[1], m);
     }
-    if (!fundet.has("qtc") && (m = find(new RegExp(`(?<![a-z])qtc\\s*(?:\\(?\\s*(bazett|fridericia|framingham|hodges|b|f|h|fr)\\s*\\)?)?(?:[- ]?(?:interval|tid))?\\s*[:=]?\\s*${TAL}\\s*(?:ms|s)?`, "i")))) {
+    // Enkeltstående QTc — aldrig fra en "QT/QTc"-linje, vi ikke kunne læse (så er det første tal QT).
+    if (!fundet.has("qtc") && !/(?<![a-z])qt\s*\/\s*qtc/i.test(t) && (m = find(new RegExp(`(?<![a-z])qtc\\s*${F}(?!\\s*\\/)(?:[- ]?(?:interval|tid)\\w*)?\\s*[:=]?\\s*${TAL}\\s*(?:ms|s)?`, "i")))) {
       saet("qtc", "QTc (apparatet)", ms(tal(m[2])), m, 250, 700);
       if (m[1]) formel(m[1], m);
     }
-    if (!fundet.has("qt") && (m = find(new RegExp(`(?<![a-z])qt(?![a-z\\/]|\\s*\\/)(?:[- ]?(?:interval|tid|int\\.?))?\\s*[:=]?\\s*${TAL}\\s*(?:ms|s)?`, "i")))) saet("qt", "QT", ms(tal(m[1])), m, 200, 700);
+    if (!fundet.has("qt") && !/(?<![a-z])qt\s*\/\s*qtc/i.test(t) && (m = find(new RegExp(`(?<![a-z])qt(?![a-z\\/]|\\s*\\/)(?:[- ]?(?:interval|tid|int\\.?))?\\s*[:=]?\\s*${TAL}\\s*(?:ms|s)?`, "i")))) saet("qt", "QT", ms(tal(m[1])), m, 200, 700);
     function formel(f, mm) {
       const x = f.toLowerCase();
       const v = x === "b" || x === "bazett" ? "B" : x === "f" || x === "fridericia" ? "F" : x === "h" || x === "hodges" ? "H" : "Fr";
       ud.push({ type: "tekst", id: "qtcFormel", v, vis: FORMEL[v], label: "QTc-formel", kilde: L.kilde(mm.index, mm.index + mm[0].length) });
     }
     // Akser: "P-R-T akser 61 / 33 / 53 °", "P/QRS/T axis 61 33 53", "P-QRS-T akse: 61/33/53"
-    if ((m = find(new RegExp(`(?<![a-z])p\\s*[-\\/]\\s*(?:qrs|r)\\s*[-\\/]\\s*t\\s*[- ]?(?:akser|akse|axes|axis|akserne)?\\s*[:=]?\\s*${TAL}\\s*[\\/ ]\\s*${TAL}\\s*[\\/ ]\\s*${TAL}`, "i")))) {
+    if ((m = find(new RegExp(`(?<![a-z])p\\s*[-\\/]\\s*(?:qrs|r)\\s*[-\\/]\\s*t\\s*[- ]?(?:akser|akse|axes|axis|akserne)?\\s*[:=]?\\s*${TAL}\\s*[\\/ ,]\\s*${TAL}\\s*[\\/ ,]\\s*${TAL}`, "i")))) {
       saet("paxe", "P-akse", tal(m[1]), m, -180, 360);
       saet("qrsaxe", "QRS-akse", tal(m[2]), m, -180, 360);
       saet("taxe", "T-akse", tal(m[3]), m, -180, 360);
@@ -582,7 +708,11 @@
       saet("paxe", "P-akse", tal(m[1]), m, -180, 360);
       saet("qrsaxe", "QRS-akse", tal(m[2]), m, -180, 360);
       saet("taxe", "T-akse", tal(m[3]), m, -180, 360);
-    } else if ((m = find(new RegExp(`(?:qrs[- ]?akse|qrs[- ]?axis|(?<![a-z])akse|elektrisk akse)\\s*[:=]?\\s*${TAL}`, "i")))) saet("qrsaxe", "QRS-akse", tal(m[1]), m, -180, 360);
+    } else {
+      if ((m = find(new RegExp(`(?<![a-z])p[- ]?(?:akse|axis)\\s*[:=]?\\s*${TAL}`, "i")))) saet("paxe", "P-akse", tal(m[1]), m, -180, 360);
+      if ((m = find(new RegExp(`(?:qrs[- ]?akse|qrs[- ]?axis|(?<![a-z-])akse|elektrisk akse)\\s*[:=]?\\s*${TAL}`, "i")))) saet("qrsaxe", "QRS-akse", tal(m[1]), m, -180, 360);
+      if ((m = find(new RegExp(`(?<![a-z])t[- ]?(?:akse|axis)\\s*[:=]?\\s*${TAL}`, "i")))) saet("taxe", "T-akse", tal(m[1]), m, -180, 360);
+    }
     // P-varighed
     if ((m = find(new RegExp(`(?<![a-z])p[- ]?(?:varighed|duration|bredde|dur\\.?)\\s*[:=]?\\s*${TAL}\\s*(?:ms|s)?`, "i")))) saet("pdur", "P-varighed", ms(tal(m[1])), m, 40, 250);
     // RR / PP
@@ -594,11 +724,11 @@
       if ((m = find(new RegExp(`(?<![a-z])pp(?:[- ]?interval\\w*)?\\s*[:=]?\\s*${TAL}\\s*(?:ms|s)?`, "i")))) saet("pp", "PP", ms(tal(m[1])), m, 200, 3000);
     }
     // Voltage (mV; mm omregnes)
-    if ((m = find(new RegExp(`sokolow(?:[- ]lyon)?(?:[- ]?(?:index|indeks|voltage|kriterium))?\\s*[:=]?\\s*${TAL}\\s*(mv|mm)?`, "i")))) {
+    if ((m = find(new RegExp(`(?:sokolow(?:[- ]lyon)?(?:[- ]?(?:index|indeks|voltage|kriterium))?|sv1\\s*\\+\\s*rv[56](?:\\s*\\/\\s*v?6)?)\\s*[:=]?\\s*${TAL}\\s*(mv|mm)?`, "i")))) {
       const x = tal(m[1]);
       saet("sokolow", "Sokolow-Lyon", (m[2] || "").toLowerCase() === "mm" || x > 10 ? x / 10 : x, m, 0, 10);
     }
-    if ((m = find(new RegExp(`cornell(?![- ]?(?:produkt|product))(?:[- ]?(?:voltage|index|indeks|kriterium))?\\s*[:=]?\\s*${TAL}\\s*(mv|mm)?`, "i")))) {
+    if ((m = find(new RegExp(`(?:cornell(?![- ]?(?:produkt|product))(?:[- ]?(?:voltage|index|indeks|kriterium))?|ravl\\s*\\+\\s*sv3|sv3\\s*\\+\\s*ravl)\\s*[:=]?\\s*${TAL}\\s*(mv|mm)?`, "i")))) {
       const x = tal(m[1]);
       saet("cornell", "Cornell-voltage", (m[2] || "").toLowerCase() === "mm" || x > 10 ? x / 10 : x, m, 0, 10);
     }
@@ -608,10 +738,16 @@
       const k = x === "mand" || x === "male" ? "mand" : "kvinde";
       ud.push({ type: "radio", name: "koen", value: k, label: "Køn", vis: k, kilde: L.kilde(m.index, m.index + m[0].length) });
     }
-    if ((m = find(/(?:alder\s*[:=]?\s*(\d{2,3})|(?<![\d,.])(\d{2,3})\s*(?:år|years|yrs))(?![\d])/i))) saet("alder", "Alder", +(m[1] || m[2]), m, 18, 110);
+    // Alder: "Alder 67", "67-årig", "Mand 67 år", "67 years old" — ikke løse "i 30 år".
+    for (const re of [/alder\s*[:=]?\s*(\d{2,3})(?!\d)/i, /(?<![\d,.])(\d{2,3})\s*-?\s*årig/i, /(?:mand|kvinde|male|female|pt\.?|patient)[^.\n\d]{0,15}(\d{2,3})\s*(?:år|years|yrs)(?![a-zæøå])/i, /(?<![\d,.])(\d{2,3})\s*(?:år|years|yrs)\s*(?:gammel|old)/i, /(?<![\d,.])(\d{2,3})\s*(?:år|years|yrs)[^.\n\d]{0,12}(?:mand|kvinde|male|female)/i]) {
+      if ((m = find(re))) {
+        saet("alder", "Alder", +m[1], m, 18, 110);
+        if (fundet.has("alder")) break;
+      }
+    }
 
     // Maskinens tolkning: teksten efter "Systemevaluering:"/"Tolkning:" til apparat- eller målelinjerne.
-    const stop = /^\s*(?:ge |cardiosoft|marquette|muse|philips|schiller|mortara|welch|\d+\s*mm\/s|ubekræftet|bekræftet|unconfirmed|confirmed|side \d|page \d|tilstedevær|hjertefrekvens|ventrikelfrekvens|vent\.? ?rate|pr[- ]interval|qrs|qt|p-r-t|rr\b|placering|location|henvist|referred)/i;
+    const stop = /^\s*(?:ge |cardiosoft|marquette|muse|philips|schiller|mortara|welch|\d+\s*mm\/s|ubekræftet|bekræftet|unconfirmed|confirmed|side \d|page \d|tilstedevær|hjertefrekvens|ventrikelfrekvens|vent\.? ?rate|pr[- ]interval|qrs\w*\s*(?:varighed|duration|\d)|qt\w*\s*(?:\/|\d|interval)|p-r-t|rr\b|placering|location|henvist|referred|when compared|compared with|sammenlignet med|sammenligning med|i forhold til tidligere)/i;
     const linjer = t.split(/\r?\n/);
     let start = linjer.findIndex((l) => /(?:system-?evaluering|tolkning|fortolkning|interpretation|diagnose|konklusion|statement)\s*:?\s*$/i.test(l.trim()) || /^(?:system-?evaluering|tolkning|fortolkning|interpretation|konklusion)\s*:/i.test(l.trim()));
     let maskine = "";
@@ -632,7 +768,14 @@
       maskine = del.join(" ");
     } else {
       // Ingen overskrift: de linjer, der indeholder et kendt udsagn og ingen måleværdi.
-      maskine = linjer.filter((l) => UDSAGN.some((u) => u.m.test(l.toLowerCase())) && !/\d+\s*(?:ms|spm|bpm|mv|°)/i.test(l)).map((l) => l.trim()).join(" ");
+      const MAALING = /^\s*(?:hjertefrekvens|ventrikelfrekvens|vent\.? ?rate|pr|pq|qrs\w*|qt\w*|p[- ]?(?:varighed|duration)|rr|pp|p-r-t|sokolow|cornell|akse|axis)\b/i;
+      const SAMMENLIGN = /when compared|compared with|sammenlignet med|sammenligning med|i forhold til tidligere/i;
+      const sl = linjer.findIndex((l) => SAMMENLIGN.test(l));
+      maskine = (sl >= 0 ? linjer.slice(0, sl) : linjer)
+        .map((l) => l.replace(/^\s*(?:rate|vent\.? ?rate)\s*\d+\s*/i, ""))
+        .filter((l) => UDSAGN.some((u) => u.m.test(l.toLowerCase())) && !MAALING.test(l))
+        .map((l) => l.trim())
+        .join(". ");
     }
     maskine = maskine.replace(/\s+/g, " ").trim();
     if (maskine) ud.push({ type: "tekst", id: "maskine", v: maskine, label: "Maskinens tolkning", vis: maskine.length > 80 ? maskine.slice(0, 77) + "…" : maskine });

@@ -136,8 +136,10 @@ Selvstændig app med eget manifest, ikon og service worker (installeres fra
       ≤ 360 ms med synkope = kort-QT-syndrom (ESC 2022).
     - Noter: når Bazett krydser grænsen ved puls over 80 eller under 60, når apparatet afviger fra
       beregningen, og ved uregelmæssig rytme og pacing.
-    - Ved QRS ≥ 120 ms bruges et skøn efter Bogossian (QT − 50 % af QRS, derefter Fridericia), med
-      forbehold.
+    - Ved QRS ≥ 120 ms bruges et skøn efter Bogossian (QT − 50 % af QRS, derefter Fridericia).
+      Formlen er udviklet ved venstresidigt grenblok og pacing. Når QTc uden korrektion er ≥ 500 ms,
+      vises "kan ikke afvises".
+    - QT uden RR eller frekvens giver "kan ikke vurderes". Forlænget QTc med synkope = handling nu.
   - **Maskinens udsagn:** en ordliste med ca. 50 udsagn på dansk og engelsk giver hvert udsagn
     forklaring, niveau og handling.
     - Hastegraden afhænger af klinikken (brystsmerter, synkope, hjertebanken, QT-medicin,
@@ -769,6 +771,37 @@ en server. Konsekvenser af det valg:
   måleværdierne mod referenceværdier for voksne. QTc beregnes med fire formler (og Bogossian ved
   bred QRS), maskinens udsagn forklares med hastegrad og forslag til handling, og der laves et
   journalnotat. Virker offline og tolker ikke selve kurven.
+- Uafhængig audit, rettet før merge:
+  - Røde flag:
+    - Akut infarkt genkendes også som "infarkt, muligvis akut"/"injury".
+    - Bred-kompleks-takykardi (frekvens > 100 og QRS ≥ 120 ms) = handling nu.
+    - AV-blok II–III genkendes også på engelsk ("2nd/3rd degree").
+    - Forlænget QTc med synkope = handling nu.
+  - Fejlfund:
+    - Supraventrikulær takykardi og supraventrikulære ekstrasystoler læses ikke længere som VT, VES
+      eller asystoli.
+    - Flagren med 2:1 er ikke AV-blok, og "grad II type 1" = Wenckebach.
+    - "Abnormal ECG" er ikke "normalt".
+    - "Minimal voltage" giver kun "Bemærk".
+    - ST-elevation-differentialet giver ét fund.
+  - Nægtelser ("ingen atrieflimren", "VT ikke påvist", "has replaced …") og historiske udsagn
+    ("tidligere STEMI") tæller ikke.
+  - Sammenligning med tidligere EKG udelades.
+  - Udsagn, som værktøjet ikke kender, vises som "Ikke genkendt — læs selv", og sammenfatningen
+    bliver så aldrig grøn.
+  - QT:
+    - Et usikkert Bogossian-skøn kan ikke berolige ved QTc ≥ 500 ms.
+    - QT uden RR/frekvens giver "kan ikke vurderes".
+  - Atletkriterierne gælder kun 12–35 år.
+  - Voltage vurderes ikke ved grenblok.
+  - Cornell-produktet får + 0,6 mV hos kvinder.
+  - Journalnotatets plan starter med det vigtigste.
+  - Udtræk:
+    - QT/QTc i flere formater (aldrig QT som QTc).
+    - Ventrikelfrekvens før atriefrekvens og puls.
+    - Alder fra "67-årig" (ikke "i 30 år").
+    - Kommaseparerede akser, Mortara-akser, SV1+RV5 og RaVL+SV3.
+  - Klassifikatoren: "QTc" vejer nu 2 point.
 - `udfyld.js`:
   - Indsæt-panelet kan få egen titel og hjælpetekst og stå åbent.
   - Notat-indgangen genkender EKG-udskrifter. Ordet "EKG" alene vejer kun 1 point, så

@@ -458,7 +458,8 @@ window.Udfyld = (function () {
     // En EKG-udskrift (måleværdier og maskinens tolkning) vejer tungt; ordet "EKG" alene næsten intet.
     { id: "ekg", sti: "hjerte/ekg.html", navn: "EKG — tolkning af måleværdier", app: "Hjerte-kar", udfyld: true, tegn: [
       { v: 6, m: "systemevaluering|cardiosoft|12sl|p-r-t[- ]?akse\\w*|p\\s*\\/\\s*qrs\\s*\\/\\s*t|qt\\s*\\/\\s*qtc|sokolow\\w*|rr\\s*\\/\\s*pp" },
-      { v: 3, m: `(?:pr|pq)[- ]?(?:interval|tid)\\w*|qrs[- ]?(?:varighed|duration|bredde)|qtc${E}|qtc-?(?:tid|interval)\\w*` },
+      { v: 3, m: `(?:pr|pq)[- ]?(?:interval|tid)\\w*|qrs[- ]?(?:varighed|duration|bredde)` },
+      { v: 2, m: `qtc${E}|qtc-?(?:tid|interval)\\w*` },
       { v: 2, m: `av-?blok|grenblok|hemiblok|fascikelblok|ekstrasystol\\w*|ves${E}|sves${E}|sinusbradykardi|sinustakykardi|forlænget qt|lang qt` },
       { v: 1, m: `ekg${E}|elektrokardiogram\\w*` } ] },
     { id: "af", sti: "hjerte/af.html", navn: "Atrieflimren — antikoagulation", app: "Hjerte-kar", tegn: [
