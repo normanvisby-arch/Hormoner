@@ -13,7 +13,7 @@
   "hjerte/index.html": { "url": "https://claude.ai/artifact/XKN6nykM6YPEeLv4AbgLHP", "mode": "standalone", "title": "Hjerte-kar i almen praksis" },
   "hjerte/cvrisiko.html": { "url": "https://claude.ai/artifact/PZ9AdGJSAoZg4sTspQMFcg", "mode": "tool", "title": "CV-risiko — SCORE2" },
   "hjerte/af.html": { "url": "https://claude.ai/artifact/2nGFCKz6mPxesZpGM7qZdm", "mode": "tool", "title": "Atrieflimren — antikoagulation" },
-  "hjerte/ekg.html": { "url": "https://claude.ai/artifact/PENDING", "mode": "tool", "title": "EKG — tolkning af måleværdier" },
+  "hjerte/ekg.html": { "url": "https://claude.ai/artifact/QjTFbY9MJU6i9gRuftWJoM", "mode": "tool", "title": "EKG — tolkning af måleværdier" },
   "hjerte/huskeskema.html": { "url": "https://claude.ai/artifact/V2AuSDq28JWHLgWBRFGwvW", "mode": "standalone", "title": "Hjerte-kar-huskeskema" },
   "lunge/index.html": { "url": "https://claude.ai/artifact/3UBrppDKHzFrQPWPmqTyN3", "mode": "standalone", "title": "Lunger i almen praksis" },
   "lunge/kol.html": { "url": "https://claude.ai/artifact/RwkiswDjFX8ASUTB7rWTHg", "mode": "tool", "title": "KOL — gruppering og behandling" },
