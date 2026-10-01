@@ -18,7 +18,7 @@ eller "usikker" end et falsk præcist tal.
 - Hjerte-appen i `hjerte/`: `index.html` (startside), `cvrisiko.html` (SCORE2/SCORE2-OP/
   SCORE2-Diabetes), `af.html` (antikoagulation ved atrieflimren), `ekg.html` (tolkning af
   EKG-måleværdier og maskinens tekst; udfyldes fra indsat EKG-udskrift via `udfyld.js`, ordlisten
-  `UDSAGN` i `ekg.js`; test `tests/ekg.test.js`), `huskeskema.html`; egen
+  `UDSAGN` i `ekg.js`; sammenligning med tidligere EKG i `sammenlign()`; test `tests/ekg.test.js`), `huskeskema.html`; egen
   `manifest.webmanifest`, `sw.js` og `icons/`, men fælles `../style.css` (rød farve via
   `body.theme-hjerte`) og `../pwa.js`. SCORE2-koefficienterne er kontrolleret mod R-pakken
   RiskScorescvd og de publicerede regneeksempler (se `tests/cvrisiko.test.js`) — ret dem kun med

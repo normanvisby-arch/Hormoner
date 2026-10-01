@@ -148,6 +148,24 @@ Selvstændig app med eget manifest, ikon og service worker (installeres fra
       grenblok + fascikelblok = bifascikulært blok.
     - Atrieflimren linker til Atrieflimren-værktøjet med en advarsel om, at computeren
       overdiagnosticerer i ca. 10 %.
+  - **Sammenligning med tidligere EKG:** lægen indsætter et tidligere EKG fra samme patient efter
+    det aktuelle. Det læses med samme regler, og ændringerne vises i en tabel med vurdering.
+    - Ny bred QRS (≥ 120 ms) og QRS forlænget > 25 % (fx flecainid, ESC).
+    - Nyt AV-blok grad I og PR ≥ 300 ms.
+    - QTc-stigning > 30 og > 60 ms (ICH E14; Drew 2010). QTc sammenlignes med Fridericia for begge
+      EKG, ellers kun med apparatets værdi ved samme formel. Ved ændret QRS nævnes JT.
+    - Ny højre, venstre (≤ −45°) eller ekstrem akse, og nyt interatrielt blok.
+    - Nye og forsvundne udsagn fra maskinen, fx ny atrieflimren, nyt grenblok, nyt infarktmønster og
+      nye ST-T-forandringer.
+    - Hastegraden afhænger af klinikken, fx er nyt venstresidigt grenblok med brystsmerter "handling
+      nu".
+    - Sikkerhed:
+      - CPR-numrene i de to udskrifter sammenlignes, uden at de vises. Er de forskellige, vises ingen
+        sammenligning.
+      - En ny indsættelse øverst rydder det tidligere EKG (ny patient).
+      - Datoen læses fra udskriften eller datofeltet, og der advares, hvis det "tidligere" EKG er
+        nyere.
+    - Journalnotatet får en linje: "Sammenlignet med EKG fra …: …".
   - **Resultat:** sammenfatning (handling nu / afvigende / bemærk / normal), tabel, QTc-tabel,
     forslag til handling, hvad værktøjet ikke kan (selve kurven), og et journalnotat med en linje
     til lægens egen gennemsyn af kurven.
@@ -776,6 +794,14 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**1. oktober 2026 — EKG: sammenligning med tidligere EKG:**
+- Indsæt et tidligere EKG under det aktuelle. Ændringer i måleværdier og maskinens udsagn vises med
+  vurdering og kommer med i journalnotatet.
+- Kilder: ICH E14 (QTc-stigning > 30/60 ms), Drew 2010 og ESC/produktresumé for flecainid
+  (QRS > 25 %).
+- Tests H1–H19 i `ekg.test.js`.
+- Service worker v11 (hjerte).
 
 **1. oktober 2026 — Downloadside med QR-kode:**
 - Ny side `apps.html` ("Hent klinikværktøjerne") med alle ni apps:
