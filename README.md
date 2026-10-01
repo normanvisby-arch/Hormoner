@@ -470,6 +470,17 @@ gruppenavne. Handelsnavne er kun søgeord og siger intet om aktuelt udbud.
 
 ## Installér som app
 
+**Downloadside til kolleger:** `https://normanvisby-arch.github.io/Hormoner/apps.html`
+(`apps.html`).
+- Siden samler alle ni apps med beskrivelse, "Åbn og installér" (appens startside åbnes i en ny fane med
+  `#installer`, og `pwa.js` fremhæver installér-knappen), "Kopiér link" og en QR-kode til mobilen.
+- Øverst står et delbart link, en QR-kode til selve siden og knapper til at dele og udskrive. Udskriften
+  er et A4-opslag med en QR-kode pr. app.
+- QR-koderne ligger i `qr/` og laves med `python3 tools/mkqr.py` (kræver segno). Hver kode afkodes med
+  OpenCV og sammenlignes med adressen, før den gemmes.
+- Siden er ikke en claude.ai-artifact, for installation kræver GitHub Pages. Linket på startsiderne står
+  derfor i den del, der kun vises i appen.
+
 Værktøjerne er en installerbar webapp (PWA) med eget ikon, som også virker uden internet:
 
 - **Adresse:** `https://normanvisby-arch.github.io/Hormoner/oversigt.html` (kræver at GitHub Pages
@@ -765,6 +776,20 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**1. oktober 2026 — Downloadside med QR-kode:**
+- Ny side `apps.html` ("Hent klinikværktøjerne") med alle ni apps:
+  - "Åbn og installér", "Kopiér link" og QR-kode til mobilen for hver app.
+  - Et delbart link med QR-kode, knapper til at dele og udskrive, og et A4-opslag til udskrift.
+  - Vejledning til installation på computer (Chrome/Edge og Safari), iPhone/iPad og Android.
+- `tools/mkqr.py` laver QR-koderne i `qr/` og kontrollerer dem ved afkodning.
+- `pwa.js`: `#installer` fremhæver installér-knappen på appens startside.
+- Restordre har fået en installér-knap.
+- Startsiderne linker til downloadsiden (kun i appen).
+- Hjerte-manifestet nævner nu også EKG.
+- Ny testsuite `apps`.
+- Service worker: v13 (rod, med `apps.html` og QR-koderne), v10 (hjerte), v7 (lunge, thyreoidea,
+  diabetes), v6 (infektion, nyre), v4 (notat) og v3 (restordre), fordi `pwa.js` er ændret.
 
 **1. oktober 2026 — EKG — tolkning af måleværdier:**
 - Ny side `hjerte/ekg.html` i hjerte-appen: indsæt teksten fra EKG-apparatet, så vurderes

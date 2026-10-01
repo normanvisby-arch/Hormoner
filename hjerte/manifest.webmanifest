@@ -1,7 +1,7 @@
 {
   "name": "Hjerte-kar i almen praksis",
   "short_name": "Hjerte-kar",
-  "description": "Kardiovaskulær forebyggelse (SCORE2) og antikoagulation ved atrieflimren — beslutningsstøtte til almen praksis.",
+  "description": "Kardiovaskulær forebyggelse (SCORE2), antikoagulation ved atrieflimren og tolkning af EKG-måleværdier — beslutningsstøtte til almen praksis.",
   "lang": "da",
   "start_url": "index.html",
   "scope": "./",

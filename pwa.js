@@ -29,3 +29,15 @@ if ("serviceWorker" in navigator && (location.protocol === "https:" || location.
     });
   });
 })();
+
+// Åbnet fra downloadsiden (apps.html → …#installer): vis vejledningen og knappen tydeligt.
+if (location.hash === "#installer") {
+  window.addEventListener("load", () => {
+    const knap = document.querySelector("[data-install]");
+    const boks = knap && (knap.closest(".note, .topbar-actions") || knap.parentElement);
+    if (!boks) return;
+    boks.style.outline = "3px solid currentColor";
+    boks.style.outlineOffset = "4px";
+    boks.scrollIntoView({ block: "center" });
+  });
+}
