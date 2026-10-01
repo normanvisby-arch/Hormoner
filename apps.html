@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Hent klinikværktøjerne</title>
+<meta name="description" content="Ni gratis klinikværktøjer til almen praksis — installér dem som apps på computer, iPhone og Android. Virker uden internet.">
+<meta name="theme-color" content="#0b6e5f">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6f3;
+    --surface: #ffffff;
+    --border: #dbe2dc;
+    --text: #1c2624;
+    --muted: #5c6b64;
+    --primary: #0b6e5f;
+    --primary-dark: #08554a;
+    --on-primary: #ffffff;
+    --chip-bg: #e7f2ee;
+    --chip-text: #0b5c47;
+    --note-bg: #eaf2fa;
+    --note-border: #a9c9e6;
+    --note-text: #1c4a72;
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101615; --surface: #1a2321; --border: #2c3835;
+      --text: #e7ece9; --muted: #9bb0a8;
+      --primary: #35b79c; --primary-dark: #278d78; --on-primary: #06120f;
+      --chip-bg: #12332a; --chip-text: #a9e6cd;
+      --note-bg: #16273a; --note-border: #35608a; --note-text: #bcd9f5;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101615; --surface: #1a2321; --border: #2c3835;
+    --text: #e7ece9; --muted: #9bb0a8;
+    --primary: #35b79c; --primary-dark: #278d78; --on-primary: #06120f;
+    --chip-bg: #12332a; --chip-text: #a9e6cd;
+    --note-bg: #16273a; --note-border: #35608a; --note-text: #bcd9f5;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 40px 16px 48px; display: flex; flex-direction: column; gap: 28px; }
+  header { display: flex; flex-direction: column; gap: 8px; max-width: 64ch; }
+  .eyebrow { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--primary); margin: 0; }
+  h1 { margin: 0; font-size: clamp(1.7rem, 4vw, 2.3rem); line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance; }
+  h2 { margin: 0; font-size: 1.2rem; line-height: 1.25; }
+  .lede { margin: 0; color: var(--muted); font-size: 1.02rem; }
+  [hidden] { display: none !important; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .del { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 24px; align-items: center; }
+  @media (max-width: 640px) { .del { grid-template-columns: minmax(0, 1fr); justify-items: start; } }
+  .qr-stor { width: 196px; height: 196px; display: block; border-radius: 8px; background: #fff; border: 1px solid var(--border); }
+  .del-tekst { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .del-tekst p { margin: 0; }
+  .link {
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.86rem; word-break: break-all; user-select: all;
+    background: var(--chip-bg); color: var(--chip-text); padding: 8px 10px; border-radius: 8px;
+  }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; font: inherit; font-size: 0.9rem; font-weight: 600;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer; text-decoration: none; border: 1px solid transparent;
+  }
+  .btn-open { background: var(--primary); color: var(--on-primary); }
+  .btn-open:hover { background: var(--primary-dark); }
+  .btn-copy { background: var(--surface); color: var(--text); border-color: var(--border); }
+  .btn-copy:hover { background: var(--bg); }
+  .btn:focus-visible, summary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .status { font-size: 0.82rem; color: var(--primary); font-weight: 600; min-width: 5ch; }
+
+  .note { background: var(--note-bg); border: 1px solid var(--note-border); color: var(--note-text); border-radius: 10px; padding: 14px 16px; font-size: 0.92rem; }
+  .note h2 { font-size: 1rem; margin-bottom: 6px; color: inherit; }
+  .note ul { margin: 0; padding-left: 1.2rem; display: grid; gap: 4px; }
+  .note p { margin: 6px 0 0; }
+
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  @media (max-width: 720px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .app { display: flex; flex-direction: column; gap: 10px; border-top: 4px solid var(--farve, var(--primary)); }
+  .app-head { display: flex; gap: 12px; align-items: center; }
+  .app-head img { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; }
+  .app p { margin: 0; }
+  .indhold { color: var(--muted); font-size: 0.92rem; }
+  .app details { font-size: 0.86rem; color: var(--muted); }
+  .app summary { cursor: pointer; font-weight: 600; }
+  .qr-lille { width: 132px; height: 132px; margin-top: 8px; display: block; background: #fff; border-radius: 6px; border: 1px solid var(--border); }
+  .print-qr { display: none; }
+  footer { font-size: 0.8rem; color: var(--muted); max-width: 80ch; }
+
+  @media print {
+    @page { margin: 14mm; }
+    body { background: #fff; color: #000; font-size: 12px; }
+    .wrap { padding: 0; gap: 14px; max-width: none; }
+    .actions, .app details, .note-print-skjul, .btn { display: none !important; }
+    .card { border-color: #999; padding: 10px; break-inside: avoid; }
+    .qr-stor { width: 150px; height: 150px; }
+    .grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .app { border-top-width: 3px; }
+    .app .indhold { font-size: 10px; color: #333; }
+    .print-qr { display: block; width: 74px; height: 74px; }
+    .lede { font-size: 11px; }
+    h1 { font-size: 22px; }
+    .app h2 { font-size: 13px; }
+    .app-head img { width: 28px; height: 28px; }
+    .app { gap: 4px; }
+    footer { font-size: 9px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Almen praksis · danske forhold</p>
+    <h1>Hent klinikværktøjerne</h1>
+    <p class="lede">Ni små, gratis apps til konsultationen. De installeres fra browseren — uden App Store — og virker uden internet, når de har været åbnet én gang. Intet sendes nogen steder hen.</p>
+  </header>
+
+  <section class="card del" aria-labelledby="delTitel">
+    <img class="qr-stor" src="qr/apps.svg" alt="QR-kode til denne side: https://normanvisby-arch.github.io/Hormoner/apps.html" width="196" height="196">
+    <div class="del-tekst">
+      <h2 id="delTitel">Del med kolleger</h2>
+      <p>Scan QR-koden med telefonens kamera, eller send linket:</p>
+      <div class="link" id="delLink">https://normanvisby-arch.github.io/Hormoner/apps.html</div>
+      <div class="actions">
+        <button class="btn btn-open" type="button" data-kopier="https://normanvisby-arch.github.io/Hormoner/apps.html">Kopiér link</button>
+        <button class="btn btn-copy" type="button" id="delBtn" hidden>Del …</button>
+        <button class="btn btn-copy" type="button" id="printBtn">Udskriv opslag</button>
+        <span class="status" aria-live="polite"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="note note-print-skjul" aria-labelledby="hvordan">
+    <h2 id="hvordan">Sådan installerer du</h2>
+    <ul>
+      <li><strong>Computer (Chrome eller Edge, Windows og Mac):</strong> klik "Åbn og installér" ved en app, og klik på knappen <em>Installér som app</em> på dens startside — eller på installér-ikonet yderst i adresselinjen. Appen får eget vindue og ikon på skrivebordet/i startmenuen.</li>
+      <li><strong>Mac med Safari:</strong> åbn appen, og vælg Arkiv → <em>Føj til Dock</em>.</li>
+      <li><strong>iPhone og iPad:</strong> åbn appen i Safari → Del-knappen → <em>Føj til hjemmeskærm</em>.</li>
+      <li><strong>Android:</strong> åbn appen i Chrome → ⋮ → <em>Installer app</em>.</li>
+    </ul>
+    <p>Browseren installerer én app ad gangen, så hver app installeres for sig (ca. 10 sekunder pr. app). Installér kun dem, du bruger. Apps opdaterer sig selv, næste gang de åbnes med internet.</p>
+  </section>
+
+  <div class="grid" id="apps">
+    <article class="card app" style="--farve:#0b6e5f" data-app="kvindesundhed">
+      <div class="app-head"><img src="icons/icon.svg" alt="" width="44" height="44"><h2>Kvindesundhed</h2></div>
+      <p class="indhold">Klimakterie og hormonbehandling (MHT), risikovurdering, prævention, MRS-scoring og osteoporose med frakturrisiko og opfølgningsplan.</p>
+      <div class="actions">
+        <a class="btn btn-open" href="oversigt.html#installer" target="_blank" rel="noopener">Åbn og installér</a>
+        <button class="btn btn-copy" type="button" data-kopier="https://normanvisby-arch.github.io/Hormoner/oversigt.html">Kopiér link</button>
+        <span class="status" aria-live="polite"></span>
+      </div>
+      <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/kvindesundhed.svg" alt="QR-kode til Kvindesundhed" width="132" height="132" loading="lazy"></details>
+      <img class="print-qr" src="qr/kvindesundhed.svg" alt="" width="90" height="90">
+    </article>
+    <article class="card app" style="--farve:#a3262f" data-app="hjerte">
+      <div class="app-head"><img src="hjerte/icons/icon.svg" alt="" width="44" height="44"><h2>Hjerte-kar</h2></div>
+      <p class="indhold">CV-risiko med SCORE2/SCORE2-OP/SCORE2-Diabetes, antikoagulation ved atrieflimren og tolkning af EKG-måleværdier.</p>
+      <div class="actions">
+        <a class="btn btn-open" href="hjerte/index.html#installer" target="_blank" rel="noopener">Åbn og installér</a>
+        <button class="btn btn-copy" type="button" data-kopier="https://normanvisby-arch.github.io/Hormoner/hjerte/">Kopiér link</button>
+        <span class="status" aria-live="polite"></span>
+      </div>
+      <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/hjerte.svg" alt="QR-kode til Hjerte-kar" width="132" height="132" loading="lazy"></details>
+      <img class="print-qr" src="qr/hjerte.svg" alt="" width="90" height="90">
+    </article>
+    <article class="card app" style="--farve:#1f5f99" data-app="lunge">
+      <div class="app-head"><img src="lunge/icons/icon.svg" alt="" width="44" height="44"><h2>Lunger</h2></div>
+      <p class="indhold">KOL og astma: diagnostik, gruppering, inhalationsbehandling og eksacerbationer.</p>
+      <div class="actions">
+        <a class="btn btn-open" href="lunge/index.html#installer" target="_blank" rel="noopener">Åbn og installér</a>
+        <button class="btn btn-copy" type="button" data-kopier="https://normanvisby-arch.github.io/Hormoner/lunge/">Kopiér link</button>
+        <span class="status" aria-live="polite"></span>
+      </div>
+      <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/lunge.svg" alt="QR-kode til Lunger" width="132" height="132" loading="lazy"></details>
+      <img class="print-qr" src="qr/lunge.svg" alt="" width="90" height="90">
+    </article>
+    <article class="card app" style="--farve:#5b3f8f" data-app="thyreoidea">
+      <div class="app-head"><img src="thyreoidea/icons/icon.svg" alt="" width="44" height="44"><h2>Hypothyreose</h2></div>
+      <p class="indhold">Tolkning af TSH og T4, behandlingsindikation, levothyroxin-dosis, graviditet og opfølgning.</p>
+      <div class="actions">
+        <a class="btn btn-open" href="thyreoidea/index.html#installer" target="_blank" rel="noopener">Åbn og installér</a>
+        <button class="btn btn-copy" type="button" data-kopier="https://normanvisby-arch.github.io/Hormoner/thyreoidea/">Kopiér link</button>
+        <span class="status" aria-live="polite"></span>
+      </div>
+      <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/thyreoidea.svg" alt="QR-kode til Hypothyreose" width="132" height="132" loading="lazy"></details>
+      <img class="print-qr" src="qr/thyreoidea.svg" alt="" width="90" height="90">
+    </article>
+    <article class="card app" style="--farve:#9a4f0b" data-app="diabetes">
+      <div class="app-head"><img src="diabetes/icons/icon.svg" alt="" width="44" height="44"><h2>Type 2-diabetes</h2></div>
+      <p class="indhold">Individuelt HbA1c-mål, valg af glukosesænkende behandling efter hjerte, nyrer og eGFR, og årskontrol.</p>
+      <div class="actions">
+        <a class="btn btn-open" href="diabetes/index.html#installer" target="_blank" rel="noopener">Åbn og installér</a>
+        <button class="btn btn-copy" type="button" data-kopier="https://normanvisby-arch.github.io/Hormoner/diabetes/">Kopiér link</button>
+        <span class="status" aria-live="polite"></span>
+      </div>
+      <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/diabetes.svg" alt="QR-kode til Type 2-diabetes" width="132" height="132" loading="lazy"></details>
+      <img class="print-qr" src="qr/diabetes.svg" alt="" width="90" height="90">
+    </article>
+    <article class="card app" style="--farve:#3f6212" data-app="infektion">
+      <div class="app-head"><img src="infektion/icons/icon.svg" alt="" width="44" height="44"><h2>Infektioner</h2></div>
+      <p class="indhold">Antibiotika ved luftvejs-, urinvejs- og hudinfektioner: hvem skal behandles, præparat, dosis efter vægt og varighed.</p>
+      <div class="actions">
+        <a class="btn btn-open" href="infektion/index.html#installer" target="_blank" rel="noopener">Åbn og installér</a>
+        <button class="btn btn-copy" type="button" data-kopier="https://normanvisby-arch.github.io/Hormoner/infektion/">Kopiér link</button>
+        <span class="status" aria-live="polite"></span>
+      </div>
+      <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/infektion.svg" alt="QR-kode til Infektioner" width="132" height="132" loading="lazy"></details>
+      <img class="print-qr" src="qr/infektion.svg" alt="" width="90" height="90">
+    </article>
+    <article class="card app" style="--farve:#8a3a5c" data-app="nyre">
+      <div class="app-head"><img src="nyre/icons/icon.svg" alt="" width="44" height="44"><h2>Nyrer</h2></div>
+      <p class="indhold">Kronisk nyresygdom (KDIGO-stadie, KFRE, kontrol og henvisning) og dosis efter nyrefunktion.</p>
+      <div class="actions">
+        <a class="btn btn-open" href="nyre/index.html#installer" target="_blank" rel="noopener">Åbn og installér</a>
+        <button class="btn btn-copy" type="button" data-kopier="https://normanvisby-arch.github.io/Hormoner/nyre/">Kopiér link</button>
+        <span class="status" aria-live="polite"></span>
+      </div>
+      <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/nyre.svg" alt="QR-kode til Nyrer" width="132" height="132" loading="lazy"></details>
+      <img class="print-qr" src="qr/nyre.svg" alt="" width="90" height="90">
+    </article>
+    <article class="card app" style="--farve:#334e68" data-app="notat">
+      <div class="app-head"><img src="notat/icons/icon.svg" alt="" width="44" height="44"><h2>Notat-indgang</h2></div>
+      <p class="indhold">Indsæt et journalnotat (fx fra Noteless) — det rette værktøj findes og udfyldes lokalt i browseren.</p>
+      <div class="actions">
+        <a class="btn btn-open" href="notat/index.html#installer" target="_blank" rel="noopener">Åbn og installér</a>
+        <button class="btn btn-copy" type="button" data-kopier="https://normanvisby-arch.github.io/Hormoner/notat/">Kopiér link</button>
+        <span class="status" aria-live="polite"></span>
+      </div>
+      <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/notat.svg" alt="QR-kode til Notat-indgang" width="132" height="132" loading="lazy"></details>
+      <img class="print-qr" src="qr/notat.svg" alt="" width="90" height="90">
+    </article>
+    <article class="card app" style="--farve:#7c4a03" data-app="restordre">
+      <div class="app-head"><img src="restordre/icons/icon.svg" alt="" width="44" height="44"><h2>Restordre</h2></div>
+      <p class="indhold">Når et præparat ikke kan skaffes: restordre.dk, samme indholdsstof og alternativer med vejledende ækvivalente doser.</p>
+      <div class="actions">
+        <a class="btn btn-open" href="restordre/index.html#installer" target="_blank" rel="noopener">Åbn og installér</a>
+        <button class="btn btn-copy" type="button" data-kopier="https://normanvisby-arch.github.io/Hormoner/restordre/">Kopiér link</button>
+        <span class="status" aria-live="polite"></span>
+      </div>
+      <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/restordre.svg" alt="QR-kode til Restordre" width="132" height="132" loading="lazy"></details>
+      <img class="print-qr" src="qr/restordre.svg" alt="" width="90" height="90">
+    </article>
+  </div>
+
+  <footer>Uafhængige hjælpeværktøjer til almen praksis — erstatter ikke den kliniske vurdering, nationale vejledninger eller opslag på pro.medicin.dk. Der indtastes ingen personhenførbare oplysninger, og intet gemmes eller sendes. Senest opdateret 1. oktober 2026.</footer>
+</div>
+
+<script>
+  (function () {
+    var kopier = function (knap) {
+      var status = knap.parentElement.querySelector(".status");
+      var url = knap.dataset.kopier;
+      var vis = function (t) {
+        status.textContent = t;
+        setTimeout(function () { status.textContent = ""; }, 2500);
+      };
+      try {
+        navigator.clipboard.writeText(url).then(function () { vis("Kopieret ✓"); }, function () { vis(url); });
+      } catch (e) {
+        vis(url);
+      }
+    };
+    document.addEventListener("click", function (e) {
+      var k = e.target.closest("[data-kopier]");
+      if (k) kopier(k);
+    });
+    var del = document.getElementById("delBtn");
+    var url = document.getElementById("delLink").textContent.trim();
+    if (navigator.share) {
+      del.hidden = false;
+      del.addEventListener("click", function () {
+        navigator.share({ title: "Klinikværktøjer til almen praksis", text: "Ni gratis apps til konsultationen — installeres fra browseren og virker uden internet.", url: url }).catch(function () {});
+      });
+    }
+    document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+  })();
+</script>
+<script src="pwa.js"></script>
+</body>
+</html>

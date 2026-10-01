@@ -4,11 +4,12 @@
  * åbning med forbindelse; uden forbindelse bruges den gemte kopi.
  * Hæv VERSION, når filer tilføjes eller fjernes fra listen.
  */
-const VERSION = "v12";
+const VERSION = "v13";
 const CACHE = `klinikvaerktoejer-${VERSION}`;
 const FILES = [
   "./",
   "oversigt.html",
+  "apps.html",
   "index.html",
   "risiko.html",
   "huskeskema.html",
@@ -36,6 +37,16 @@ const FILES = [
   "icons/icon-512.png",
   "icons/icon-maskable-512.png",
   "icons/apple-touch-icon.png",
+  "qr/apps.svg",
+  "qr/kvindesundhed.svg",
+  "qr/hjerte.svg",
+  "qr/lunge.svg",
+  "qr/thyreoidea.svg",
+  "qr/diabetes.svg",
+  "qr/infektion.svg",
+  "qr/nyre.svg",
+  "qr/notat.svg",
+  "qr/restordre.svg",
 ];
 
 self.addEventListener("install", (event) => {

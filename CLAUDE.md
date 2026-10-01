@@ -52,6 +52,9 @@ eller "usikker" end et falsk præcist tal.
   `sw.js` og `icons/`. Doser skal stemme med de øvrige værktøjer (DOAK = `hjerte/af.js`, østrogen =
   `app.js`, cystitis = `infektion/urinveje.js`, DPP-4 = `nyre/dosis.js`). Test:
   `tests/restordre.test.js`.
+- `apps.html` (downloadside "Hent klinikværktøjerne"): alle apps med "Åbn og installér" (→ `…#installer`),
+  delbart link og QR-koder i `qr/` (lav dem med `python3 tools/mkqr.py`; listen `KODER` skal svare til
+  kortene). Nyt app-modul: tilføj kort, QR-kode og filerne i rodens `sw.js`. Test: `tests/apps.test.js`.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
   **Hæv `VERSION` i `sw.js`** og i den berørte apps `*/sw.js` (hjerte, lunge, thyreoidea,
