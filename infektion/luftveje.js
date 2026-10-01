@@ -28,15 +28,17 @@
   // Regimer
   // ---------------------------------------------------------------------
 
+  // Antal dage til pakningsberegningen: øvre grænse ved fx "5–7".
+  const kurDage = (d) => parseInt(String(d).split(/[–-]/).pop(), 10) || 7;
   const PENV_VOKSEN = "1 mio. IE (660 mg) eller 800 mg × 4 dagligt";
   function penV(s, dage, tag, rec) {
-    if (s.gruppe === "barn") return { key: "penv", navn: "Penicillin V", dosering: boernetekst(s.vaegt, 50, 3, 800, `i ${dage} dage`), note: "Tabletter kan knuses og blandes i lidt mad; mikstur findes.", tag, rec };
+    if (s.gruppe === "barn") return { key: "penv", navn: "Penicillin V", dosering: boernetekst(s.vaegt, 50, 3, 800, `i ${dage} dage`, 0, { key: "penv", dage: kurDage(dage) }), note: "Tabletter kan knuses og blandes i lidt mad.", tag, rec };
     return { key: "penv", navn: "Penicillin V", dosering: `${PENV_VOKSEN} i ${dage} dage`, note: "Tages med ca. 6 timers mellemrum og mindst 1 time før eller 2 timer efter et måltid.", tag, rec };
   }
   const MAKROLID_GRAVID = "<strong>Gravid med penicillinallergi:</strong> makrolider kun efter nøje overvejelse (clarithromycin er i et dansk registerstudie forbundet med øget risiko for abort) — konferér, eller se \"Lægemidler og graviditet\" på pro.medicin.dk.";
   function clari(s, dage, hoej, tag, rec) {
     const note = "Mange interaktioner (fx simvastatin, DOAK, colchicin) — tjek medicinlisten.";
-    if (s.gruppe === "barn") return { key: "clari", navn: "Clarithromycin", dosering: boernetekst(s.vaegt, 15, 2, 500, `i ${dage} dage`), note, tag, rec };
+    if (s.gruppe === "barn") return { key: "clari", navn: "Clarithromycin", dosering: boernetekst(s.vaegt, 15, 2, 500, `i ${dage} dage`, 0, { key: "clari", dage: kurDage(dage) }), note, tag, rec };
     return { key: "clari", navn: "Clarithromycin", dosering: `${hoej ? "500 mg × 2" : "250 mg × 2 (500 mg × 2 ved svær infektion)"} dagligt i ${dage} dage`, note, tag, rec };
   }
   function roxi(s, dage, tag, rec) {

@@ -30,7 +30,7 @@ eller "usikker" end et falsk præcist tal.
   `.theme-thyreoidea`, `.theme-diabetes`), `../valg.js` og `../pwa.js`. Startsiderne har en
   installér-knap (`data-install`, styres af `pwa.js`) og "Andre apps"-links — hold dem i sync.
 - `infektion/` (`luftveje.html`, `urinveje.html`, `hud.html`, `huskeskema.html`; fælles `ab.js`
-  med børnedosis efter vægt) og `nyre/` (`ckd.html` med KDIGO-farvekort og KFRE, `dosis.html`,
+  med børnedosis efter vægt og `MIKSTURER`: mikstur, ml og pakning) og `nyre/` (`ckd.html` med KDIGO-farvekort og KFRE, `dosis.html`,
   `huskeskema.html`) er bygget på samme måde (`body.theme-infektion`, `.theme-nyre`).
   KFRE-koefficienterne er kontrolleret mod Python-pakken kfre (se `tests/nyre.test.js`) — ret dem
   kun med en primærkilde.
