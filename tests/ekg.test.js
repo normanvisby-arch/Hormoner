@@ -210,6 +210,55 @@ Sokolow-Lyon 2.53 mV`;
   r = await ud('Systemevaluering:\nSinus rhythm\nWhen compared with ECG of 01-JAN-2025\nSinus rhythm has replaced Atrial fibrillation\nVent. rate 70 BPM');
   check('X33 sammenligning med tidligere EKG tages ikke med i maskinens tolkning', (await v('maskine')) === 'Sinus rhythm' && !r.includes('Atrieflimren —'));
 
+  // ---------------- Sammenligning med tidligere EKG ----------------
+  const FOER = 'Optaget 12.03.2024\nSystemevaluering:\nSinusrytme\nNormalt EKG\nHjertefrekvens 70 spm\nPR interval 182 ms\nQRS varighed 98 ms\nQT / QTc(B) 380 / 410 ms\nP-R-T akser 55 / 40 / 45 °\nP varighed 110 ms\nRR / PP interval 857 / 857 ms\nSokolow-Lyon 2.30 mV';
+  const tidl = async (t) => { await p.evaluate(() => (document.getElementById('tidligereBoks').open = true)); await p.fill('#tidligereTekst', t); await p.waitForTimeout(120); return p.locator('#output').innerText(); };
+  const smlRaekke = (navn) => p.evaluate((n) => { const r = [...document.querySelectorAll('.ekg-sml tbody tr')].find((x) => x.cells[0].innerText.startsWith(n)); return r ? [...r.cells].map((c) => c.innerText).join(' | ') + ' | ' + r.className : ''; }, navn);
+  await ud(GE);
+  r = await tidl(FOER);
+  check('H1 sammenligning vises med dato fra udskriften', r.includes('Sammenligning med EKG fra 12.3.2024'));
+  check('H2 nyt AV-blok grad I (PR 182 → 266)', (await smlRaekke('PR')).includes('Nyt AV-blok grad I') && r.includes('Nyt AV-blok grad I (PR 182 → 266 ms)'), await smlRaekke('PR'));
+  check('H3 QTc sammenlignes med Fridericia (400 → 425, +25 ms)', (await smlRaekke('QTc (Fridericia)')).includes('400 ms | 425 ms | +25 ms'), await smlRaekke('QTc'));
+  check('H4 nye udsagn (VES) og nyt interatrielt blok', r.includes('Nyt i maskinens tolkning') && r.includes('Nyt: ventrikulære ekstrasystoler') && r.includes('Nyt interatrielt blok'));
+  check('H5 Sokolow med decimaler', (await smlRaekke('Sokolow')).includes('+0,23 mV'), await smlRaekke('Sokolow'));
+  n = await p.locator('#journalTekst').innerText();
+  check('H6 journalnotat nævner sammenligningen', n.includes('Sammenlignet med EKG fra 12.3.2024: nyt AV-blok grad I (PR 182 → 266 ms)'), n);
+  // Ny patient: indsættelse øverst rydder det tidligere EKG
+  await ud(GE);
+  check('H7 ny indsættelse øverst rydder det tidligere EKG', (await p.inputValue('#tidligereTekst')) === '' && !(await p.locator('#output').innerText()).includes('Sammenligning med'));
+  // Kun tidligere EKG: bed om det aktuelle
+  await p.click('#resetBtn'); r = await tidl(FOER);
+  check('H8 kun tidligere EKG → bed om det aktuelle først', r.includes('Indsæt først det aktuelle EKG'));
+  // Forskellige patienter (CPR) → ingen sammenligning
+  await ud('Patient 010203-1234\n' + GE); r = await tidl('Patient 040506-5678\n' + FOER);
+  check('H9 forskellige CPR-numre → advarsel, ingen sammenligning, CPR vises ikke', r.includes('to forskellige patienter') && (await p.locator('.ekg-sml').count()) === 0 && !r.includes('010203') && !r.includes('040506'));
+  // QTc-stigning > 60 ms, ny bred QRS og ny atrieflimren
+  await ud('Systemevaluering:\nAtrieflimren\nVenstresidigt grenblok\nHjertefrekvens 88 spm\nQRS varighed 150 ms\nQT / QTc(B) 470 / 569 ms\nRR / PP interval 682 / 682 ms');
+  r = await tidl('Systemevaluering:\nSinusrytme\nNormalt EKG\nHjertefrekvens 70 spm\nQRS varighed 96 ms\nQT / QTc(B) 390 / 421 ms\nRR / PP interval 857 / 857 ms');
+  check('H10 QTc-stigning > 60 ms', (await smlRaekke('QTc')).includes('Stigning > 60 ms'), await smlRaekke('QTc'));
+  check('H11 ny bred QRS, nyt venstresidigt grenblok og ny atrieflimren', r.includes('ny bred QRS') && r.includes('nyt venstresidigt grenblok') && r.includes('ny atrieflimren siden sidst'), r.slice(0, 400));
+  check('H12 QRS ændret ≥ 20 ms → JT nævnes', (await smlRaekke('QTc')).includes('JT'));
+  await p.check('input[name="klinik"][value="brystsmerter"]'); await p.waitForTimeout(80);
+  check('H13 nyt grenblok + brystsmerter = handling nu', (await p.locator('#output').innerText()).includes('Kræver handling nu') && (await smlRaekke('QRS')).includes('niveau-danger'));
+  // QRS > 25 % uden at krydse 120 ms; atrieflimren forsvundet
+  await ud('Systemevaluering:\nSinusrytme\nHjertefrekvens 70 spm\nQRS varighed 115 ms');
+  r = await tidl('Systemevaluering:\nAtrieflimren\nHjertefrekvens 90 spm\nQRS varighed 88 ms');
+  check('H14 QRS forlænget > 25 % (flecainid)', (await smlRaekke('QRS')).includes('25 %') && r.includes('QRS forlænget 31 %'), await smlRaekke('QRS'));
+  check('H15 atrieflimren ikke længere nævnt', r.includes('Ikke længere nævnt: Atrieflimren'));
+  // Uændret
+  await ud(GE); r = await tidl(GE);
+  check('H16 samme EKG → ingen væsentlige ændringer', r.includes('Ingen væsentlige ændringer') && (await p.locator('#journalTekst').innerText()).includes('ingen væsentlige ændringer'));
+  // Forskellige QTc-formler uden QT/RR
+  await ud('QTc(B) 450 ms\nQRS varighed 90 ms'); r = await tidl('QTc(F) 420 ms\nQRS varighed 90 ms');
+  check('H17 forskellig QTc-formel uden QT/RR → sammenlignes ikke', r.includes('QTc kan ikke sammenlignes sikkert') && (await smlRaekke('QTc')) === '');
+  // Datoer: tidligere nyere end aktuelle
+  await ud('Optaget 01.02.2023\n' + GE); r = await tidl(FOER);
+  check('H18 "tidligere" EKG nyere end aktuelle → advarsel', r.includes('byttet om'));
+  // Datofelt overstyrer
+  await ud(GE); await tidl(FOER); await p.fill('#tidligereDato', '2025-06-30'); await p.waitForTimeout(100);
+  check('H19 datofelt bruges', (await p.locator('#output').innerText()).includes('Sammenligning med EKG fra 30.6.2025'));
+  await p.click('#resetBtn');
+
   // ---------------- Udfyld uden fund ----------------
   await ud('Pt. ringer om sin medicin.');
   check('U10 ingen EKG-værdier → note', (await p.locator('#udfyldRapport').innerText()).includes('Ingen EKG-værdier'));

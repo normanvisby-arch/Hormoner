@@ -482,6 +482,183 @@
     return { liste: fundne.filter((u) => !(u.hvisIkke || []).some((x) => ider.has(x))), ider, ukendte };
   }
 
+  // ---------------------------------------------------------------- Sammenligning med tidligere EKG
+  // Et nyt fund vejer tungere end et kendt: den tidligere udskrift læses med samme regler som den
+  // aktuelle, og forskellene vurderes. Grænser: QTc-stigning > 30 og > 60 ms (ICH E14; Drew 2010),
+  // QRS-forlængelse > 25 % (fx flecainid, ESC), nyt AV-blok, ny bred QRS og ny akse.
+  const NEUTRALE = new Set(["normal", "abnorm", "graense", "sinus", "sinusarytmi", "vrespons", "sinusbrady", "sinustaky", "langqt", "kortqt", "kortpr", "venstreakse", "hoejreakse", "lvhmin"]);
+  const DATO = /(?<![\d.])(\d{1,2})[.\-\/](\d{1,2})[.\-\/](\d{4}|\d{2})(?![\d.\-\/])/;
+  const findDato = (t) => {
+    const m = (t || "").match(DATO);
+    if (!m) return null;
+    const d = +m[1];
+    const mdr = +m[2];
+    const aar = m[3].length === 2 ? 2000 + +m[3] : +m[3];
+    return d >= 1 && d <= 31 && mdr >= 1 && mdr <= 12 && aar >= 1980 && aar <= 2100 ? new Date(aar, mdr - 1, d) : null;
+  };
+  // CPR-nummer bruges kun til at tjekke, at to udskrifter er fra samme patient — det vises aldrig.
+  const findCpr = (t) => {
+    const m = (t || "").match(/(?<![\d-])(\d{2})(\d{2})(\d{2})-(\d{4})(?![\d-])/);
+    return m && +m[1] >= 1 && +m[1] <= 31 && +m[2] >= 1 && +m[2] <= 12 ? m.slice(1).join("") : null;
+  };
+  const datoTekst = (d) => d.toLocaleDateString("da-DK");
+
+  function laesTidligere() {
+    const tekst = document.getElementById("tidligereTekst").value.trim();
+    if (!tekst || !window.Udfyld) return null;
+    const v = { udsagn: new Set() };
+    udtraek(Udfyld.lib(tekst)).forEach((f) => {
+      if (f.type === "num") v[f.id] = f.v;
+      else if (f.id === "qtcFormel") v.qtcFormel = f.v;
+      else if (f.id === "maskine") v.maskine = f.v;
+    });
+    if (v.maskine) v.udsagn = laesUdsagn(v.maskine).ider;
+    const felt = document.getElementById("tidligereDato").value;
+    const dato = felt ? new Date(felt + "T12:00") : findDato(tekst);
+    return { v, tekst, dato, tal: ["hr", "pr", "qrs", "qt", "qtc", "rr", "qrsaxe"].some((x) => !isNaN(v[x])) };
+  }
+
+  // QTc til sammenligning: Fridericia for begge, når QT og RR (eller frekvens) findes; ellers apparatets
+  // QTc, men kun hvis begge er beregnet med samme formel.
+  const qtcF = (v) => {
+    const rr = !isNaN(v.rr) ? v.rr : !isNaN(v.hr) ? 60000 / v.hr : NaN;
+    return !isNaN(v.qt) && !isNaN(rr) ? qtcAlle(v.qt, rr, v.hr).F : NaN;
+  };
+  const akseKat = (a) => {
+    if (isNaN(a)) return null;
+    const x = akse(a);
+    return x >= -30 && x <= 90 ? "normal" : x < -30 && x >= -90 ? (x <= -45 ? "venstre45" : "venstre") : x > 90 && x <= 180 ? "hoejre" : "ekstrem";
+  };
+  const has = (v, k) => v[k] !== undefined && !isNaN(v[k]);
+
+  function sammenlign(nu, k) {
+    const t = laesTidligere();
+    if (!t) return null;
+    const foer = t.v;
+    const res = { rk: [], nye: [], vaek: [], fund: [], plan: [], noter: [], dato: t.dato, advarsel: null, kort: [] };
+    if (!t.tal && !foer.maskine) {
+      res.advarsel = "Der blev ikke fundet EKG-værdier i den tidligere udskrift — tjek, at hele teksten er kopieret med.";
+      return res;
+    }
+    const cprNu = findCpr(document.getElementById("udfyldTekst") ? document.getElementById("udfyldTekst").value : "");
+    const cprFoer = findCpr(t.tekst);
+    if (cprNu && cprFoer && cprNu !== cprFoer) {
+      res.advarsel = "Udskrifterne ser ud til at være fra to forskellige patienter (CPR-numrene er forskellige). Sammenligningen vises ikke.";
+      res.fund.push({ niveau: "warn", tekst: "det tidligere EKG er fra en anden patient — tjek udskrifterne" });
+      return res;
+    }
+    const datoNu = findDato(document.getElementById("udfyldTekst") ? document.getElementById("udfyldTekst").value : "");
+    if (t.dato && datoNu && t.dato > datoNu) res.noter.push(`Det "tidligere" EKG (${datoTekst(t.dato)}) er nyere end det aktuelle (${datoTekst(datoNu)}) — er de byttet om?`);
+    if (t.dato && t.dato > new Date()) res.noter.push("Datoen for det tidligere EKG ligger i fremtiden — tjek datoen.");
+
+    const add = (r) => {
+      res.rk.push(r);
+      if (r.niveau !== "ok" && r.kort) res.fund.push({ niveau: r.niveau, tekst: r.kort });
+      if (r.plan) res.plan.push({ n: r.niveau, t: r.plan });
+      if (r.kort) res.kort.push(r.kort);
+    };
+    const diff = (a, b, enhed, d = 0) => `${b - a > 0 ? "+" : b - a < 0 ? "−" : "±"}${fmt(Math.abs(b - a), d)} ${enhed}`;
+
+    if (has(foer, "hr") && has(nu, "hr")) add({ navn: "Frekvens", foer: `${fmt(foer.hr)}/min`, nu: `${fmt(nu.hr)}/min`, aendring: diff(foer.hr, nu.hr, "/min"), niveau: "ok", tekst: "" });
+
+    if (has(foer, "pr") && has(nu, "pr") && !nu.uregelmaessig && !foer.udsagn.has("af") && !foer.udsagn.has("aflagren")) {
+      const r = { navn: "PR", foer: `${fmt(foer.pr)} ms`, nu: `${fmt(nu.pr)} ms`, aendring: diff(foer.pr, nu.pr, "ms"), niveau: "ok", tekst: "Uændret AV-overledning." };
+      if (foer.pr <= 200 && nu.pr > 200) Object.assign(r, { niveau: k.atlet ? "ok" : "info", tekst: "Nyt AV-blok grad I siden sidst.", kort: `nyt AV-blok grad I (PR ${fmt(foer.pr)} → ${fmt(nu.pr)} ms)`, plan: k.atlet ? null : "Nyt AV-blok grad I: gennemgå nyopstartet AV-knude-hæmmende medicin (betablokker, verapamil/diltiazem, digoxin) og kalium." });
+      else if (foer.pr < 300 && nu.pr >= 300) Object.assign(r, { niveau: "warn", tekst: "PR er nu ≥ 300 ms.", kort: `PR forlænget til ${fmt(nu.pr)} ms (fra ${fmt(foer.pr)})`, plan: "PR steget til ≥ 300 ms: medicingennemgang; ved symptomer kardiolog (Holter)." });
+      else if (nu.pr - foer.pr >= 40) Object.assign(r, { niveau: "info", tekst: "PR er forlænget ≥ 40 ms — fx medicin.", kort: `PR forlænget ${fmt(nu.pr - foer.pr)} ms` });
+      else if (Math.abs(nu.pr - foer.pr) >= 20) r.tekst = "Mindre ændring.";
+      add(r);
+    }
+
+    if (has(foer, "qrs") && has(nu, "qrs") && !nu.udsagn.has("pace")) {
+      const r = { navn: "QRS", foer: `${fmt(foer.qrs)} ms`, nu: `${fmt(nu.qrs)} ms`, aendring: diff(foer.qrs, nu.qrs, "ms"), niveau: "ok", tekst: Math.abs(nu.qrs - foer.qrs) >= 10 ? (nu.qrs > foer.qrs ? "Lidt bredere, men under 120 ms og under 25 % forlængelse." : "Smallere.") : "Uændret." };
+      if (foer.qrs < 120 && nu.qrs >= 120)
+        Object.assign(r, { niveau: k.brystsmerter ? "danger" : "warn", tekst: "Ny bred QRS siden sidst (nyt grenblok eller ledningsforstyrrelse).", kort: `ny bred QRS (${fmt(foer.qrs)} → ${fmt(nu.qrs)} ms)`, plan: k.brystsmerter ? "Ny bred QRS og brystsmerter: akut vurdering (nyt venstresidigt grenblok kan ikke skelnes fra infarkt)." : "Ny bred QRS: kalium, medicingennemgang og ekkokardiografi/kardiologisk vurdering." });
+      else if (nu.qrs >= foer.qrs * 1.25 && nu.qrs - foer.qrs >= 15)
+        Object.assign(r, { niveau: "warn", tekst: "QRS er forlænget mere end 25 % — ved klasse I-antiarytmika (fx flecainid) reduceres dosis eller behandlingen stoppes (ESC); overvej også hyperkaliæmi og tricykliske antidepressiva.", kort: `QRS forlænget ${Math.round(((nu.qrs - foer.qrs) / foer.qrs) * 100)} %`, plan: "QRS forlænget > 25 %: kalium; gennemgå klasse I-antiarytmika og tricykliske antidepressiva." });
+      add(r);
+    }
+
+    // QTc
+    let qa = qtcF(foer);
+    let qb = qtcF(nu);
+    let qNavn = "Fridericia";
+    if (isNaN(qa) || isNaN(qb)) {
+      qa = has(foer, "qtc") ? foer.qtc : NaN;
+      qb = has(nu, "qtc") ? nu.qtc : NaN;
+      qNavn = foer.qtcFormel && foer.qtcFormel === nu.qtcFormel ? FORMEL[foer.qtcFormel] : "";
+      if (!isNaN(qa) && !isNaN(qb) && !qNavn) {
+        res.noter.push("QTc kan ikke sammenlignes sikkert: apparatets formel er ukendt eller forskellig, og QT/RR mangler i den ene udskrift.");
+        qa = NaN;
+      }
+    }
+    if (!isNaN(qa) && !isNaN(qb)) {
+      const d = qb - qa;
+      const r = { navn: `QTc (${qNavn})`, foer: `${fmt(qa)} ms`, nu: `${fmt(qb)} ms`, aendring: diff(qa, qb, "ms"), niveau: "ok", tekst: "Ingen væsentlig ændring." };
+      if (d > 60) Object.assign(r, { niveau: qb >= 500 ? "danger" : "warn", tekst: "Stigning > 60 ms: øget risiko for torsades de pointes (ICH E14; Drew 2010).", kort: `QTc steget ${fmt(d)} ms (${fmt(qa)} → ${fmt(qb)} ms)`, plan: "QTc steget > 60 ms: find årsagen (nyt QT-forlængende lægemiddel, hypokaliæmi, hypomagnesiæmi), overvej at stoppe/skifte lægemidlet og gentag EKG." });
+      else if (d > 30) Object.assign(r, { niveau: "info", tekst: "Stigning 30–60 ms — betydningsfuld ved QT-forlængende medicin (ICH E14).", kort: `QTc steget ${fmt(d)} ms`, plan: k.qtmed ? "QTc steget 30–60 ms på QT-forlængende medicin: kalium og magnesium, overvej dosis og kontrol-EKG." : null });
+      else if (d < -30) r.tekst = "QTc er faldet.";
+      const qrsSkift = has(foer, "qrs") && has(nu, "qrs") && Math.abs(nu.qrs - foer.qrs) >= 20;
+      if (qrsSkift && has(foer, "qt") && has(nu, "qt")) {
+        const jt = nu.qt - nu.qrs - (foer.qt - foer.qrs);
+        r.tekst += ` QRS har ændret sig ≥ 20 ms, så en del af QT-ændringen skyldes QRS; JT (QT − QRS) er ændret ${jt >= 0 ? "+" : "−"}${fmt(Math.abs(jt))} ms.`;
+      }
+      add(r);
+    }
+
+    const ka = akseKat(foer.qrsaxe);
+    const kb = akseKat(nu.qrsaxe);
+    if (ka && kb) {
+      const d = vinkel(foer.qrsaxe, nu.qrsaxe);
+      const r = { navn: "QRS-akse", foer: `${fmt(akse(foer.qrsaxe))}°`, nu: `${fmt(akse(nu.qrsaxe))}°`, aendring: `${fmt(d)}°`, niveau: "ok", tekst: "Uændret." };
+      if (ka !== "hoejre" && kb === "hoejre") Object.assign(r, { niveau: "warn", tekst: "Ny højre akse — ved åndenød: tænk lungeemboli eller højre ventrikelbelastning.", kort: "ny højre akse", plan: "Ny højre akse: vurder klinisk for lungeemboli/højre belastning (åndenød, takykardi, saturation)." });
+      else if (ka !== "venstre45" && ka !== "ekstrem" && kb === "venstre45") Object.assign(r, { niveau: "info", tekst: "Ny venstre akse ≤ −45° — nyt venstre anterior fascikelblok?", kort: "ny venstre akse (fascikelblok?)" });
+      else if (kb === "ekstrem" && ka !== "ekstrem") Object.assign(r, { niveau: "warn", tekst: "Ny ekstrem akse — forbyttede elektroder? Tag nyt EKG.", kort: "ny ekstrem akse" });
+      else if (d >= 45) Object.assign(r, { niveau: "info", tekst: "Aksen har flyttet sig ≥ 45° — elektrodeplacering eller ny ledningsforstyrrelse?", kort: `aksen flyttet ${fmt(d)}°` });
+      add(r);
+    }
+
+    if (has(foer, "pdur") && has(nu, "pdur") && foer.pdur < 120 && nu.pdur >= 120 && !nu.uregelmaessig) add({ navn: "P-varighed", foer: `${fmt(foer.pdur)} ms`, nu: `${fmt(nu.pdur)} ms`, aendring: diff(foer.pdur, nu.pdur, "ms"), niveau: "info", tekst: "Nyt interatrielt blok.", kort: "nyt interatrielt blok" });
+    if (has(foer, "sokolow") && has(nu, "sokolow")) {
+      const r = { navn: "Sokolow-Lyon", foer: `${fmt(foer.sokolow, 2)} mV`, nu: `${fmt(nu.sokolow, 2)} mV`, aendring: diff(foer.sokolow, nu.sokolow, "mV", 2), niveau: "ok", tekst: "" };
+      if (foer.sokolow <= 3.5 && nu.sokolow > 3.5) Object.assign(r, { niveau: "info", tekst: "Voltagekriteriet for hypertrofi er nu opfyldt.", kort: "nyt voltagekriterium for venstre ventrikelhypertrofi" });
+      add(r);
+    }
+
+    // Maskinens udsagn: nye og forsvundne
+    if (nu.maskineLav && foer.maskine) {
+      const NYT = {
+        af: ["warn", "ny atrieflimren siden sidst", "Ny atrieflimren: CHA₂DS₂-VA og antikoagulation (se LINK_AF), frekvenskontrol, TSH og ekkokardiografi."],
+        aflagren: ["warn", "ny atrieflagren siden sidst", "Ny atrieflagren: antikoagulation efter samme regler som atrieflimren (se LINK_AF); henvis til kardiolog."],
+        lbbb: [k.brystsmerter ? "danger" : "warn", "nyt venstresidigt grenblok", k.brystsmerter ? "Nyt venstresidigt grenblok og brystsmerter: akut (112/akut kardiologisk vurdering)." : "Nyt venstresidigt grenblok: ekkokardiografi og kardiologisk vurdering."],
+        rbbb: ["info", "nyt højresidigt grenblok", "Nyt højresidigt grenblok: ved åndenød eller brystsmerter tænk lungeemboli."],
+        bifasc: ["warn", "nyt bifascikulært blok", "Nyt bifascikulært blok: kardiologisk vurdering (akut ved synkope)."],
+        gammelMI: ["warn", "nyt infarktmønster (Q-takker) siden sidst", "Nyt infarktmønster: tyder på gennemgået infarkt — ekkokardiografi og kardiologisk vurdering."],
+        iskaemi: [k.brystsmerter ? "danger" : "warn", "ny ST-depression/mulig iskæmi", "Ny ST-depression: med brystsmerter akut; ellers udredning for iskæmisk hjertesygdom."],
+        stt: ["warn", "nye ST-T-forandringer", "Nye ST-T-forandringer: vurder for iskæmi, medicin og elektrolytter."],
+        stelev: [k.brystsmerter ? "danger" : "warn", "ny ST-elevation", "Ny ST-elevation: vurder kurven og patienten samme dag; med brystsmerter → 112."],
+        lvh: ["info", "nyt hypertrofikriterium", null],
+        avblok1: ["info", "nyt AV-blok grad I", null],
+      };
+      [...nu.udsagn].filter((id) => !NEUTRALE.has(id) && !foer.udsagn.has(id)).forEach((id) => {
+        const u = UDSAGN.find((x) => x.id === id);
+        const [niveau, kort, plan] = NYT[id] || ["info", `nyt: ${u.navn.charAt(0).toLowerCase() + u.navn.slice(1)}`, null];
+        res.nye.push({ navn: u.navn, niveau });
+        if (!res.fund.some((f) => f.tekst === kort) && !res.kort.some((x) => x.startsWith(kort.split(" ")[0] + " " + kort.split(" ")[1]))) {
+          res.fund.push({ niveau, tekst: kort });
+          res.kort.push(kort);
+        }
+        if (plan) res.plan.push({ n: niveau, t: plan });
+      });
+      [...foer.udsagn].filter((id) => !NEUTRALE.has(id) && !nu.udsagn.has(id)).forEach((id) => {
+        const u = UDSAGN.find((x) => x.id === id);
+        res.vaek.push({ navn: u.navn, niveau: "info" });
+        if (id === "af" || id === "aflagren") res.kort.push(`${u.navn.toLowerCase()} ikke længere nævnt`);
+      });
+    } else res.noter.push("Maskinens tolkning mangler i den ene udskrift — kun måleværdierne er sammenlignet.");
+    return res;
+  }
+
   // ---------------------------------------------------------------- Visning
   let sidste = null;
 
@@ -510,13 +687,16 @@
     const harTal = ["hr", "pr", "qrs", "qt", "qtc", "rr", "pdur", "paxe", "qrsaxe", "taxe", "sokolow", "cornell"].some((x) => !isNaN(v[x]));
     if (!harTal && !maskine) {
       sidste = null;
-      output.innerHTML = `<p class="field-hint">Indsæt teksten fra EKG-apparatet i feltet til venstre (kopiér fra den elektroniske journal eller EKG-programmet), eller skriv værdierne ind.</p>`;
+      output.innerHTML = document.getElementById("tidligereTekst").value.trim()
+        ? `<p class="field-hint">Indsæt først det aktuelle EKG øverst — så sammenlignes det med det tidligere.</p>`
+        : `<p class="field-hint">Indsæt teksten fra EKG-apparatet i feltet til venstre (kopiér fra den elektroniske journal eller EKG-programmet), eller skriv værdierne ind.</p>`;
       return;
     }
 
     const m = vurder(v, k);
     const q = qtVurdering(v, k);
     const udsagn = liste.map((u) => ({ u, niveau: u.niveau(k, v) }));
+    const sml = sammenlign(v, k);
 
     // Samlet niveau og fund.
     const alleFund = [...m.fund];
@@ -527,9 +707,10 @@
       if (niveau === "ok" || ["sinusbrady", "sinustaky", "avblok1", "langqt", "kortqt", "abnorm", "graense", "vrespons"].includes(u.id)) return;
       alleFund.push({ niveau, tekst: u.navn.charAt(0).toLowerCase() + u.navn.slice(1) });
     });
+    if (sml) sml.fund.forEach((f) => { if (!alleFund.some((x) => x.tekst === f.tekst)) alleFund.push(f); });
     const top = Math.max(0, ...alleFund.map((f) => RANG[f.niveau]), ...udsagn.map((x) => RANG[x.niveau]), q ? RANG[q.niveau] : 0);
     // Forslag til handling: de vigtigste først, uden dubletter.
-    const planObj = [...udsagn.flatMap(({ u, niveau }) => (niveau === "ok" ? [] : (u.plan || []).map((t) => ({ n: niveau, t })))), ...m.plan, ...(q ? q.plan.map((t) => ({ n: q.niveau, t })) : [])];
+    const planObj = [...udsagn.flatMap(({ u, niveau }) => (niveau === "ok" ? [] : (u.plan || []).map((t) => ({ n: niveau, t })))), ...m.plan, ...(q ? q.plan.map((t) => ({ n: q.niveau, t })) : []), ...(sml ? sml.plan : [])];
     planObj.sort((a, b) => RANG[b.n] - RANG[a.n]);
     const plan = [...new Set(planObj.map((x) => x.t))];
 
@@ -540,6 +721,25 @@
     if (atletNote) m.tjek.push("Atletkriterierne gælder 12–35 år — patienten er vurderet efter de almindelige referenceværdier.");
     const cls = top === 3 ? "box-red" : top === 2 ? "box-amber" : top === 1 ? "box-blue" : "box-green";
     html += box(cls, titel, (sorteret.length ? ul(sorteret.map((f) => `${TAG[f.niveau]} ${esc(f.tekst.charAt(0).toUpperCase() + f.tekst.slice(1))}`)) : "<p>Måleværdierne ligger inden for referenceområderne for voksne.</p>") + `<p class="field-hint">Vurderingen bygger kun på tallene og maskinens tekst — se altid selve kurven (rytme, ST-T, Q-takker, deltabølge).</p>`);
+
+    // 1b. Sammenligning med tidligere EKG
+    if (sml) {
+      const hvornaar = sml.dato ? `EKG fra ${datoTekst(sml.dato)}` : "tidligere EKG";
+      let body = "";
+      if (sml.advarsel) body = `<p><strong>${esc(sml.advarsel)}</strong></p>`;
+      else {
+        if (sml.rk.length)
+          body += `<div class="drug-table-wrap"><table class="drug-table ekg-sml stack-mobile"><thead><tr><th>Måling</th><th>Før</th><th>Nu</th><th>Ændring</th><th>Vurdering</th></tr></thead><tbody>${sml.rk
+            .map((r) => `<tr class="niveau-${r.niveau}"><td data-label="Måling">${esc(r.navn)}</td><td data-label="Før">${esc(r.foer)}</td><td data-label="Nu"><strong>${esc(r.nu)}</strong></td><td data-label="Ændring">${esc(r.aendring)}</td><td data-label="Vurdering">${r.niveau === "ok" ? "" : TAG[r.niveau] + " "}${esc(r.tekst)}</td></tr>`)
+            .join("")}</tbody></table></div>`;
+        if (sml.nye.length) body += `<p><strong>Nyt i maskinens tolkning:</strong></p>${ul(sml.nye.map((x) => `${TAG[x.niveau]} ${esc(x.navn)}`))}`;
+        if (sml.vaek.length) body += `<p><strong>Ikke længere nævnt:</strong> ${esc(sml.vaek.map((x) => x.navn).join(", "))}.</p>`;
+        if (!sml.fund.length) body += `<p>Ingen væsentlige ændringer siden ${esc(hvornaar)}.</p>`;
+      }
+      if (sml.noter.length) body += ul(sml.noter.map(esc));
+      const n = Math.max(0, ...sml.fund.map((f) => RANG[f.niveau]));
+      html += box(n === 3 ? "box-red" : n === 2 ? "box-amber" : "", `Sammenligning med ${esc(hvornaar)}`, body);
+    }
 
     // 2. Måleværdier
     if (m.rk.length) {
@@ -590,12 +790,12 @@
     html += `<div class="box box-blue box-collapsible"><details open><summary><h3>Det kan værktøjet ikke</h3></summary>${ul([
       "Genkende alle maskinens udsagn — læs altid hele teksten.",
       "Se kurven: ST-elevation/-depression, T-inversion, Q-takker, deltabølge, Brugada-mønster, U-takker og rytmen skal vurderes på EKG'et.",
-      "Sammenligne med tidligere EKG — et nyt fund vejer tungere end et kendt.",
+      "Sammenligne selve kurverne med et tidligere EKG — kun tal og maskinens udsagn sammenlignes (under \"Sammenlign med tidligere EKG\").",
       "Vurdere børn og unge under 18 år (andre normalværdier).",
       "Erstatte klinikken: symptomer, blodtryk, medicin og elektrolytter afgør hastegraden.",
     ])}</details></div>`;
 
-    sidste = { v, k, m, q, udsagn, plan, sorteret, maskine };
+    sidste = { v, k, m, q, udsagn, plan, sorteret, maskine, sml };
     html += box("", "Journalnotat", `<pre class="notat-tekst" id="journalTekst">${esc(journal())}</pre>`);
     output.innerHTML = html;
   }
@@ -603,7 +803,7 @@
   // ---------------------------------------------------------------- Journalnotat
   function journal() {
     if (!sidste) return "";
-    const { v, q, sorteret, maskine, plan } = sidste;
+    const { v, q, sorteret, maskine, plan, sml } = sidste;
     const idag = new Date().toLocaleDateString("da-DK");
     const tal = [];
     if (!isNaN(v.hr)) tal.push(`frekvens ${fmt(v.hr)}/min`);
@@ -618,6 +818,7 @@
     const linjer = [`EKG vurderet ${idag}: ${tal.join(", ")}.`];
     if (maskine) linjer.push(`Maskinens tolkning${document.getElementById("ubekraeftet").value === "1" ? " (ubekræftet)" : ""}: ${maskine.replace(/\s+/g, " ")}`);
     linjer.push(`Fund: ${sorteret.length ? sorteret.map((f) => f.tekst).join("; ") : "måleværdier inden for referenceområderne"}.`);
+    if (sml && !sml.advarsel) linjer.push(`Sammenlignet med ${sml.dato ? `EKG fra ${datoTekst(sml.dato)}` : "tidligere EKG"}: ${sml.kort.length ? sml.kort.join("; ") : "ingen væsentlige ændringer"}.`);
     linjer.push("Kurven: [udfyld efter eget eftersyn — rytme, ST-T, sammenligning med tidligere EKG].");
     if (plan.length) linjer.push(`Plan: ${plan.slice(0, 3).map((p) => p.replace("se LINK_AF", "se Atrieflimren-værktøjet").replace("LINK_AF", "Atrieflimren-værktøjet")).join(" ")}`);
     return linjer.join("\n");

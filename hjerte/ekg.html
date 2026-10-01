@@ -103,6 +103,17 @@
       <textarea id="maskine" rows="4" class="ekg-maskine" placeholder="fx Sinusrytme med AV-blok grad I. I øvrigt normalt EKG."></textarea>
       <input type="hidden" id="ubekraeftet" value="">
     </div>
+
+    <details class="ekg-tidligere" id="tidligereBoks" style="border: 1px dashed var(--color-primary, var(--primary)); border-radius: 8px; padding: 0.6rem 0.8rem; margin: 0 0 1rem;">
+      <summary style="font-weight: 600; cursor: pointer; color: var(--color-primary-dark, var(--primary));">Sammenlign med tidligere EKG</summary>
+      <p class="field-hint">Et nyt fund vejer tungere end et kendt. Indsæt udskriften af et tidligere EKG fra samme patient <strong>efter</strong> det aktuelle — en ny indsættelse øverst rydder også dette felt (ny patient). Teksten behandles kun i browseren.</p>
+      <label for="tidligereTekst" class="sr-only">Tidligere EKG-udskrift</label>
+      <textarea id="tidligereTekst" class="ekg-maskine" style="margin-top: 0.4rem" rows="6" placeholder="Indsæt det tidligere EKG her (samme format som øverst)"></textarea>
+      <div class="field" style="margin: 0.5rem 0 0">
+        <label for="tidligereDato">Dato for det tidligere EKG (valgfri — ellers læses den fra udskriften)</label>
+        <input type="date" id="tidligereDato">
+      </div>
+    </details>
   </form>
 
   <section class="panel result-panel" aria-label="Tolkning" id="resultPanel">
@@ -128,6 +139,7 @@
     <li>Bayés de Luna et al. 2012 (konsensus): interatrielt blok ved P-varighed ≥ 120 ms; Aro et al. 2012: frontal QRS-T-vinkel ≥ 100° og risiko for arytmisk død</li>
     <li>Drezner et al. 2017, International recommendations for ECG interpretation in athletes (12–35 år, ≥ 4 timers intensiv træning om ugen): normale fund hos veltrænede (sinusbradykardi ≥ 30/min, AV-blok grad I med PR &lt; 400 ms, inkomplet højresidigt grenblok, isoleret voltagekriterium for hypertrofi)</li>
     <li>QTc-formler: Bazett (QT/√RR), Fridericia (QT/∛RR), Framingham (QT + 154 × (1 − RR)), Hodges (QT + 1,75 × (frekvens − 60)); Bogossian 2014 (QT − 48,5 % ≈ 50 % af QRS; udviklet ved venstresidigt grenblok og pacing, originalt med Bazett — her et skøn med Fridericia); Drew et al. 2010 (AHA): torsades-risiko ved QTc &gt; 500 ms eller stigning &gt; 60 ms</li>
+    <li>Sammenligning med tidligere EKG: QTc-stigning &gt; 30 og &gt; 60 ms (ICH E14; Drew 2010), QRS-forlængelse &gt; 25 % ved klasse I-antiarytmika som flecainid (ESC/produktresumé), nyt AV-blok, ny bred QRS, ny akse og nye udsagn fra maskinen</li>
     <li>Lindow et al. 2019 (Scand J Prim Health Care, svensk almen praksis): 9 % af computerens atrieflimren-/flagren-diagnoser var forkerte, ca. 1/3 ved flagren — maskinens tekst skal altid efterses</li>
   </ul>
   <p class="fineprint">Uafhængigt hjælpeværktøj — erstatter ikke lægens egen vurdering af kurven. Lægehåndbogen og danske kardiologiske sider kunne ikke tilgås direkte ved udviklingen; tallene er kontrolleret via sekundære kilder (bl.a. tidsskriftsresuméer og lærebogssider). Ingen patientdata gemmes eller sendes.</p>
