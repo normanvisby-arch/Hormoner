@@ -860,3 +860,14 @@ label.udfyldt { background: var(--color-amber-bg); border-radius: 4px; box-shado
 .rest-note { background: var(--color-panel); border-left: 3px solid var(--color-amber-border); padding: 0.4rem 0.6rem; border-radius: 4px; }
 .rest-liste li { margin-bottom: 0.35rem; }
 .rest-liste .valg-radio { display: inline-flex; margin: 0; font-size: 0.9rem; color: var(--color-text); }
+
+/* EKG-tolkning (hjerte/ekg.html) */
+.tag-ok { background: var(--color-green-bg); color: var(--color-green-text); border: 1px solid var(--color-green-border); }
+.ekg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: 0.6rem 0.8rem; }
+.ekg-grid label { display: flex; flex-direction: column; gap: 0.25rem; font-weight: 600; font-size: 0.82rem; }
+.ekg-grid input, .ekg-grid select { width: 100%; box-sizing: border-box; padding: 0.4rem 0.5rem; border: 1px solid var(--color-border); border-radius: 6px; font-size: 0.95rem; font-weight: 400; background: var(--color-panel); color: inherit; }
+.ekg-grid input.udfyldt, .ekg-grid select.udfyldt, textarea.ekg-maskine.udfyldt { outline: 2px solid var(--color-amber-border); outline-offset: 1px; background: var(--color-amber-bg); }
+textarea.ekg-maskine { width: 100%; box-sizing: border-box; font: inherit; font-size: 0.9rem; padding: 0.5rem; border: 1px solid var(--color-border); border-radius: 6px; resize: vertical; }
+.ekg-citat { margin: 0 0 0.6rem; padding: 0.5rem 0.8rem; border-left: 3px solid var(--color-primary); background: var(--color-bg); font-style: italic; }
+.ekg-tabel td:nth-child(2) { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ekg-qtc td:nth-child(2) { white-space: nowrap; font-variant-numeric: tabular-nums; }

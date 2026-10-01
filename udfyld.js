@@ -455,6 +455,13 @@ window.Udfyld = (function () {
       { v: 3, m: "dosis\\w*|dosering\\w*|nyredosis|medicingennemgang|medicinjuster\\w*|(?:kan|må) (?:pt\\.? |patienten |hun |han )?(?:få|tåle|tage|gives)|(?:skal|bør) \\w+ (?:reduceres|halveres|seponeres)" },
       { v: 1, m: `e-?gfr|gfr${E}|nedsat nyrefunktion` }, { v: 2, m: "kreatininclearance|crcl|cockcroft" }, { v: 1, m: "kreatinin" },
       ...MED_NYRE.map((m) => ({ v: 1, m: `(?:${m})${E}`, grp: "med" })) ] },
+    // En EKG-udskrift (måleværdier og maskinens tolkning) vejer tungt; ordet "EKG" alene næsten intet.
+    { id: "ekg", sti: "hjerte/ekg.html", navn: "EKG — tolkning af måleværdier", app: "Hjerte-kar", udfyld: true, tegn: [
+      { v: 6, m: "systemevaluering|cardiosoft|12sl|p-r-t[- ]?akse\\w*|p\\s*\\/\\s*qrs\\s*\\/\\s*t|qt\\s*\\/\\s*qtc|sokolow\\w*|rr\\s*\\/\\s*pp" },
+      { v: 3, m: `(?:pr|pq)[- ]?(?:interval|tid)\\w*|qrs[- ]?(?:varighed|duration|bredde)` },
+      { v: 2, m: `qtc${E}|qtc-?(?:tid|interval)\\w*` },
+      { v: 2, m: `av-?blok|grenblok|hemiblok|fascikelblok|ekstrasystol\\w*|ves${E}|sves${E}|sinusbradykardi|sinustakykardi|forlænget qt|lang qt` },
+      { v: 1, m: `ekg${E}|elektrokardiogram\\w*` } ] },
     { id: "af", sti: "hjerte/af.html", navn: "Atrieflimren — antikoagulation", app: "Hjerte-kar", tegn: [
       { v: 3, m: `atrieflimren|atrieflagren|atrieflimmer|(?:paroksystisk|persisterende|permanent|nyopdaget|kendt|nydiagnosticeret) af${E}(?!\\s+(?:hjemme\\w*|os${E}|læge\\w*|famil\\w*|kommun\\w*|psyk\\w*|sygehus\\w*|afd\\w*|personale\\w*|egen${E}|pleje\\w*))|af-patient|a-flimren`, fam: true }, { v: 3, m: "cha2ds2|cha₂ds₂|chads" }, { v: 2, m: `noak${E}|doak${E}|antikoagul\\w*|blodfortyndende|has-?bled` } ] },
     { id: "cvrisiko", sti: "hjerte/cvrisiko.html", navn: "CV-risiko (SCORE2)", app: "Hjerte-kar", tegn: [
@@ -614,15 +621,16 @@ window.Udfyld = (function () {
     if (!form) return;
     const panel = document.createElement("details");
     panel.className = "udfyld";
-    panel.innerHTML = `<summary>Udfyld fra journaltekst</summary>
-      <p class="field-hint">Indsæt fx et notat fra Noteless eller en diktering. Teksten behandles kun i browseren og sendes ingen steder hen. Kontrollér altid de udfyldte felter.</p>
+    panel.innerHTML = `<summary>${opts.titel || "Udfyld fra journaltekst"}</summary>
+      <p class="field-hint">${opts.hjaelp || "Indsæt fx et notat fra Noteless eller en diktering."} Teksten behandles kun i browseren og sendes ingen steder hen. Kontrollér altid de udfyldte felter.</p>
       <label for="udfyldTekst" class="sr-only">Journaltekst</label>
-      <textarea id="udfyldTekst" rows="5" placeholder="${opts.eksempel || ""}"></textarea>
+      <textarea id="udfyldTekst" rows="${opts.raekker || 5}" placeholder="${opts.eksempel || ""}"></textarea>
       <div class="udfyld-actions">
         <button type="button" class="btn btn-primary" id="udfyldBtn">Udfyld felterne</button>
         <button type="button" class="btn btn-outline" id="udfyldRyd">Ryd</button>
       </div>
       <div class="udfyld-rapport" id="udfyldRapport" aria-live="polite"></div>`;
+    if (opts.aaben) panel.open = true;
     const h2 = form.querySelector("h2");
     if (h2) h2.after(panel);
     else form.prepend(panel);

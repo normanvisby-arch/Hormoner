@@ -104,6 +104,53 @@ Selvstændig app med eget manifest, ikon og service worker (installeres fra
   produktresuméerne, interaktioner og kontrolinterval (EHRA: clearance/10 måneder, 6 måneder fra
   75 år, ellers årligt). VKA ved mekanisk klap/mitralstenose. Lægen kan vælge den aftalte
   behandling, så journalnotatet kun nævner den.
+- **`ekg.html`** (EKG — tolkning af måleværdier): lægen indsætter teksten fra EKG-apparatet. Alt
+  sker i browseren, så det virker uden internet.
+  - **Indlæsning (`udtraek` i `ekg.js`):** faste regler læser GE CardioSoft/MUSE (dansk og
+    engelsk), Philips (`Rate/PR/QRSD/QT/QTc/--AXIS--`) og lignende formater.
+    - Værdier: frekvens, PR/PQ, QRS, QT, QTc og formel (B/F), RR/PP, P-varighed, P/QRS/T-akser,
+      Sokolow-Lyon, Cornell, køn og alder.
+    - Sekunder, mm og typografisk minus omregnes.
+    - Maskinens tolkning tages fra "Systemevaluering:"/"Tolkning:" frem til apparatlinjerne.
+      "Ubekræftet" noteres.
+  - **Måleværdier (voksne, AHA/ACCF/HRS 2009):**
+    - Frekvens 50–100/min. Over 150 = handling nu. Ved atrieflimren er målet en hvilepuls under
+      110.
+    - PR 120–200 ms. Kort PR med bred QRS giver mistanke om præeksitation. Over 200 ms = AV-blok
+      grad I, og PR ≥ 300 ms omtales som udtalt (ESC 2021).
+    - QRS under 110 ms. 110–119 ms = inkomplet grenblok eller uspecifik ledningsforsinkelse.
+      ≥ 120 ms = bred.
+    - P-varighed ≥ 120 ms = interatrielt blok (Bayés de Luna 2012).
+    - P-akse 0 til +75°. QRS-akse −30° til +90°; venstre anterior fascikelblok ved −45° til −90°.
+      Ekstrem akse = afvigende.
+    - Frontal QRS-T-vinkel: ≥ 100° markeres (Aro 2012).
+    - Sokolow-Lyon over 3,5 mV, Cornell over 2,8/2,0 mV og Cornell-produkt over 244 mV·ms (ESH 2023).
+    - Atleter (≥ 4 timer intensiv træning om ugen) vurderes efter de internationale kriterier fra
+      2017: bradykardi ≥ 30, AV-blok I under 400 ms og isoleret voltage er normalt.
+    - Tjek af tallene: frekvens mod RR, og PP mod RR (AV-blok II–III eller AV-dissociation?).
+  - **QT:**
+    - QTc beregnes med Fridericia (primær), Bazett, Framingham og Hodges. Apparatets værdi vises
+      til sammenligning.
+    - Grænser: forlænget ≥ 450 ms hos mænd og ≥ 460 ms hos kvinder (AHA 2009). ≥ 480 ms = lang-QT-
+      syndrom ved gentagne målinger (ESC 2022). ≥ 500 ms = handling nu (Drew 2010). ≤ 320 ms, eller
+      ≤ 360 ms med synkope = kort-QT-syndrom (ESC 2022).
+    - Noter: når Bazett krydser grænsen ved puls over 80 eller under 60, når apparatet afviger fra
+      beregningen, og ved uregelmæssig rytme og pacing.
+    - Ved QRS ≥ 120 ms bruges et skøn efter Bogossian (QT − 50 % af QRS, derefter Fridericia).
+      Formlen er udviklet ved venstresidigt grenblok og pacing. Når QTc uden korrektion er ≥ 500 ms,
+      vises "kan ikke afvises".
+    - QT uden RR eller frekvens giver "kan ikke vurderes". Forlænget QTc med synkope = handling nu.
+  - **Maskinens udsagn:** en ordliste med ca. 50 udsagn på dansk og engelsk giver hvert udsagn
+    forklaring, niveau og handling.
+    - Hastegraden afhænger af klinikken (brystsmerter, synkope, hjertebanken, QT-medicin,
+      veltrænet).
+    - Fx bliver venstresidigt grenblok med brystsmerter og 2:1-blok "handling nu". Højresidigt
+      grenblok + fascikelblok = bifascikulært blok.
+    - Atrieflimren linker til Atrieflimren-værktøjet med en advarsel om, at computeren
+      overdiagnosticerer i ca. 10 %.
+  - **Resultat:** sammenfatning (handling nu / afvigende / bemærk / normal), tabel, QTc-tabel,
+    forslag til handling, hvad værktøjet ikke kan (selve kurven), og et journalnotat med en linje
+    til lægens egen gennemsyn af kurven.
 - **`huskeskema.html`**: tolv principper, effekt i tal (CTT, BPLTTC, Hart 2007, Ruff 2014) og
   henvisningskriterier.
 
@@ -312,7 +359,8 @@ Notat-appen og sætter ind — eller trykker "Indsæt fra udklipsholder".
 - **Kontrol mod eksempler:** 93 realistiske notater fra auditten (Noteless-stil med overskrifter,
   medicinlister, komorbiditet, telefonkonsultationer og flere problemer). Ingen giver nu et sikkert,
   men forkert valg; før rettelserne var der 9.
-- **Udfyldes automatisk:** luftveje, urinveje, hud, kronisk nyresygdom og dosis efter
+- **Udfyldes automatisk:** EKG (en EKG-udskrift med PR, QRS, QT/QTc, akser eller
+  "Systemevaluering"), restordre, luftveje, urinveje, hud, kronisk nyresygdom og dosis efter
   nyrefunktion. Atrieflimren, CV-risiko, KOL, astma, hypothyreose, type 2-diabetes (behandling og
   årskontrol), klimakteriet, prævention og osteoporose genkendes og åbnes, men udfyldes ikke endnu.
 - **I værktøjet:**
@@ -717,6 +765,51 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**1. oktober 2026 — EKG — tolkning af måleværdier:**
+- Ny side `hjerte/ekg.html` i hjerte-appen: indsæt teksten fra EKG-apparatet, så vurderes
+  måleværdierne mod referenceværdier for voksne. QTc beregnes med fire formler (og Bogossian ved
+  bred QRS), maskinens udsagn forklares med hastegrad og forslag til handling, og der laves et
+  journalnotat. Virker offline og tolker ikke selve kurven.
+- Uafhængig audit, rettet før merge:
+  - Røde flag:
+    - Akut infarkt genkendes også som "infarkt, muligvis akut"/"injury".
+    - Bred-kompleks-takykardi (frekvens > 100 og QRS ≥ 120 ms) = handling nu.
+    - AV-blok II–III genkendes også på engelsk ("2nd/3rd degree").
+    - Forlænget QTc med synkope = handling nu.
+  - Fejlfund:
+    - Supraventrikulær takykardi og supraventrikulære ekstrasystoler læses ikke længere som VT, VES
+      eller asystoli.
+    - Flagren med 2:1 er ikke AV-blok, og "grad II type 1" = Wenckebach.
+    - "Abnormal ECG" er ikke "normalt".
+    - "Minimal voltage" giver kun "Bemærk".
+    - ST-elevation-differentialet giver ét fund.
+  - Nægtelser ("ingen atrieflimren", "VT ikke påvist", "has replaced …") og historiske udsagn
+    ("tidligere STEMI") tæller ikke.
+  - Sammenligning med tidligere EKG udelades.
+  - Udsagn, som værktøjet ikke kender, vises som "Ikke genkendt — læs selv", og sammenfatningen
+    bliver så aldrig grøn.
+  - QT:
+    - Et usikkert Bogossian-skøn kan ikke berolige ved QTc ≥ 500 ms.
+    - QT uden RR/frekvens giver "kan ikke vurderes".
+  - Atletkriterierne gælder kun 12–35 år.
+  - Voltage vurderes ikke ved grenblok.
+  - Cornell-produktet får + 0,6 mV hos kvinder.
+  - Journalnotatets plan starter med det vigtigste.
+  - Udtræk:
+    - QT/QTc i flere formater (aldrig QT som QTc).
+    - Ventrikelfrekvens før atriefrekvens og puls.
+    - Alder fra "67-årig" (ikke "i 30 år").
+    - Kommaseparerede akser, Mortara-akser, SV1+RV5 og RaVL+SV3.
+  - Klassifikatoren: "QTc" vejer nu 2 point.
+- `udfyld.js`:
+  - Indsæt-panelet kan få egen titel og hjælpetekst og stå åbent.
+  - Notat-indgangen genkender EKG-udskrifter. Ordet "EKG" alene vejer kun 1 point, så
+    atrieflimren-notater stadig går til Atrieflimren.
+- `style.css`: grøn status-etiket og felter til EKG-siden.
+- Tests: ny suite `ekg`, og `notat`, `pwa-hjerte` og `smoke` er udvidet.
+- Service worker: v9 (hjerte), v12 (rod), v6 (lunge, thyreoidea, diabetes), v5 (infektion, nyre),
+  v3 (notat) og v2 (restordre), fordi `style.css` og `udfyld.js` er ændret.
 
 **30. september 2026 — Restordre — alternativer:**
 - Ny app `restordre/`:
