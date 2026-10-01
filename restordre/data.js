@@ -559,7 +559,7 @@ window.RESTORDRE_GRUPPER = [
   // ---------------------------------------------------------------- Infektioner
   {
     id: "penicillin", navn: "Penicillin V", kategori: "Infektioner",
-    stoffer: [{ id: "penv", navn: "Phenoxymethylpenicillin (penicillin V)", soeg: "penicillin v|phenoxymethylpenicillin|primcillin|vepicombin|penicillin", samme: "Tabletter i flere styrker og mikstur — i restordreperioder bruges den styrke, der kan skaffes (ny recept)." }],
+    stoffer: [{ id: "penv", navn: "Phenoxymethylpenicillin (penicillin V)", soeg: "penicillin v|phenoxymethylpenicillin|primcillin|primve|vepicombin|penicillin", samme: "Tabletter i flere styrker og mikstur — i restordreperioder bruges den styrke, der kan skaffes (ny recept)." }],
     forslag: [
       "Anden styrke eller form af penicillin V (tablet ↔ mikstur).",
       "Otitis, sinuitis og pneumoni: amoxicillin er et alternativ (dosis i Luftveje-værktøjet).",

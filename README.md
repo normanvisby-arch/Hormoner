@@ -246,9 +246,12 @@ eller 25 mg og overstiger aldrig voksendosis.
 azithromycin vises under børnedosis et konkret forslag: præparat og styrke (den laveste styrke, der
 giver højst 5 ml pr. dosis, ellers den stærkeste), dosis i ml (0,1 ml-trin under 5 ml, ellers 0,5 ml;
 aldrig over voksendosis), mængde til hele kuren + ca. 10 % spild (værktøjets eget skøn) og den
-mindste pakningskombination (fx "1 × 125 ml (Primve) eller 1 × 200 ml (Primcillin)"). Advarsel, når
-kuren er længere end holdbarheden efter opblanding, og ved over 15 ml pr. dosis (tabletter er ofte
-lettere). Amoxicillin med clavulansyre beregnes ikke (ingen sikker dansk præparat-/dosisdata).
+mindste pakningskombination (fx "1 × 125 ml (Primve) eller 1 × 200 ml (Primcillin)"). Rækker en
+mindre pakning uden spildmargin (mindst 3 % til overs), vises det som "rækker knapt". mg-tallet i
+dosisteksten kommer fra ml-dosen, så de to altid stemmer. Advarsel, når kuren er længere end
+holdbarheden efter opblanding, og ved stort volumen (over 15 ml pr. dosis eller mindst 300 ml i alt:
+tabletter/kapsler er ofte lettere). Nerbutix: generelt klausuleret tilskud (børn op til 20 kg og
+20–30 kg, der ikke kan tage tabletter/kapsler). Amoxicillin med clavulansyre beregnes ikke (ingen sikker dansk præparat-/dosisdata).
 Pakninger og holdbarhed fra indlægssedler/produktresuméer, kontrolleret via sekundære kilder.
 
 - **`luftveje.html`** (DSAM 2024, Region Hovedstaden 2025): faryngo-tonsillitis efter Centor
@@ -809,6 +812,12 @@ en server. Konsekvenser af det valg:
   (Nerbutix) og azithromycin (Zitromax) viser nu mikstur, dosis i ml og den pakning, der skal købes
   for at gennemføre kuren (+ ca. 10 % spild). Advarsel ved holdbarhed kortere end kuren og ved stort
   volumen. Kommer med i journalnotatet.
+- Uafhængig audit, rettet før merge: mg i dosisteksten og i mikstur-linjen er nu ens (fx 120 mg =
+  4,8 ml i stedet for "125 mg" og "4,8 ml (120 mg)"). Advarsel også ved stort samlet volumen
+  (≥ 300 ml). "Rækker knapt"-oplysning, når spildtillægget ellers udløser en ekstra (dyr) flaske.
+  Klacid 50 mg/ml: 50 og 100 ml (60 ml er parallelimport). Nerbutix-sprøjtens størrelse var uens i
+  kilderne og nævnes ikke længere; tilskudsklausulen er tilføjet. Zitromax: højst 25 °C.
+- Restordre: Primve og Nerbutix tilføjet som handelsnavne.
 - Kilder: indlægssedler/produktresuméer for præparaterne og Region Hovedstaden "Penicillin til børn
   – praktiske håndgreb" (kontrolleret via sekundære kilder).
 
