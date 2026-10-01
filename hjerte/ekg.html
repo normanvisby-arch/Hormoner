@@ -106,9 +106,10 @@
 
     <details class="ekg-tidligere" id="tidligereBoks" style="border: 1px dashed var(--color-primary, var(--primary)); border-radius: 8px; padding: 0.6rem 0.8rem; margin: 0 0 1rem;">
       <summary style="font-weight: 600; cursor: pointer; color: var(--color-primary-dark, var(--primary));">Sammenlign med tidligere EKG</summary>
-      <p class="field-hint">Et nyt fund vejer tungere end et kendt. Indsæt udskriften af et tidligere EKG fra samme patient <strong>efter</strong> det aktuelle — en ny indsættelse øverst rydder også dette felt (ny patient). Teksten behandles kun i browseren.</p>
+      <p class="field-hint" id="tidligereHjaelp">Et nyt fund vejer tungere end et kendt. Indsæt udskriften af et tidligere EKG fra samme patient <strong>efter</strong> det aktuelle — en ny indsættelse øverst rydder også dette felt (ny patient). Teksten behandles kun i browseren.</p>
+      <p class="field-hint" id="tidligereNote" aria-live="polite" style="color: var(--color-red-text, var(--red-text)); font-weight: 600;"></p>
       <label for="tidligereTekst" class="sr-only">Tidligere EKG-udskrift</label>
-      <textarea id="tidligereTekst" class="ekg-maskine" style="margin-top: 0.4rem" rows="6" placeholder="Indsæt det tidligere EKG her (samme format som øverst)"></textarea>
+      <textarea id="tidligereTekst" aria-describedby="tidligereHjaelp" class="ekg-maskine" style="margin-top: 0.4rem" rows="6" placeholder="Indsæt det tidligere EKG her (samme format som øverst)"></textarea>
       <div class="field" style="margin: 0.5rem 0 0">
         <label for="tidligereDato">Dato for det tidligere EKG (valgfri — ellers læses den fra udskriften)</label>
         <input type="date" id="tidligereDato">

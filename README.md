@@ -800,8 +800,28 @@ en server. Konsekvenser af det valg:
   vurdering og kommer med i journalnotatet.
 - Kilder: ICH E14 (QTc-stigning > 30/60 ms), Drew 2010 og ESC/produktresumé for flecainid
   (QRS > 25 %).
-- Tests H1–H19 i `ekg.test.js`.
-- Service worker v11 (hjerte).
+- Uafhængig audit, rettet før merge:
+  - "Ingen væsentlige ændringer" er erstattet af "ingen ændringer over værktøjets grænser i de
+    sammenlignede værdier". Nye udsagn, som værktøjet ikke kender, vises.
+  - Kontrollen af samme patient virker også med CPR-nummer uden bindestreg, med mellemrum og med
+    erstatningsnumre. Status vises altid ("samme CPR ✓" eller "kunne ikke kontrolleres").
+  - Der kræves en minimumsændring (QRS og PR ≥ 20 ms, akse ≥ 30°), så måleusikkerhed omkring en
+    grænse ikke giver alarm. PR ≥ 300 ms prioriteres.
+  - Pacing i det ene EKG udelukker sammenligning af PR, QRS, akse og QTc.
+  - Ved ændret QRS vurderes JTc i stedet for QTc.
+  - Nye alvorlige udsagn (AV-blok II/III, akut infarkt, VT m.fl.) får mindst deres eget niveau. Nye
+    ST-T-forandringer eller nyt højresidigt grenblok med brystsmerter = handling nu (ESC 2023).
+  - Datoer: fødselsdatoer springes over, ISO-format læses, datoer i fremtiden bruges ikke.
+  - Nye fund: ny bradykardi, ny kort PR og QTc-fald efter forlænget QTc.
+  - Notat om paroksystisk atrieflimren og antikoagulation (ESC 2024).
+  - Det tidligere EKG ryddes også med "Ryd", og der vises besked, når en ny indsættelse rydder det.
+  - "Akut anteriort infarkt" genkendes nu (fejl i det eksisterende værktøj).
+- **Persondata:**
+  - CPR-numre maskeres som "[CPR]" i kildeuddragene i `udfyld.js` (gælder alle værktøjer).
+  - Linjer med CPR-nummer, navn eller patient-ID kommer aldrig med i maskinens tolkning eller i
+    journalnotatet.
+- Tests H1–H19 og Y1–Y22 i `ekg.test.js`.
+- Service worker v11 (hjerte), v7 (infektion, nyre), v5 (notat) og v4 (restordre).
 
 **1. oktober 2026 — Downloadside med QR-kode:**
 - Ny side `apps.html` ("Hent klinikværktøjerne") med alle ni apps:

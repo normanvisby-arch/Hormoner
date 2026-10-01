@@ -247,7 +247,7 @@ Sokolow-Lyon 2.53 mV`;
   check('H15 atrieflimren ikke længere nævnt', r.includes('Ikke længere nævnt: Atrieflimren'));
   // Uændret
   await ud(GE); r = await tidl(GE);
-  check('H16 samme EKG → ingen væsentlige ændringer', r.includes('Ingen væsentlige ændringer') && (await p.locator('#journalTekst').innerText()).includes('ingen væsentlige ændringer'));
+  check('H16 samme EKG → ingen ændringer over grænserne (forsigtig formulering)', r.includes('Ingen ændringer over værktøjets grænser') && (await p.locator('#journalTekst').innerText()).includes('ingen ændringer over værktøjets grænser'));
   // Forskellige QTc-formler uden QT/RR
   await ud('QTc(B) 450 ms\nQRS varighed 90 ms'); r = await tidl('QTc(F) 420 ms\nQRS varighed 90 ms');
   check('H17 forskellig QTc-formel uden QT/RR → sammenlignes ikke', r.includes('QTc kan ikke sammenlignes sikkert') && (await smlRaekke('QTc')) === '');
@@ -257,6 +257,58 @@ Sokolow-Lyon 2.53 mV`;
   // Datofelt overstyrer
   await ud(GE); await tidl(FOER); await p.fill('#tidligereDato', '2025-06-30'); await p.waitForTimeout(100);
   check('H19 datofelt bruges', (await p.locator('#output').innerText()).includes('Sammenligning med EKG fra 30.6.2025'));
+  await p.click('#resetBtn');
+
+  // ---------------- Audit af sammenligningen ----------------
+  const NORMAL = 'Systemevaluering:\nSinusrytme\nNormalt EKG\nHjertefrekvens 75 spm\nPR interval 170 ms\nQRS varighed 92 ms\nQT / QTc(B) 380 / 411 ms\nRR / PP interval 800 / 800 ms\nP-R-T akser 50 / 40 / 45 °';
+  const sml2 = async (nuT, foerT) => { await ud(nuT); return tidl(foerT); };
+  r = await sml2('Systemevaluering:\nAkut anteriort infarkt\n\nHjertefrekvens 70 spm\nQRS varighed 92 ms', NORMAL);
+  check('Y1 "Akut anteriort infarkt" = handling nu og nyt i sammenligningen', r.includes('Kræver handling nu') && r.includes('nyt akut infarkt'));
+  r = await sml2('Systemevaluering:\nSinusrytme\nMærkværdigt fænomen i V3\n\nHjertefrekvens 75 spm\nQRS varighed 92 ms', NORMAL);
+  check('Y2 nyt ukendt udsagn → vises, aldrig "ingen ændringer"', r.includes('Nye udsagn, værktøjet ikke kender') && !r.includes('Ingen ændringer over') && (await p.locator('#journalTekst').innerText()).includes('nyt ukendt udsagn'));
+  r = await sml2('Patient 0101701234\n' + NORMAL, 'Patient 0202805678\n' + NORMAL);
+  check('Y3 CPR uden bindestreg, forskellige → ingen sammenligning', r.includes('to forskellige patienter') && !r.includes('0101701234'));
+  r = await sml2('CPR 610170-1234\n' + NORMAL, 'CPR 010170-1234\n' + NORMAL);
+  check('Y4 erstatningspersonnummer genkendes', r.includes('to forskellige patienter'));
+  r = await sml2('CPR 010170-1234\n' + NORMAL, 'CPR 010170 1234\n' + NORMAL);
+  check('Y5 samme CPR (med mellemrum) → bekræftet', r.includes('Samme CPR-nummer i begge udskrifter ✓'));
+  r = await sml2(NORMAL, NORMAL);
+  check('Y6 uden CPR → "kunne ikke kontrolleres" (også i journalen)', r.includes('kunne ikke kontrolleres') && (await p.locator('#journalTekst').innerText()).includes('Samme patient ikke kontrolleret'));
+  r = await sml2(NORMAL.replace('PR interval 170', 'PR interval 320'), NORMAL.replace('PR interval 170', 'PR interval 180'));
+  check('Y7 PR 180 → 320 = afvigende (≥ 300 ms)', (await smlRaekke('PR')).includes('niveau-warn'), await smlRaekke('PR'));
+  await ud(NORMAL.replace('QRS varighed 92', 'QRS varighed 122').replace('P-R-T akser 50 / 40 / 45', 'P-R-T akser 50 / 95 / 45').replace('PR interval 170', 'PR interval 204'));
+  await p.check('input[name="klinik"][value="brystsmerter"]');
+  r = await tidl(NORMAL.replace('QRS varighed 92', 'QRS varighed 118').replace('P-R-T akser 50 / 40 / 45', 'P-R-T akser 50 / 85 / 45').replace('PR interval 170', 'PR interval 198'));
+  check('Y8 små ændringer over grænser giver ikke alarm (QRS 118→122, akse 85→95, PR 198→204)', !(await smlRaekke('QRS')).includes('niveau-danger') && !(await smlRaekke('QRS-akse')).includes('niveau-warn') && !(await smlRaekke('PR')).includes('Nyt AV-blok'), [await smlRaekke('QRS'), await smlRaekke('QRS-akse'), await smlRaekke('PR')].join(' / '));
+  r = await sml2('Systemevaluering:\nPacemakerrytme\nHjertefrekvens 70 spm\nQRS varighed 160 ms\nQT / QTc(B) 480 / 519 ms\nRR / PP interval 857 / 857 ms\nP-R-T akser 0 / -80 / 90 °', NORMAL);
+  check('Y9 ny pacing: PR/QRS/akse/QTc sammenlignes ikke', r.includes('Pacemakerrytme i mindst det ene EKG') && (await smlRaekke('QTc')) === '' && (await smlRaekke('QRS-akse')) === '');
+  r = await sml2(NORMAL.replace('QRS varighed 92', 'QRS varighed 160').replace('QT / QTc(B) 380 / 411', 'QT / QTc(B) 448 / 485'), NORMAL);
+  check('Y10 ny bred QRS: QTc-stigning vurderes som JTc (ikke torsades)', (await smlRaekke('QTc')).includes('JTc') && !(await smlRaekke('QTc')).includes('Stigning > 60'), await smlRaekke('QTc'));
+  r = await sml2(NORMAL, 'Født 12-05-1985 Optaget 01-02-2024\n' + NORMAL);
+  check('Y11 fødselsdato springes over (EKG fra 1.2.2024)', r.includes('Sammenligning med EKG fra 1.2.2024'));
+  r = await sml2(NORMAL, 'Dato 2024-03-12\nFilter 1.5-35 Hz\n' + NORMAL);
+  check('Y12 ISO-dato læses, filterværdi ignoreres', r.includes('Sammenligning med EKG fra 12.3.2024'));
+  await ud('Optaget 12.03.2024\n' + NORMAL); await tidl(NORMAL); await p.fill('#tidligereDato', '2024-03-12'); await p.waitForTimeout(100);
+  check('Y13 datofelt samme dag som udskriften → ingen "byttet om"', !(await p.locator('#output').innerText()).includes('byttet om'));
+  r = await sml2('Systemevaluering:\nSinusrytme\nVenstre anterior fascikelblok\nVenstre atrieforstørrelse\nHjertefrekvens 75 spm', NORMAL);
+  check('Y14 nye fund med samme forstavelse forsvinder ikke', r.includes('nyt: venstre anterior fascikelblok') && r.includes('nyt: venstre atriepåvirkning'));
+  r = await sml2('Systemevaluering:\nSinusrytme med komplet AV-blok\nHjertefrekvens 38 spm', NORMAL);
+  check('Y15 nyt komplet AV-blok = handling nu i sammenligningen', (await p.evaluate(() => [...document.querySelectorAll('#output .box')].find((b) => b.querySelector('h3').innerText.startsWith('Sammenligning')).className)).includes('box-red') && r.includes('nyt AV-blok grad III'));
+  await ud('Systemevaluering:\nSinusrytme\nNegative T-takker anteriort\nHjertefrekvens 75 spm'); await p.check('input[name="klinik"][value="brystsmerter"]'); r = await tidl(NORMAL);
+  check('Y16 nye ST-T-forandringer + brystsmerter = handling nu', r.includes('Kræver handling nu') && r.includes('akut koronarsyndrom'));
+  await ud('Test Testesen 010170-1234 Mand 54 år\n' + NORMAL);
+  const rap = await p.locator('#udfyldRapport').innerText();
+  check('Y17 CPR vises ikke i rapport, maskinens tolkning eller journal', !rap.includes('010170') && rap.includes('[CPR]') && !(await p.inputValue('#maskine')).includes('010170') && !(await p.inputValue('#maskine')).includes('Testesen') && !(await p.locator('#journalTekst').innerText()).includes('010170'), rap);
+  await p.click('#resetBtn'); await tidl(NORMAL); await p.fill('#udfyldTekst', NORMAL); await p.click('#udfyldBtn'); await p.waitForTimeout(150);
+  check('Y18 tidligere EKG ryddet ved indsættelse øverst → besked', (await p.locator('#tidligereNote').innerText()).includes('blev ryddet'));
+  await tidl(NORMAL); await p.click('#udfyldRyd'); await p.waitForTimeout(100);
+  check('Y19 "Ryd" rydder også det tidligere EKG', (await p.inputValue('#tidligereTekst')) === '');
+  r = await sml2(NORMAL.replace('Hjertefrekvens 75', 'Hjertefrekvens 42').replace('RR / PP interval 800 / 800', 'RR / PP interval 1430 / 1430'), NORMAL);
+  check('Y20 ny bradykardi', r.includes('ny bradykardi'));
+  r = await sml2(NORMAL.replace('QT / QTc(B) 380 / 411', 'QT / QTc(B) 390 / 421'), NORMAL.replace('QT / QTc(B) 380 / 411', 'QT / QTc(B) 458 / 495'));
+  check('Y21 QTc-fald efter forlænget QTc kommer i journalen', (await p.locator('#journalTekst').innerText()).includes('QTc faldet'));
+  r = await sml2('Systemevaluering:\nSinusrytme med AV-blok grad III\nHjertefrekvens 38 spm', NORMAL);
+  check('Y22 store/små bogstaver: ikke "aV-blok"', !r.includes('aV-blok') && !(await p.locator('#journalTekst').innerText()).includes('aV-blok'));
   await p.click('#resetBtn');
 
   // ---------------- Udfyld uden fund ----------------
