@@ -20,7 +20,7 @@ const PAGES = 'https://normanvisby-arch.github.io/Hormoner/';
     ikon: e.querySelector('.app-head img').getAttribute('src'),
     ny: e.querySelector('a.btn-open').getAttribute('target'),
   })));
-  check('A1 otte apps (Restordre er ikke med)', kort.length === 8 && !kort.some((k) => k.id === 'restordre' || k.href.startsWith('restordre/')), kort.map((k) => k.navn).join(', '));
+  check('A1 syv apps (Notat-indgang og Restordre er skjult)', kort.length === 7 && !kort.some((k) => ['notat', 'restordre'].includes(k.id) || /^(notat|restordre)\//.test(k.href)), kort.map((k) => k.navn).join(', '));
   const dele = await p.locator('#delLink').innerText();
   check('A2 delbart link er GitHub Pages-adressen', dele === PAGES + 'apps.html', dele);
 
@@ -40,8 +40,8 @@ const PAGES = 'https://normanvisby-arch.github.io/Hormoner/';
       `${k.href} ${k.kopi} ${k.qr}`);
   }
   // Alle apps med eget manifest er med.
-  const manifester = ['manifest.webmanifest', 'hjerte/', 'lunge/', 'thyreoidea/', 'diabetes/', 'infektion/', 'nyre/', 'notat/'];
-  check('A5 alle apps med manifest er på siden (undtagen Restordre)', manifester.every((m) => kort.some((k) => (m === 'manifest.webmanifest' ? k.href.startsWith('oversigt.html') : k.href.startsWith(m)))));
+  const manifester = ['manifest.webmanifest', 'hjerte/', 'lunge/', 'thyreoidea/', 'diabetes/', 'infektion/', 'nyre/'];
+  check('A5 alle apps med manifest er på siden (undtagen de skjulte Notat-indgang og Restordre)', manifester.every((m) => kort.some((k) => (m === 'manifest.webmanifest' ? k.href.startsWith('oversigt.html') : k.href.startsWith(m)))));
 
   // Kopiér link
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: ROOT.replace(/\/$/, '') });
@@ -53,10 +53,18 @@ const PAGES = 'https://normanvisby-arch.github.io/Hormoner/';
   check('A7 rod-service-worker gemmer apps.html og alle QR-koder', sw.includes('"apps.html"') && kort.every((k) => sw.includes(`"${k.qr}"`)) && sw.includes('"qr/apps.svg"'));
 
   // Startsiderne linker til downloadsiden
-  for (const s of ['oversigt.html', 'hjerte/index.html', 'lunge/index.html', 'thyreoidea/index.html', 'diabetes/index.html', 'infektion/index.html', 'nyre/index.html', 'notat/index.html']) {
+  for (const s of ['oversigt.html', 'hjerte/index.html', 'lunge/index.html', 'thyreoidea/index.html', 'diabetes/index.html', 'infektion/index.html', 'nyre/index.html']) {
     const html = await (await p.request.get(ROOT + s)).text();
     check(`A8 ${s} linker til apps.html (kun i appen)`, /href="(\.\.\/)?apps\.html"/.test(html) && /data-app-only[^]*?apps\.html/.test(html));
   }
+
+  // Notat-indgang og Restordre er skjult: ingen links eller omtale på oversigt, startsider og downloadside.
+  for (const s of ['apps.html', 'oversigt.html', 'hjerte/index.html', 'lunge/index.html', 'thyreoidea/index.html', 'diabetes/index.html', 'infektion/index.html', 'nyre/index.html']) {
+    const html = await (await p.request.get(ROOT + s)).text();
+    check(`A9 ${s}: Notat-indgang og Restordre er skjult`, !/notat\/|restordre|notat-indgang/i.test(html));
+  }
+  const rodSw = await (await p.request.get(ROOT + 'sw.js')).text();
+  check('A10 rod-service-worker har ingen QR-kode til de skjulte apps', !/qr\/(notat|restordre)\.svg/.test(rodSw));
 
   // #installer fremhæver installér-vejledningen på appens startside
   await p.goto(ROOT + 'hjerte/index.html#installer'); await p.waitForTimeout(400);

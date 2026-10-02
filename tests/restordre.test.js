@@ -164,7 +164,7 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
     await ctx.setOffline(false);
     // Links fra de andre apps
     await p.goto(ROOT + 'oversigt.html'); await p.waitForTimeout(100);
-    check('W5 link fra oversigten', (await p.locator('a[href="restordre/index.html"]').count()) >= 1);
+    check('W5 Restordre er skjult på oversigten (efter ønske)', (await p.locator('a[href="restordre/index.html"]').count()) === 0);
   }
 
   // Mobil

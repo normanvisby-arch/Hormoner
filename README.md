@@ -502,7 +502,7 @@ gruppenavne. Handelsnavne er kun søgeord og siger intet om aktuelt udbud.
 
 **Downloadside til kolleger:** `https://normanvisby-arch.github.io/Hormoner/apps.html`
 (`apps.html`).
-- Siden samler otte apps (Restordre er fjernet efter ønske, men findes fortsat på sin adresse) med beskrivelse, "Åbn og installér" (appens startside åbnes i en ny fane med
+- Siden samler syv apps (Notat-indgang og Restordre er skjult efter ønske, men findes fortsat på deres adresser) med beskrivelse, "Åbn og installér" (appens startside åbnes i en ny fane med
   `#installer`, og `pwa.js` fremhæver installér-knappen), "Kopiér link" og en QR-kode til mobilen.
 - Øverst står et delbart link, en QR-kode til selve siden og knapper til at dele og udskrive. Udskriften
   er et A4-opslag med en QR-kode pr. app.
@@ -806,6 +806,13 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**2. oktober 2026 — Notat-indgang og Restordre skjult:**
+- Efter ønske er Notat-indgangen og Restordre skjult som `bloedningskalender.html`: de er fjernet
+  fra downloadsiden (nu syv apps; QR-koden til Notat-indgangen er slettet), fra boksen på
+  oversigten og fra "Andre apps i samme serie" på alle startsider. Filerne og adresserne findes
+  fortsat, men nævnes ingen steder.
+- Service worker v15 (rod), v12 (hjerte), v9 (infektion), v8 (lunge, thyreoidea, diabetes, nyre).
 
 **2. oktober 2026 — Downloadsiden uden Restordre:**
 - Restordre er fjernet fra `apps.html` efter ønske (kort, QR-kode og omtale; "Ni" → "Otte" apps).
