@@ -4,7 +4,7 @@
  * åbning med forbindelse; uden forbindelse bruges den gemte kopi.
  * Hæv VERSION, når filer tilføjes eller fjernes fra listen.
  */
-const VERSION = "v13";
+const VERSION = "v14";
 const CACHE = `klinikvaerktoejer-${VERSION}`;
 const FILES = [
   "./",
@@ -46,7 +46,6 @@ const FILES = [
   "qr/infektion.svg",
   "qr/nyre.svg",
   "qr/notat.svg",
-  "qr/restordre.svg",
 ];
 
 self.addEventListener("install", (event) => {

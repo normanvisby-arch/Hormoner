@@ -20,7 +20,7 @@ const PAGES = 'https://normanvisby-arch.github.io/Hormoner/';
     ikon: e.querySelector('.app-head img').getAttribute('src'),
     ny: e.querySelector('a.btn-open').getAttribute('target'),
   })));
-  check('A1 ni apps', kort.length === 9, kort.map((k) => k.navn).join(', '));
+  check('A1 otte apps (Restordre er ikke med)', kort.length === 8 && !kort.some((k) => k.id === 'restordre' || k.href.startsWith('restordre/')), kort.map((k) => k.navn).join(', '));
   const dele = await p.locator('#delLink').innerText();
   check('A2 delbart link er GitHub Pages-adressen', dele === PAGES + 'apps.html', dele);
 
@@ -40,8 +40,8 @@ const PAGES = 'https://normanvisby-arch.github.io/Hormoner/';
       `${k.href} ${k.kopi} ${k.qr}`);
   }
   // Alle apps med eget manifest er med.
-  const manifester = ['manifest.webmanifest', 'hjerte/', 'lunge/', 'thyreoidea/', 'diabetes/', 'infektion/', 'nyre/', 'notat/', 'restordre/'];
-  check('A5 alle apps med manifest er på siden', manifester.every((m) => kort.some((k) => (m === 'manifest.webmanifest' ? k.href.startsWith('oversigt.html') : k.href.startsWith(m)))));
+  const manifester = ['manifest.webmanifest', 'hjerte/', 'lunge/', 'thyreoidea/', 'diabetes/', 'infektion/', 'nyre/', 'notat/'];
+  check('A5 alle apps med manifest er på siden (undtagen Restordre)', manifester.every((m) => kort.some((k) => (m === 'manifest.webmanifest' ? k.href.startsWith('oversigt.html') : k.href.startsWith(m)))));
 
   // Kopiér link
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: ROOT.replace(/\/$/, '') });

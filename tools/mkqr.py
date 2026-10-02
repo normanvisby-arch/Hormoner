@@ -27,7 +27,6 @@ KODER = [
     ("infektion", "infektion/"),
     ("nyre", "nyre/"),
     ("notat", "notat/"),
-    ("restordre", "restordre/"),
 ]
 
 
