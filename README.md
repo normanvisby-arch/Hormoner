@@ -502,7 +502,7 @@ gruppenavne. Handelsnavne er kun søgeord og siger intet om aktuelt udbud.
 
 **Downloadside til kolleger:** `https://normanvisby-arch.github.io/Hormoner/apps.html`
 (`apps.html`).
-- Siden samler alle ni apps med beskrivelse, "Åbn og installér" (appens startside åbnes i en ny fane med
+- Siden samler otte apps (Restordre er fjernet efter ønske, men findes fortsat på sin adresse) med beskrivelse, "Åbn og installér" (appens startside åbnes i en ny fane med
   `#installer`, og `pwa.js` fremhæver installér-knappen), "Kopiér link" og en QR-kode til mobilen.
 - Øverst står et delbart link, en QR-kode til selve siden og knapper til at dele og udskrive. Udskriften
   er et A4-opslag med en QR-kode pr. app.
@@ -806,6 +806,11 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**2. oktober 2026 — Downloadsiden uden Restordre:**
+- Restordre er fjernet fra `apps.html` efter ønske (kort, QR-kode og omtale; "Ni" → "Otte" apps).
+  Appen findes fortsat på `restordre/` og i Notat-indgangen.
+- Service worker v14 (rod).
 
 **1. oktober 2026 — Infektioner: mikstur, ml og pakning til børn:**
 - Børnedosis af penicillin V (Primcillin/Primve), clarithromycin (Klacid), flucloxacillin
