@@ -807,6 +807,14 @@ en server. Konsekvenser af det valg:
 
 ## Ændringslog
 
+**3. oktober 2026 — MHT-risikovurdering: BRCA i det samlede resultat:**
+- Ved BRCA/stærk familiær disposition kan brystkræft-NNH ikke beregnes. Før blev det samlede
+  resultat derfor vist med "Største ekstra risiko: endometriecancer", som om brystkræft var mindre
+  vigtig. Nu nævnes brystkræft først som "Største bekymring — NNH kan ikke beregnes" med
+  baggrundsrisikoen (BRCA1/2 ca. 70 % livstidsrisiko mod ca. 12 %; Kuchenbaecker, JAMA 2017), og
+  derefter "Største af de risici, der kan beregnes".
+- Rod-service-worker v16.
+
 **2. oktober 2026 — Notat-indgang og Restordre skjult:**
 - Efter ønske er Notat-indgangen og Restordre skjult som `bloedningskalender.html`: de er fjernet
   fra downloadsiden (nu syv apps; QR-koden til Notat-indgangen er slettet), fra boksen på
