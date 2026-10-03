@@ -215,7 +215,7 @@
       ${iconArray(BRYST_BAGGRUND, extra)}`,
       mods,
       nnh: has(s, "brca")
-        ? { tal: null, tekst: "Ikke beregnet — befolkningstallene gælder ikke ved BRCA eller stærk familiær disposition. Brug en valideret model (fx CanRisk)." }
+        ? { tal: null, tekst: "Befolkningstallene gælder ikke ved BRCA eller stærk familiær disposition: baggrundsrisikoen er langt højere (BRCA1/2: ca. 70 % livstidsrisiko mod ca. 12 % i befolkningen), og hvor meget MHT lægger til, er usikkert. Brug en valideret model (fx CanRisk) og genetisk rådgivning." }
         : { tal: nnhOf(extra), tekst: `Behandles ${nnhOf(extra)} kvinder i ${s.varighed} år med ${typeTxt}, får 1 ekstra brystkræft (diagnosticeret frem til 69 år).` },
       journal: has(s, "brca")
         ? "Brystkræft: befolkningstal gælder ikke (BRCA/stærk familiær disposition) — individuel vurdering (fx CanRisk/genetisk rådgivning)"
@@ -453,9 +453,13 @@
       ? "<p>Angiv alder for en aldersspecifik vurdering — tallene nedenfor gælder opstart i 50'erne.</p>"
       : "";
     const worst = cards.filter((c) => nnhValue(c) !== Infinity).sort((a, b) => nnhValue(a) - nnhValue(b))[0];
-    const worstNote = worst
-      ? `<p><strong>Største ekstra risiko:</strong> ${worst.title.toLowerCase()} — <strong>NNH ${nnhLabel(worst.nnh.tal)}</strong>. ${worst.nnh.tekst}</p>`
-      : "";
+    // En høj risiko, der ikke kan beregnes (fx brystkræft ved BRCA), må ikke skjules bag den
+    // største risiko, der kan beregnes — den nævnes først.
+    const ukendt = hoej.filter((c) => c.nnh && !c.nnh.tal);
+    const ukendtNote = ukendt.map((c) => `<p><strong>Største bekymring:</strong> ${c.title.toLowerCase()} — <strong>NNH kan ikke beregnes</strong>. ${c.nnh.tekst}</p>`).join("");
+    const worstNote = ukendtNote + (worst
+      ? `<p><strong>${ukendt.length ? "Største af de risici, der kan beregnes" : "Største ekstra risiko"}:</strong> ${worst.title.toLowerCase()} — <strong>NNH ${nnhLabel(worst.nnh.tal)}</strong>. ${worst.nnh.tekst}</p>`
+      : "");
     if (hoej.length) {
       return box("box-red", "Samlet: høj risiko på ét eller flere områder", `${scenario}${worstNote}<p>${hoej.map((c) => c.title).join(", ")}: overvej alternativer, justér behandlingen eller konferér med specialist før opstart. Se hvordan risikoen kan mindskes nedenfor.</p>${alderNote}`);
     }

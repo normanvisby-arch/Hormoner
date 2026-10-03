@@ -4,7 +4,7 @@
  * åbning med forbindelse; uden forbindelse bruges den gemte kopi.
  * Hæv VERSION, når filer tilføjes eller fjernes fra listen.
  */
-const VERSION = "v15";
+const VERSION = "v16";
 const CACHE = `klinikvaerktoejer-${VERSION}`;
 const FILES = [
   "./",

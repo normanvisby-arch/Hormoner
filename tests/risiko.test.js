@@ -130,7 +130,9 @@ const ORIGIN = new URL(BASE).origin;
   check('N16 full text has NNH table + strips', f2.includes('NUMBER NEEDED TO HARM') && f2.includes('Brystkræft — ≈ 50') && f2.includes('NNH ≈ 50: Behandles 50 kvinder'));
   // Audit-rettelser
   await fresh(); await rf('brca'); o = await out();
-  check('A1 BRCA -> no breast NNH, worst not breast', (await card('Brystkræft')).includes('NNH: –') && !o.includes('Største ekstra risiko: brystkræft'));
+  check('A1 BRCA -> intet brystkræft-NNH; brystkræft nævnes først som største bekymring, derefter største beregnede risiko', (await card('Brystkræft')).includes('NNH: –') && !o.includes('Største ekstra risiko: brystkræft') && o.includes('Største bekymring: brystkræft — NNH kan ikke beregnes') && o.indexOf('Største bekymring') < o.indexOf('Største af de risici, der kan beregnes') && o.includes('ca. 70 % livstidsrisiko'), o.slice(0, 600));
+  await fresh(); o = await out();
+  check('A1b uden BRCA: ingen "største bekymring"', !o.includes('Største bekymring') && o.includes('Største ekstra risiko'));
   await fresh(); await rf('fambryst'); o = await out();
   check('A2 fambryst -> NNH nærmere 30', (await card('Brystkræft')).includes('NNH formentlig nærmere 30'));
   await fresh(); await page.fill('#alder', '62'); await page.check('input[name="vej"][value="oral"]'); o = await out();
