@@ -164,6 +164,7 @@
         <button type="button" class="btn btn-outline" id="kopierNavn">Kopiér "${esc(navn)}" til søgning</button>
         <span class="copy-status" id="navnStatus" aria-live="polite"></span>
       </div>
+      <p class="field-hint">"Åbn restordre.dk" kopierer også "${esc(navn)}", så du blot skal sætte det ind i søgefeltet.</p>
       <p class="field-hint">Også: <a href="${PROMEDICIN(navn)}" target="_blank" rel="noopener">pro.medicin.dk</a> (præparater med samme indholdsstof) · <a href="${LMST_FORSYNING}" target="_blank" rel="noopener">Lægemiddelstyrelsen: forsyning af medicin</a> · regionernes restordre-sider: ${REGIONER.map(([n, u]) => `<a href="${u}" target="_blank" rel="noopener">${n}</a>`).join(", ")}.</p>`
     );
   }
@@ -308,7 +309,8 @@
 
   output.addEventListener("click", (e) => {
     // restordre.dk viser præparaterne under handelsnavn — kopiér det, lægen har skrevet.
-    if (e.target.id === "kopierNavn") kopier(soeg.value.trim() || (valgt ? navnPaa(valgt) : ""), "navnStatus");
+    // "Åbn restordre.dk" kopierer også navnet — ét klik i stedet for to. Linket åbner som normalt.
+    if (e.target.id === "kopierNavn" || e.target.id === "restordreLink") kopier(soeg.value.trim() || (valgt ? navnPaa(valgt) : ""), "navnStatus");
     if (e.target.id === "kopierNotat") kopier(document.getElementById("journalTekst").textContent, "notatStatus");
     const d = e.target.closest("[data-detalje]");
     if (d) {

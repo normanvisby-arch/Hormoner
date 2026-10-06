@@ -599,7 +599,7 @@ body {
 }
 
 @media print {
-  .topbar-actions, .output-actions, .form-panel, .mobile-jump { display: none !important; }
+  .topbar-actions, .output-actions, .restordre-hint, .form-panel, .mobile-jump { display: none !important; }
   .layout { grid-template-columns: 1fr; }
   body { background: #fff; }
   .panel { border: none; padding: 0; }

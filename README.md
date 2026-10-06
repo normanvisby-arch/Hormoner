@@ -483,8 +483,12 @@ skaffes" o.l. Værktøjet viser tre trin:
 1. **Tjek restordre.dk først.** Siden drives af Region Syddanmark på vegne af Danske Regioner. Den
    viser dagligt, ud fra grossisternes og apotekernes lagre, hvad der kan skaffes, og apotekets
    vurderede alternativer.
-   - restordre.dk har ingen kendt søgeadresse eller åben datakilde, så værktøjet åbner siden og
-     kopierer søgeordet.
+   - restordre.dk har ingen kendt søgeadresse eller åben datakilde, så "Åbn restordre.dk" åbner
+     siden og kopierer samtidig søgeordet (ét klik); lægen sætter det ind i søgefeltet.
+   - Alle værktøjer med præparatvalg (klimakterie, prævention, osteoporose, CV-risiko,
+     atrieflimren, KOL, astma, hypothyreose, type 2-diabetes, de tre infektionssider, kronisk
+     nyresygdom og dosis efter nyrefunktion) har under resultatet linjen "Kan et præparat ikke
+     skaffes? Tjek restordre.dk … Restordre" (vises ikke i udskrift).
    - Der er også links til pro.medicin.dk (præparater med samme indholdsstof), Lægemiddelstyrelsens
      meddelelser om forsyning og regionernes restordre-sider.
 2. **Samme indholdsstof:**
@@ -559,7 +563,7 @@ gruppenavne. Handelsnavne er kun søgeord og siger intet om aktuelt udbud.
 
 **Downloadside til kolleger:** `https://normanvisby-arch.github.io/Hormoner/apps.html`
 (`apps.html`).
-- Siden samler syv apps (Notat-indgang og Restordre er skjult efter ønske, men findes fortsat på deres adresser) med beskrivelse, "Åbn og installér" (appens startside åbnes i en ny fane med
+- Siden samler otte apps (Notat-indgang er skjult efter ønske, men findes fortsat på sin adresse) med beskrivelse, "Åbn og installér" (appens startside åbnes i en ny fane med
   `#installer`, og `pwa.js` fremhæver installér-knappen), "Kopiér link" og en QR-kode til mobilen.
 - Øverst står et delbart link, en QR-kode til selve siden og knapper til at dele og udskrive. Udskriften
   er et A4-opslag med en QR-kode pr. app.
@@ -863,6 +867,21 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**6. oktober 2026 — Restordre synlig igen og restordre.dk fra alle værktøjer:**
+- Efter ønske vises Restordre igen på oversigten, downloadsiden (kort og QR-kode, nu otte apps) og i
+  "Andre apps" på alle startsider. Notat-indgangen er fortsat skjult.
+- Under resultatet i alle 14 værktøjer med præparatvalg står nu en linje med link til restordre.dk
+  (ny fane) og til Restordre-værktøjet. Linjen udskrives ikke.
+- "Åbn restordre.dk" i Restordre kopierer nu også præparatnavnet, så det kun skal sættes ind i
+  søgefeltet.
+- Direkte hentning fra restordre.dk i appen er undersøgt og ikke mulig i dag: siden har intet kendt
+  API eller åbent datafeed. Restordre.dk drives af Region Syddanmark for Danske Regioner og bygger
+  på daglige data fra grossister og apoteker (kontrolleret via sekundære kilder, da siden er
+  blokeret fra udviklingsmiljøet). En browser-app kan desuden kun hente fra sider, der tillader det
+  (CORS). Lægemiddelstyrelsens prisfiler kræver login.
+- Tests: `tests/apps.test.js` (A1, A5, A9–A11) og `tests/restordre.test.js` (T4b, T4c, W5).
+  Service workers er hævet i alle apps (fælles `style.css`).
 
 **6. oktober 2026 — Udfyld fra journaltekst: audit af alle værktøjer:**
 - Lægen fandt, at "Strep A pos" o.l. ikke altid blev fanget. Ved gennemgangen viste "Strep A-test er
