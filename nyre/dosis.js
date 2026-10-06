@@ -257,11 +257,12 @@
         const k = L.koen();
         if (k) u.push({ type: "radio", name: "koen", value: k.v, label: "Køn", kilde: k.kilde });
         // Ethvert nævnt lægemiddel tæller (også "ingen bivirkninger af Eliquis") — filtret skjuler kun rækker.
-        const fundne = MIDLER.filter((m) => SYNONYMER[m.navn] && L.alle(new RegExp(`${L.B}(?:${SYNONYMER[m.navn]})`, "g")).length);
+        // "Penicillinallergi" er ikke penicillin i behandling.
+        const fundne = MIDLER.filter((m) => SYNONYMER[m.navn] && L.alle(new RegExp(`${L.B}(?:${SYNONYMER[m.navn]})(?![a-zæøå]*\\s*-?\\s*(?:allergi|overfølsom))`, "g")).length);
         // Præparater med dosis, som værktøjet ikke kender ("Furix 40 mg", "Kodimagnyl 1 tbl"): så slås
         // "Vis kun nævnte" ikke til, så intet skjules for lægen.
         const KENDT = new RegExp(`^(?:${Object.values(SYNONYMER).join("|")})`);
-        const IKKE_PRAEP = /^(?:dosis|ca|og|med|af|på|til|i|x|nu|dag|døgn|uge|vægt|kreatinin|krea|egfr|gfr|kalium|uacr|bt|hba1c|ldl|crp|alder|mand|kvinde|tbl|tabl|kaps|stk|fast|pn|eller|samt|ved|efter|før)$/;
+        const IKKE_PRAEP = /^(?:dosis|ca|og|med|af|på|til|i|x|nu|dag|døgn|uge|vægt|kreatinin|krea|egfr|gfr|kalium|uacr|bt|hba1c|ldl|crp|alder|mand|kvinde|tbl|tabl|kaps|stk|fast|pn|eller|samt|ved|efter|før|comp|plus|retard|depot|mite|forte|tager|får|giver|givet|startet|øget|reduceret|nedsat|dosis|styrke|tablet|tabletter|kapsel|kapsler|insulin|enheder)$/;
         const ukendte = [...new Set(L.alle(/(?<![a-zæøå0-9])([a-zæøå][a-zæøå-]{2,})\.?\s+\d+(?:[.,]\d+)?(?:\s*\/\s*\d+(?:[.,]\d+)?)?\s*(?:mg|mikrog|µg|g|ie|ml|tbl|tabl|kaps|stk|pust|dråber)(?![a-zæøå])/g)
           .map((m) => m[1])
           .filter((w) => !IKKE_PRAEP.test(w) && !KENDT.test(w)))];

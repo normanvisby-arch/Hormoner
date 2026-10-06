@@ -20,12 +20,12 @@ window.Udfyld = (function () {
   const B = "(?<![a-zæøåé0-9])";
   const E = "(?![a-zæøåé0-9])";
   // Nægtelse før et fund (højst ca. otte ord før) og efter et fund ("feber: nej", "strep A ÷").
-  const NEG = new RegExp(`${B}(ingen|ikke|uden|benægter|benægtes|nægter|negativ|neg\\.?|afkræft\\w*|aldrig|intet|ej|seponer\\w*|pauser\\w*|ophørt|stoppet|undgå\\w*|fraråd\\w*)${E}|(?:^|\\s)÷\\s*$`);
+  const NEG = new RegExp(`${B}(ingen|ikke|uden|benægter|benægtes|nægter(?!\\s+at${E})|negativ|neg\\.?|afkræft\\w*|aldrig|intet|ej|seponer\\w*|pauser\\w*|ophørt|stoppet|undgå\\w*|fraråd\\w*)${E}|(?:^|\\s)÷\\s*$`);
   // "-" er kun nægtelse, når det står alene sidst i leddet ("feber -", "feber: -"), ikke i sammensatte
   // ord ("KOL-kontrol", "nitrit-positiv") og ikke som tankestreg ("Feber - målt 38,5 hjemme").
-  const NEG_EFTER = /^\s*[:=]?\s*(?:er\s+|var\s+|blev\s+)?(nej|neg(?![a-zæøå])|negativ|÷|\(\s*[-÷]\s*\)|ikke til stede|benægtes|afkræftet|udelukket|seponeret|pauseret|ophørt|stoppet|udtrappet|frarådes|frarådet|undgås|ingen(?![a-zæøå])|-(?=\s*(?:$|[,.;)\n])))/;
+  const NEG_EFTER = /^\s*[:=]?\s*(?:er\s+|var\s+|blev\s+)?(nej|neg(?![a-zæøå])|negativ|÷|\(\s*[-÷]\s*\)|ikke til stede|benægtes|afkræftet|udelukket|seponeret|pauseret|ophørt|stoppet|udtrappet|frarådes|frarådet|undgås|-(?=\s*(?:$|[,.;)\n])))|^\s*[:=]\s*ingen(?![a-zæøå])/;
   // Pauseret/seponeret senere i samme led: "Losartan 50 mg (pauseret under gastroenteritis)".
-  const NEG_SENERE = /^[^.;,\n]{0,40}?(?:^|[\s(])(?:er\s+|blev\s+)?(pauseret|seponeret|ophørt|udtrappet|stoppet)(?![a-zæøå])/;
+  const NEG_SENERE = /^[^.;,\n]{0,40}?(?:^|[\s(])(?:er\s+|blev\s+)?(pauseret|seponeret|ophørt|udtrappet|stoppet)(?![a-zæøå])(?!\s+(?:med|at)(?![a-zæøå]))/;
   // Led, hvor nægtelsen ikke rækker ind: "uden bedring, men fortsat feber".
   const SKIFT = new RegExp(`${B}(?:men|dog|stadig|fortsat|nu|til gengæld|derimod|udover|ud over|bortset fra|foruden|trods|på trods af)${E}`);
   // Hypotetisk omtale, råd og ønsker: "hvis feber", "informeret om at søge læge ved nakkestivhed".
@@ -127,11 +127,13 @@ window.Udfyld = (function () {
         const s = ledStart(j);
         const seg = t.slice(s, j);
         if (hypoTekst(seg, false)) return "?";
-        // "ikke skarpt afgrænset, cellulitis": "ikke" nægter et udsagn, ikke en opremsning.
-        if (NEG.test(seg) && !SKIFT.test(seg) && !/^\s*ikke\s/.test(seg) && !new RegExp(`${B}ikke${E}`).test(seg.replace(/^\s*(?:ingen|uden)\b.*$/, ""))) {
+        if (NEG.test(seg) && !SKIFT.test(seg)) {
           let slut = i;
           while (slut < t.length && !erSaetning(t, slut) && slut - i < 300) slut++;
-          return new RegExp(`${B}eller${E}`).test(t.slice(i, slut)) ? "nej" : "?";
+          // "eller" efter ordet ("ingen feber, hoste eller …") eller før det i samme led ("…, kulderystelser eller flankesmerter").
+          if (new RegExp(`${B}eller${E}`).test(t.slice(a, slut))) return "nej";
+          // "ikke skarpt afgrænset, cellulitis": "ikke" uden "eller" nægter et udsagn, ikke en opremsning.
+          return new RegExp(`${B}ikke${E}`).test(seg) && !new RegExp(`${B}(?:ingen|uden|intet)${E}`).test(seg) ? null : "?";
         }
         if (ord(seg).length > 4 || t[s - 1] !== ",") return null;
         j = s - 1;
@@ -253,10 +255,10 @@ window.Udfyld = (function () {
         `(\\d{1,3})\\s*-?\\s*årig`,
         `(\\d{1,3}(?:[.,]5)?)\\s*år\\s*(?:gammel|gl\\.?)`,
         `${B}(?:alder|age)\\s*[:=]?\\s*(\\d{1,3})${E}`,
-        `${B}(?:er|på)\\s+(\\d{1,3})\\s*år${E}(?!\\s*siden)`,
+        `${B}(?:pt\\.?|patient(?:en)?|hun|han|kvinden|manden|barnet|drengen|pigen|pt\\.? er|patienten er)\\s+(?:er\\s+|på\\s+)(\\d{1,3})\\s*år${E}(?!\\s*siden)`,
         `(\\d{1,3})\\s*år\\s*,?\\s*(?:gammel\\s*)?${KON}${E}`,
-        `${B}(?:mand|kvinde|dreng|pige|herre|dame|mandlig\\s+patient|kvindelig\\s+patient|pt\\.?|patient|hr\\.?\\s+[a-zæøåé-]+|fru\\s+[a-zæøåé-]+)\\s*,?\\s*(?:på\\s*)?(\\d{1,3}(?:[.,]5)?)\\s*(?:år${E}|(?!\\d|[.,]\\d|\\s*(?:kg|mg|cm|%|\\/|x|×|gange|dage|uger|timer|mdr|måneder)))`,
-        `(?:^|\\n)\\s*[KMkm]\\s*,?\\s*(\\d{2,3})(?![\\d.,])`,
+        `${B}(?:mand|kvinde|dreng|pige|herre|dame|mandlig\\s+patient|kvindelig\\s+patient|pt\\.?|patient|hr\\.?\\s+[a-zæøåé-]+|fru\\s+[a-zæøåé-]+)\\s*,?\\s*(?:på\\s*)?(\\d{1,3}(?:[.,]5)?)\\s*(?:år${E}|(?!\\d|[.,]\\d|\\s*(?:kg|mg|cm|%|\\/|x|×|gange|dage|uger|timer|mdr|måneder|tbl|tabl|tablet\\w*|stk|kaps|ml|g${E}|pust|dråber|enheder|ie)))`,
+        `(?:^|\\n)\\s*[KMkm]\\s*,?\\s*(\\d{2,3})(?![\\d.,]|\\s*(?:kg|cm|mg|%|kilo))`,
       ];
       for (const mo of mønstre) {
         for (const m of alle(new RegExp(mo, "g"))) {
@@ -271,9 +273,10 @@ window.Udfyld = (function () {
         const v = new Date().getFullYear() - parseTal(f.m[1]);
         if (v >= 0 && v <= 110) return { v, kilde: f.kilde, note: `beregnet ud fra fødselsåret ${f.m[1]} — kan være 1 år for høj` };
       }
-      // "45 år" alene — ikke en varighed ("i 45 år", "for 2 år siden").
-      for (const m of alle(new RegExp(`(?<![\\d.,])(\\d{1,3})\\s*år${E}(?!\\s*(?:siden|tidligere|efter|før|med|i træk))`, "g"))) {
-        if (ikkePt(m) || VARIGHED_FOER.test(t.slice(Math.max(0, m.index - 16), m.index))) continue;
+      // "45 år" alene — kun først i teksten eller en linje ("45 år. Ondt i halsen"), ikke en varighed
+      // ("i 45 år", "røget 20 år") eller en anden person ("Ægtefællen er 80 år").
+      for (const m of alle(new RegExp(`(?<![\\d.,])(\\d{1,3})\\s*år${E}(?!\\s*(?:siden|tidligere|efter|før|med|i træk|ældre|yngre))`, "g"))) {
+        if (ikkePt(m) || VARIGHED_FOER.test(t.slice(Math.max(0, m.index - 16), m.index)) || !/(?:^|\n)\s*(?:pt\.?\s*,?\s*)?$/.test(t.slice(Math.max(0, m.index - 8), m.index))) continue;
         const r = ok(m, parseTal(m[1]), "kun \"år\" i teksten — kontrollér, at det er alderen");
         if (r && r.v >= 1) return r;
       }
@@ -288,7 +291,7 @@ window.Udfyld = (function () {
         if (/^\s*og\s+(?:\w+\s+)?børn/.test(t.slice(m.index + m[0].length, m.index + m[0].length + 20))) continue;
         const x = (m[1] || m[2] || m[3] || m[4] || "").toLowerCase();
         // "han"/"hun" kun som stedord om patienten tidligt i teksten, ikke "hun har en mand".
-        if ((x === "han" || x === "hun") && m.index > 200) continue;
+        if ((x === "han" || x === "hun") && (m.index > 200 || /ringer|pårørende|hustru|ægtefælle|datter|søn|mor|far|kone|mand|kæreste|ven(?:inde)?/.test(t.slice(0, m.index)))) continue;
         const mand = /^(mand|dreng|herre|hr\.|mandlig|han|m|male|♂)/.test(x);
         return { v: mand ? "mand" : "kvinde", kilde: kilde(m.index, m.index + m[0].length) };
       }
@@ -298,7 +301,7 @@ window.Udfyld = (function () {
     // Vægt: "vægt 72 kg", "Vægt: 72,5", "vejer 58 kilo", "72 kg" — ikke vægtændringer eller fødselsvægt.
     // Flere vægte: "Vægt 65 kg (2024), nu 58 kg" → den aktuelle.
     L.vaegt = function () {
-      const s = L.serie(`vægt|vejer|kropsvægt|weight`, { min: 1, max: 250, navn: "vægt", enhed: "(?:kg|kilo)?", strategi: "sidste" });
+      const s = L.serie(`vægt|vejer|kropsvægt|weight`, { min: 1, max: 250, navn: "vægt", enhed: "kg|kilo", strategi: "sidste" });
       if (s.nu) return s.nu;
       for (const m of alle(new RegExp(`(?<![\\d.,])(\\d+(?:[.,]\\d+)?)\\s*(?:kg|kilo)${E}(?!\\s*\\/)`, "g"))) {
         const foer = t.slice(Math.max(0, m.index - 25), m.index);
@@ -313,7 +316,7 @@ window.Udfyld = (function () {
 
     // Temperatur: "t. 38,5", "Temp. rektalt 38,9", "feber - målt 38,5", "38,2 i øret", "38,5 grader".
     const TEMP = [
-      `(?:${B}temp(?:eratur)?|${B}t|${B}feber|${B}febril)\\.?\\s*(?:[-–:=]\\s*)?(?:(?:målt|rektalt|rektal|i øret|øre|oralt|axillært|i munden|hjemme|max|maks\\.?|op til|til|på|ca\\.?|i går|i nat|i dag)\\s*){0,3}[:=]?\\s*(\\d{2}(?:[.,]\\d)?)(?!\\d|[.,]\\d)`,
+      `(?:${B}temp(?:eratur)?|${B}t|${B}feber|${B}febril)\\.?\\s*(?:[-–:=]\\s*)?(?:(?:målt|rektalt|rektal|i øret|øre|oralt|axillært|i munden|hjemme|max|maks\\.?|op til|til|på|ca\\.?|i går|i nat|i dag)\\s*){0,3}[:=]?\\s*(\\d{2}(?:[.,]\\d)?)(?!\\d|[.,]\\d|\\s*(?:timer|time|t\\.|døgn|dage|uger|min|år|mdr|kg|%))`,
       `(?<![\\d.,])(\\d{2}(?:[.,]\\d)?)\\s*(?:°\\s*c?|grader|c${E}|(?:målt\\s*)?(?:i øret|rektalt|axillært|i munden|oralt)${E})`,
     ];
     const temps = () =>
@@ -398,13 +401,14 @@ window.Udfyld = (function () {
       dato: datoAf(s),
     });
     // Tal, der ikke er målingen: alder, dosis, varighed, BT-brøk.
-    const IKKE_MAAL = "(?![\\d.,]?\\d|\\s*(?:år|årig|kg|mg(?!\\s*\\/)|mikrog|%|cm|x|×|gange|dage|døgn|uger|måneder|mdr|timer|stk|tbl|\\/\\s*\\d))";
+    const IKKE_MAAL = "(?![\\d.,]?\\d|\\s*-?\\s*(?:år|årig)|\\s*[-–]\\s*\\d|\\s*(?:kg|mg(?!\\s*\\/)|mikrog|g(?![a-zæøå\\/])|m(?![a-zæøå\\/])|%|cm|x|×|gange|dage|døgn|uger|måneder|mdr|timer|stk|tbl|\\/\\s*\\d))";
     const FORBIND = "(?:\\s|[,;:()]|→|->|–|og|men|til|ned til|op til|faldet til|steget til)*";
 
     L.serie = function (etiket, { min = -Infinity, max = Infinity, navn = "værdi", enhed = "", strategi = "sidste", omregn = null } = {}) {
       const LBL = `${B}(?:${etiket})${E}(?:\\s*\\([^()]{0,30}\\))?(?:\\s*\\/\\s*1[.,]73\\s*m(?:²|2)?)?`;
       const PRE = `((?:\\s*(?:[:=;\\t]|på|er|var|af|ca\\.?|målt til|omkring|faldet fra|steget fra|gået fra|fra|${TID}))*)\\s*`;
-      const ENH = `(\\s*${enhed || ""}(?:\\s*(?:ml\\/min(?:\\/1[.,]73\\s*m(?:²|2)?)?|mg\\/g|mg\\/mmol|g\\/mol|µmol\\/l|umol\\/l|mmol\\/l|mmol\\/mol))?)`;
+      // Enheden må ikke sluge mellemrum alene (så "52 49 44" stadig er en tabelrække).
+      const ENH = `(${enhed ? `(?:[\\s;]*(?:${enhed}))?` : ""}(?:[\\s;]*(?:ml\\/min(?:\\/1[.,]73\\s*m(?:²|2)?)?|mg\\/g|mg\\/mmol|g\\/mol|µmol\\/l|umol\\/l|mmol\\/l|mmol\\/mol))?)`;
       const POST = new RegExp(`^\\s*(?:\\(\\s*(${TID})\\s*\\)|(${TID})(?=\\s*(?:$|[,.;)\\n]|og|men)))`);
       const IKKE = /kg/.test(enhed) ? IKKE_MAAL.replace("kg|", "") : IKKE_MAAL;
       const ud = [];
@@ -439,15 +443,20 @@ window.Udfyld = (function () {
         // Fortsættelse uden etiket: ", nu 44", "til 43 (2026)", "(tidligere 52)", "52 49 44".
         const linje = linjer.findIndex((l, i) => linjeStart[i] <= m.index && m.index < linjeStart[i] + l.length + 1);
         const linjeSlut = linjeStart[linje] + linjer[linje].length;
-        const FORT = new RegExp(`^(${FORBIND})((?:${TID}\\s*[:=]?\\s*)*)(<|>|≤|≥)?\\s*(\\d+(?:[.,]\\d+)?)${IKKE}${ENH}`);
+        const FORT = new RegExp(`^(${FORBIND})((?:${TID}(?:\\s*[:=])?\\s*)*)(<|>|≤|≥)?\\s*(\\d+(?:[.,]\\d+)?)${IKKE}${ENH}`);
         let n = 1;
         for (;;) {
           const rest = t.slice(slut, linjeSlut).split(/\.(?!\d)/)[0];
           const f = rest.match(FORT);
           if (!f || /[a-zæøå]/.test(f[1].replace(/og|men|til|ned|op|faldet|steget/g, ""))) break;
+          // Referenceinterval ("5,8 (3,5-4,6)", "52 mg/mmol (<3,0)") er ikke en ny måling.
+          if (/^\s*[([]\s*[<>≤≥]/.test(rest) || /^\s*[([]\s*\d+(?:[.,]\d+)?\s*[-–]\s*\d/.test(rest)) break;
           const i0 = slut + f[1].length;
           let i1 = slut + f[0].length;
           const p2 = t.slice(i1).match(POST);
+          // Kun en fortsættelse med tidsangivelse ("nu 44", "(tidligere 52)", "44 (2026)"), en kæde
+          // ("til 43", "→ 120") eller en tabelrække ("52 49 44") — ikke ", 45-årig", ", 2 g paracetamol".
+          if (!f[2].trim() && !p2 && !/til|→|->|–/.test(f[1]) && !/^[ \t]+$/.test(f[1])) break;
           const tt = f[2] + (p2 ? " " + (p2[1] || p2[2]) : "");
           if (p2) i1 += p2[0].length;
           tilfoej(f[4], f[3], i0, i1, tt, n++, /til|→|->/.test(f[1]), f[5]);
@@ -540,7 +549,7 @@ window.Udfyld = (function () {
         const post = t.slice(slut).match(new RegExp(`^\\s*(?:mmhg)?\\s*(?:\\(\\s*(${TID})\\s*\\)|(${TID})(?=\\s*(?:$|[,.;)\\n])))`));
         push(m[2], m[3], m.index, slut + (post ? post[0].length : 0), m[1] + (post ? " " + (post[1] || post[2]) : ""));
         if (post) slut += post[0].length;
-        const f = t.slice(slut).match(new RegExp(`^\\s*(?:mmhg)?\\s*[,;]\\s*((?:${TID}\\s*[:=]?\\s*)+)${PAR}`));
+        const f = t.slice(slut).match(new RegExp(`^\\s*(?:mmhg)?\\s*[,;]\\s*((?:${TID}(?:\\s*[:=])?\\s*)+)${PAR}`));
         if (f) push(f[2], f[3], slut, slut + f[0].length, f[1]);
       }
       const r = vaelgAktuel(ud, "BT", "sidste");

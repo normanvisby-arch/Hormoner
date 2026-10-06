@@ -269,12 +269,12 @@
     // Strep A-test i de almindelige skriveformer: "Strep A pos", "Strep A-test er positiv",
     // "StrepA (+)", "strep. A: neg", "Strep A taget, positiv", "positiv strep A", "GAS-test +",
     // "halspodning positiv for streptokokker". Bindestregen i "Strep A-test" er ikke et minus.
-    const RES = "(positiv\\w*|pos(?![a-zæøå])\\.?|påvist|\\(\\s*\\+\\s*\\)|\\+|negativ\\w*|neg(?![a-zæøå])\\.?|ikke påvist|\\(\\s*[-÷]\\s*\\)|÷|-(?![a-zæøå\\d>]))";
+    const RES = "(positiv\\w*|pos(?![a-zæøå])\\.?|påvist|\\(\\s*\\+\\s*\\)|\\+|negativ\\w*|neg(?![a-zæøå])\\.?|ikke påvist|\\(\\s*[-÷]\\s*\\)|÷|-(?=\\s*(?:$|[,.;)\\n])))";
     const NAVN = "(?:strep\\w*\\.?(?:\\s*-?\\s*a(?![a-zæøå]))?|streptokok\\w*(?:\\s*a(?![a-zæøå]))?|gas(?=\\s*-?\\s*test)|halspodning|svælgpodning|podning fra svælg)(?:\\s*-?\\s*(?:hurtig|antigen)?test)?";
     function strepA(L) {
       const fund = [
         new RegExp(`${L.B}${NAVN}\\s*(?:[:=]|er|var|blev|viste|taget,?|udført,?|\\s)*\\s*${RES}`, "g"),
-        new RegExp(`${L.B}(positiv|negativ)\\w*\\s+(?:${NAVN})`, "g"),
+        new RegExp(`${L.B}(positiv|negativ)\\w*\\s+(?:for\\s+)?(?:${NAVN})`, "g"),
         new RegExp(`${L.B}(?:halspodning|svælgpodning|podning)\\w*\\s+(?:er\\s+|var\\s+)?(positiv|negativ)\\w*\\s+for\\s+streptokok`, "g"),
       ]
         .flatMap((re) => L.alle(re))
@@ -290,7 +290,7 @@
       (L) => {
         const u = [];
         let diag = L.vaelg([
-          { value: "tonsillitis", staerk: "tonsill?it|faryngit|faryngo-?tonsill?it|halsbetændelse|streptokokhals|angina", svag: "ondt i halsen|halssmerter|synkesmerter|synkebesvær|tonsiller?|svælg|strep\\w*\\.?\\s*-?\\s*a(?![a-zæøå])" },
+          { value: "tonsillitis", staerk: "tonsill?it|faryngit|faryngo-?tonsill?it|halsbetændelse|streptokokhals|angina", svag: "ondt i halsen|halssmerter|synkesmerter|synkebesvær|strep\\w*\\.?\\s*-?\\s*a(?![a-zæøå])" },
           { value: "otitis", staerk: "otitis|mellemørebetændelse|ørebetændelse", svag: "ørepine|øresmerter|ondt i øret" },
           { value: "sinuitis", staerk: "sinuit|rhinosinuit|bihulebetændelse", svag: "bihule|ansigtssmerter" },
           { value: "pneumoni", staerk: "pneumoni|lungebetændelse", svag: "krepitation|infiltrat" },
@@ -334,10 +334,13 @@
         }
         if (d === "otitis") {
           const upaav = L.term("upåvirket|alment upåvirket|almen upåvirket");
-          const paav = L.term(`almen påvirket|almenpåvirket|påvirket almentilstand|påvirket almen tilstand|(?:lettere |moderat |svært |tydeligt )?påvirket${L.E}|sløv|medtaget|alment dårlig`);
+          const paav = L.term(`almen påvirket|almenpåvirket|påvirket almentilstand|påvirket almen tilstand|(?:lettere|let|moderat|svært|tydeligt|alment|almen)\\s+påvirket${L.E}|sløv|medtaget|alment dårlig`);
+          // "…, påvirket." som eget led (ikke "hørelsen påvirket" eller "søvnen er påvirket").
+          const alene = paav.status ? null : L.find("(?:^|[,.;:\\n]\\s*)(?:barnet er |pt\\.? er |er )?påvirket(?=\\s*(?:$|[,.;\\n]))");
+          if (alene) u.push({ type: "check", name: "ot", value: "paavirket", on: true, label: "Almen påvirket", kilde: alene.kilde });
           if (paav.status === "ja") u.push(chk("ot", "paavirket", paav, "Almen påvirket"));
           else if (upaav.status === "ja" || paav.status === "nej") u.push(chk("ot", "paavirket", upaav.status ? upaav : paav, "Almen påvirket", false));
-          if (!paav.status && upaav.status !== "ja" && feber.status === "ja") u.push({ type: "note", tekst: `Feber nævnt ("${feber.kilde}") — afkryds "Almen påvirket", hvis barnet er påvirket.` });
+          if (!paav.status && !alene && upaav.status !== "ja" && feber.status === "ja") u.push({ type: "note", tekst: `Feber nævnt ("${feber.kilde}") — afkryds "Almen påvirket", hvis barnet er påvirket.` });
           const draen = L.term("dræn");
           const flaad = L.term("flåd|sekretion|otorr|løber fra øret");
           if (draen.status === "ja" && flaad.status === "ja") u.push(chk("ot", "otore3", flaad, "Flåd gennem trommehindedræn"));

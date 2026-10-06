@@ -880,6 +880,17 @@ en server. Konsekvenser af det valg:
   - Handelsnavne skjult af filtret "kun nævnte" på dosis-siden.
 - Alle fund er rettet (se "Revideret oktober 2026" ovenfor). Over 70 nye regressionstests i
   `tests/udfyld.test.js`, `tests/ekg.test.js` og `tests/restordre.test.js`.
+- Ny uafhængig audit af rettelserne fandt 11 regressioner, som er rettet før merge:
+  - referenceintervaller ("Kalium 5,8 (3,5-4,6)") og tal efter en måling (", 45-årig", "2 g
+    paracetamol", "1,62 m") blev læst som nye målinger;
+  - "ingen" efter et ord nægtede det;
+  - "svælg ua"/"tonsiller små" valgte halsbetændelse;
+  - for brede alarmord i hud ("blærer", "i ansigtet" ved børnesår);
+  - "hørelsen påvirket" ved otitis;
+  - alder fra dosis/ægtefælle;
+  - EKG-udsagn med måletal gik tabt;
+  - eksponentiel backtracking ved mange tidsord.
+  Tests R1–R21 og A11 dækker dem; selv 5.400 tidsord udfyldes nu på under 0,1 s.
 - Service worker v13 (hjerte), v10 (infektion), v9 (nyre), v6 (notat, restordre).
 
 **3. oktober 2026 — MHT-risikovurdering: BRCA i det samlede resultat:**

@@ -268,6 +268,42 @@ const SIDE = (f) => process.env['UDFYLD_' + f.replace(/\W/g, '_').toUpperCase()]
   r = await udfyld('eGFR 38. Metformin 1 g x 2, Furix 40 mg'); check('Q38 ukendt præparat → "kun nævnte" slås ikke til', !(await on('vis', 'naevnte')) && r.includes('furix'), r);
   r = await udfyld('Kreatinin 98 (2025), nu 165 µmol/l. Vægt 65 kg (2024), nu 58 kg.'); check('Q39 aktuel kreatinin og vægt', (await val('kreat')) === '165' && (await val('vaegt')) === '58', r);
 
+  // ---------------- Re-audit oktober 2026: regressioner, som rettelserne ikke må give ----------------
+  await go('nyre/ckd.html');
+  r = await udfyld('Kalium 5,8 (3,5-4,6). U-albumin/kreatinin-ratio 52 mg/mmol (<3,0). eGFR 72, 45-årig kvinde.');
+  check('R1 referenceintervaller og alder er ikke målinger', (await val('kalium')) === '5.8' && (await val('uacr')) === '460' && (await val('egfr')) === '72' && (await val('alder')) === '45', r);
+  r = await udfyld('U-Albumin/Kreatinin;52;mg/mmol'); check('R2 semikolon før enhed → omregnet', (await val('uacr')) === '460', r);
+  r = await udfyld('Ramipril 10 mg (tidligere losartan, stoppet pga. hoste)'); check('R3 aktuel ramipril tæller trods tidligere losartan', await on('med', 'acearb'), r);
+  await go('nyre/dosis.html');
+  r = await udfyld('krea 98, eGFR 62, 2 g paracetamol dagligt. Vægt 58 kg, 1,62 m. Krea 110 µmol/l (60-105).');
+  check('R4 tal efter målingen er ikke nye målinger', (await val('egfr')) === '62' && (await val('vaegt')) === '58' && (await val('kreat')) === '110', r);
+  r = await udfyld('Vægt 82 kg, 3 kg vægttab. Penicillinallergi. Losartan comp, tager 2 tbl.');
+  check('R5 vægttab, allergi og "comp/tager"', (await val('vaegt')) === '82' && !(await val('naevnte')).includes('Penicillin') && !r.includes('comp,') && !r.includes('tager'), r);
+  r = await udfyld('Hustru ringer. Hun oplyser at pt. har eGFR 40.'); check('R6 pårørendes "hun" er ikke patientens køn', !r.includes('Køn: Kvinde'), r);
+
+  await go('infektion/luftveje.html');
+  r = await udfyld('Hoste og feber 38,8. Svælg ua. Krepitation basalt hø. CRP 120, sat 93.'); check('R7 "svælg ua" vælger ikke halsbetændelse', (await on('diag', 'pneumoni')) && (await val('crp')) === '120', r);
+  r = await udfyld('Ørepine. Svælg: let rødt, tonsiller små.'); check('R8 ørepine forbliver otitis', await on('diag', 'otitis'), r);
+  r = await udfyld('Ondt i halsen ingen hoste feber 39'); check('R9 "ingen" efter et ord nægter ikke det', (await on('diag', 'tonsillitis')) && (await on('centor', 'hoste')) && (await on('centor', 'feber')), r);
+  r = await udfyld('Ondt i halsen. Har ikke feber, hoste eller snue.'); check('R10 "ikke feber, hoste eller …" nægter listen', !(await on('centor', 'feber')) && (await on('centor', 'hoste')), r);
+  r = await udfyld('Hoste siden hun er stoppet med at ryge. Bronkitis.'); check('R11 "stoppet med at ryge" nægter ikke hosten', await on('diag', 'bronkitis'), r);
+  r = await udfyld('Ondt i halsen. Feber hjemme 36 timer.'); check('R12 "36 timer" er ikke temperatur', await on('centor', 'feber'), r);
+  r = await udfyld('Patient 2 tbl panodil. Ægtefællen er 80 år. Ondt i halsen.'); check('R13 dosis og ægtefælles alder er ikke alder', (await val('alder')) === '', r);
+  r = await udfyld('Otitis. Hørelsen påvirket. Alment upåvirket.'); check('R14 "hørelsen påvirket" er ikke almen påvirket', !(await on('ot', 'paavirket')), r);
+  r = await udfyld('Streptokokhals - start penicillin'); check('R15 tankestreg efter strep er ikke negativ', !(await on('strep', 'neg')), r);
+  r = await udfyld('Ondt i halsen, positiv for strep A'); check('R16 "positiv for strep A"', await on('strep', 'pos'), r);
+  // Ydelse: ingen katastrofal backtracking.
+  let t0 = Date.now(); await udfyld('Vægt 20 kg, ' + 'nu '.repeat(40) + '. BT 140/90, ' + 'nu '.repeat(40) + '. eGFR 44, ' + 'i 2024 '.repeat(40)); 
+  check('R17 mange tidsord efter en måling udfyldes hurtigt (< 1,5 s)', Date.now() - t0 < 1500, `${Date.now() - t0} ms`);
+
+  await go('infektion/urinveje.html');
+  r = await udfyld('Svie ved vandladning, ikke feber, kulderystelser eller flankesmerter. Smerter i lænden som vanligt.'); check('R18 nægtet liste og kendt lændesmerte → cystitis', await on('billede', 'cystitis'), r);
+  r = await udfyld('Svie ingen feber ingen flankesmerter'); check('R19 diktat uden komma', await on('billede', 'cystitis'), r);
+
+  await go('infektion/hud.html');
+  r = await udfyld('Impetigo omkring munden og i ansigtet. Små blærer.'); check('R20 børnesår med blærer i ansigtet → ingen alarm', !(await on('rf', 'nekrose')) && !(await on('rf', 'ansigt')), r);
+  r = await udfyld('Erysipelas, hurtigt tiltagende. Byld med voldsomme smerter.'); check('R21 "tiltagende"/"voldsomme smerter" alene er ikke nekrose', !(await on('rf', 'nekrose')), r);
+
   // Mobil
   const m = await ctx.newPage(); await m.setViewportSize({ width: 390, height: 844 }); await m.goto(SIDE('infektion/luftveje.html'));
   await m.click('.udfyld summary'); await m.fill('#udfyldTekst', '6-årig dreng, 20 kg, ondt i halsen, feber, strep A positiv'); await m.click('#udfyldBtn'); await m.waitForTimeout(150);

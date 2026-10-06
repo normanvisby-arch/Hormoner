@@ -394,9 +394,15 @@
         for (const [key, monster] of Object.entries(MED)) {
           const label = { acearb: "ACE-hæmmer/ARB", sglt2: "SGLT-2-hæmmer", statin: "Statin", finerenon: "Finerenon", nsaid: "NSAID" }[key];
           // "Tidligere Ipren, er stoppet" / "SGLT2-hæmmer overvejes": ikke aktuel behandling.
+          // Mindst én aktuel omtale: kun ordets eget led (til komma/parentes), fx
+          // "Ramipril 10 mg (tidligere losartan, stoppet)" → ramipril tæller.
           const r = L.term(monster);
-          if (r.status === "ja" && /tidligere|stoppet|seponeret|pauseret|overvej|frarådes|undgå/.test(L.leddet(r.index) + " " + L.leddetEfter(r.index).slice(0, 40))) continue;
-          u.push(chk("med", key, r, label));
+          const lokalt = (f) => {
+            const i = f.m.index;
+            return L.lav.slice(Math.max(0, i - 25), i).split(/[,;.(\n]/).pop() + L.lav.slice(i, i + 50).split(/[,;.()\n]/)[0];
+          };
+          const aktuel = r.status === "ja" && r.fund.find((f) => f.k === "ja" && !/tidligere|stoppet|seponeret|pauseret|overvej|frarådes|undgå/.test(lokalt(f)));
+          if (aktuel) u.push({ type: "check", name: "med", value: key, on: true, label, kilde: L.kilde(aktuel.m.index, aktuel.m.index + aktuel.m[0].length) });
         }
         if (L.term("nyligt startet|nystartet|startet (?:for|op|på|i|med)|opstartet|påbegyndt|sat i behandling med").status === "ja") u.push({ type: "note", tekst: 'Nylig opstart af medicin nævnt — markér "startet inden for 3 måneder", hvis det gælder ACE-hæmmer/ARB eller SGLT-2-hæmmer.' });
         if (L.term("bekræftet|vedvarende|over 3 måneder|gentagne målinger").status === "ja") u.push({ type: "note", tekst: 'Teksten nævner bekræftet/vedvarende fund — markér selv "bekræftet over mindst 3 måneder", hvis det er rigtigt.' });

@@ -325,6 +325,9 @@ Sokolow-Lyon 2.53 mV`;
   r2 = await ud2('Age: 67 Sex: M. Frekv. 54'); check('A9 Age/Sex og "Frekv."', (await v('alder')) === '67' && (await p.isChecked('input[name="koen"][value="mand"]')) && (await v('hr')) === '54', r2);
   r2 = await ud2('Ledsaget af sin mand. Kvinde 70 år. HR 60'); check('A10 ledsageren er ikke patientens køn', await p.isChecked('input[name="koen"][value="kvinde"]'), r2);
 
+  r2 = await ud2('Atrieflimren med frekvens 130. Mulig præeksitation i V1-V3. Venstre ventrikelhypertrofi (Sokolow 4,2 mV).');
+  check('A11 udsagn bevares, måledelen fjernes', (await v('hr')) === '130' && /atrieflimren/i.test(await v('maskine')) && /præeksitation/i.test(await v('maskine')) && /hypertrofi/i.test(await v('maskine')) && !/130|4,2/.test(await v('maskine')), await v('maskine'));
+
   // ---------------- Udfyld uden fund ----------------
   await ud('Pt. ringer om sin medicin.');
   check('U10 ingen EKG-værdier → note', (await p.locator('#udfyldRapport').innerText()).includes('Ingen EKG-værdier'));

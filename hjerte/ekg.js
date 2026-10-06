@@ -1080,13 +1080,19 @@
       const sl = linjer.findIndex((l) => SAMMENLIGN.test(l));
       // Lægens egne notater ("EKG: Sinusrytme, frekvens 72, PR 220 ms …"): kun de led, der er udsagn —
       // måleværdierne er allerede læst ind i felterne.
-      const MAALELED = /(?:frekvens|frekv\.?|rate|pr|pq|qrs\w*|qt\w*|akse\w*|axis|rr|pp|sokolow|cornell)\b[^.,;]*\d/i;
+      // Rene måleled ("frekvens ca. 72", "PR-interval på 220 ms") fjernes; i et udsagn fjernes kun
+      // måledelen ("Atrieflimren med frekvens 130" → "Atrieflimren").
+      const MAAL = "(?<![a-zæøå])(?:frekvens|frekv\\.?|rate|pr|pq|qrs[a-zæøå-]*|qt[a-zæøå-]*|akse[a-zæøå]*|axis|rr|pp|sokolow(?:-lyon)?|cornell)(?![a-zæøå])";
+      const MAALELED = new RegExp(`^\\s*${MAAL}[^.,;]*\\d[^.,;]*$`, "i");
+      const MAALEDEL = new RegExp(`\\s*(?:\\(\\s*)?(?:med\\s+|og\\s+)?${MAAL}\\s*(?:[:=]|ca\\.?|på)?\\s*-?\\d[\\d.,]*\\s*(?:ms|s|mv|mm|°|\\/min|spm|bpm)?\\s*\\)?`, "gi");
       maskine = (sl >= 0 ? linjer.slice(0, sl) : linjer)
         .map((l) => l.replace(/^\s*(?:rate|vent\.? ?rate)\s*\d+\s*/i, ""))
         .filter((l) => !MAALING.test(l) && !PERSON.test(l))
         .flatMap((l) => l.replace(/^\s*ekg\s*(?:taget|i dag|nu)?\s*:\s*/i, "").split(/[.;,]\s+|\.\s*$/))
         .map((l) => l.trim())
-        .filter((l) => l && !MAALELED.test(l) && UDSAGN.some((u) => u.m.test(l.toLowerCase())))
+        .filter((l) => l && !MAALELED.test(l))
+        .map((l) => l.replace(MAALEDEL, "").trim())
+        .filter((l) => l && UDSAGN.some((u) => u.m.test(l.toLowerCase())))
         .join(". ");
     }
     maskine = maskine.replace(/(?<!\d)\d{6}[- ]?\d{4}(?!\d)/g, "[CPR]").replace(/\s+/g, " ").trim();

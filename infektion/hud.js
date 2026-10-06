@@ -265,9 +265,10 @@
         if (sep.status === "ja" && !(upaav.status === "ja" && upaav.index > sep.index && /kulderystelser/.test(sep.kilde.toLowerCase()))) u.push(chk("rf", "sepsis", sep, "Påvirket almentilstand"));
         else if (sep.status === "ja") u.push({ type: "note", tekst: `Kulderystelser nævnt ("${sep.kilde}"), men også "${upaav.kilde}" — markér selv "Påvirket almentilstand", hvis det gælder.` });
         // Krepitation kun i huden/underhuden — ikke ved lungestetoskopi.
-        const nek = L.term(`nekros|nekrot|subkutan krepitation|krepitation (?:i|af) (?:huden|underhuden|vævet)|luft i (?:vævet|underhuden)|smerter ude af proportion|voldsomme smerter|bullae|bulla${E}|bulløs|blærer${E}|blæredannelse|hurtigt (?:progredierende|tiltagende)|hurtig spredning|progredierende trods`);
+        const nek = L.term(`nekros|nekrot|subkutan krepitation|krepitation (?:i|af) (?:huden|underhuden|vævet)|luft i (?:vævet|underhuden)|smerter ude af proportion|${d !== "impetigo" ? `bullae|bulla${E}|bulløs|hæmoragiske blærer|` : ""}hurtigt progredierende|hurtig spredning|progredierende trods`);
         if (nek.status === "ja") u.push(chk("rf", "nekrose", nek, "Tegn på nekrotiserende infektion"));
-        const ans = L.term("periorbital|orbital|omkring (?:\\w+ )?øjet|øjenlåg|ved øjet|i ansigtet|ansigts\\w*|faciei");
+        // Øjenomgivelser altid; ansigt kun ved rosen/cellulitis (børnesår i ansigtet er almindeligt).
+        const ans = L.term(`periorbital|orbital|omkring (?:[a-zæøå]+ )?øjet|øjenlåg|ved øjet${d === "erysipelas" || d === "cellulitis" ? "|i ansigtet|ansigts(?:erysipelas|cellulitis|rosen)|erysipelas faciei|faciei" : ""}`);
         if (ans.status === "ja") u.push(chk("rf", "ansigt", ans, "Periorbital/ansigt"));
         if (d === "cellulitis") {
           // Byld/absces afkrydses — men ikke, når den udtrykkeligt ikke er fluktuerende ("Byld, ikke fluktuerende endnu").

@@ -312,7 +312,7 @@
         // Klinisk billede
         const feber = L.feber();
         if (feber.note) u.push({ type: "note", tekst: `Feber: ${feber.note}.` });
-        const flanke = L.term("flankesmerter|flankeømhed|flanke\\w*\\s+(?:øm|smert)\\w*|nyrelogeømhed|nyrelogesmerter|ømhed (?:over|i|ved) (?:[a-zæøå]+\\s+){0,2}(?:nyreloge|flanke)\\w*|(?:øm\\w*|banke-?øm\\w*|dunke-?øm\\w*|smerter?)\\s+(?:over|i|ved)?\\s*(?:[a-zæøå]+\\s+){0,2}nyreloge\\w*|nyreloge\\w*\\s+(?:øm|bankeøm|dunkeøm)\\w*|dunkeøm|bankeøm|pyelonefrit|urosepsis|smerter i (?:lænden|siden)|ondt i (?:[a-zæøå]+\\s+)?(?:side|lænd)\\w*");
+        const flanke = L.term("flankesmerter|flankeømhed|flanke\\w*\\s+(?:øm|smert)\\w*|nyrelogeømhed|nyrelogesmerter|ømhed (?:over|i|ved) (?:[a-zæøå]+\\s+){0,2}(?:nyreloge|flanke)\\w*|(?:øm\\w*|banke-?øm\\w*|dunke-?øm\\w*|smerter?)\\s+(?:over|i|ved)?\\s*(?:[a-zæøå]+\\s+){0,2}nyreloge\\w*|nyreloge\\w*\\s+(?:øm|bankeøm|dunkeøm)\\w*|dunkeøm|bankeøm|pyelonefrit|urosepsis");
         // "Ingen symptomer på pyelonefritis" er ikke asymptomatisk bakteriuri.
         const asympt = L.term("asymptomatisk|uden symptomer(?! på)|ingen symptomer(?! på)|symptomfri");
         const cyst = L.term("svie|dysuri|hyppig vandladning|tisser hyppigt|pollakisuri|blærebetændelse|cystit|vandladningstrang|urgency|smerter? ved vandladning|ondt (?:når|ved at) (?:hun|han)? ?tisse\\w*|uvi-?symptomer|uvi${L.E}|urinvejsinfektion");
