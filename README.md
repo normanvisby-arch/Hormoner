@@ -349,6 +349,63 @@ fri journaltekst — fx fra diktat eller en scribe — og felterne udfyldes af f
   tekstuddraget, det kom fra, samt bemærkninger (fx enhedsomregning, flere mulige diagnoser, plain
   "diabetes" uden type) og vigtige felter, der ikke blev fundet. En manuel ændring fjerner
   markeringen. Ny udfyldning nulstiller formularen først.
+- **Revideret oktober 2026 (audit af alle syv værktøjer):**
+  - *Strep A* læses i alle almindelige skriveformer ("Strep A pos", "Strep A-test er positiv",
+    "(+)/(-)", "taget, positiv", "GAS-test", "halspodning positiv for streptokokker"). Et
+    strep A-svar vælger halsbetændelse; ved flere svar bruges det sidste med en bemærkning.
+  - *Bindestreg og tankestreg:* "-" er kun nægtelse sidst i et led ("feber -"). Det gælder ikke i
+    sammensatte ord ("nitrit-positiv", "A-test") og ikke som skilletegn ("Feber - målt 38,5").
+    Også "nægter", "undgå/frarådes", "NSAID: ingen" og "pauseret/seponeret" senere i leddet nægter.
+    "trods" bryder nægtelsen ("BT ikke i mål trods losartan").
+  - *Måleserier med tid* (eGFR, kreatinin, kalium, UACR, vægt, BT):
+    - "eGFR 52 (2024), nu 44" og "faldet fra 58 (2025) til 43 (2026)".
+    - "eGFR 44 (tidligere 52)", "44 i dag, 52 for et år siden" og "under indlæggelse".
+    - Datoer før eller efter værdien.
+    - Semikolon-format fra laboratoriet og tabeller med datokolonner.
+    - Den tidligere eGFR er den, der ligger tættest på 1 år før.
+    - Grænser i planen ("hvis eGFR < 30", "hvis kalium > 5,5") er ikke målinger.
+    - "< X" flyttes under grænsen ("eGFR <15" → 14, altså G5).
+    - g/mol omregnes som mg/mmol.
+  - *Alder og køn:*
+    - Alder: "K, 72", "Mand, 72", "Pt. er 72 år", "f. 1953", "8 mdr" og "1½ år".
+    - Andre personers alder bruges ikke ("Mor (34-årig)", "gift, mand og to børn"), og varigheder
+      er ikke alder ("KOL gennem 15 år").
+    - Køn: "Hr./herre/mandlig/han/M" og "Sex: M".
+  - *Vægt og temperatur:*
+    - Vægt uden "kg" efter "vægt", men ikke "vægttab på 5 kg".
+    - Temperatur med ord imellem ("Temp. rektalt 38,9") eller sted efter ("38,2 i øret").
+  - *Allergi og graviditet:* handelsnavne og stavefejl (Selexid, Primcillin, Imadrax,
+    "pencillin") samt anafylaksi/urticaria. Familiens allergi tæller ikke. "U-hCG pos" og
+    "graviditet i uge 30" giver graviditet.
+  - *Urinveje:*
+    - Stix: "leu 2+", "(+)", "+ nitrit", "positiv for … negativ for", "Stix: negativ" og seneste
+      stix. Ikke nitrofurantoin eller leukocytose.
+    - Nyrelogeømhed giver feber/flanke-billedet. "Ingen symptomer på pyelonefritis" er ikke
+      asymptomatisk.
+    - "AT/almentilstand påvirket" og "medtaget" giver påvirket almentilstand. Ved lavt BT eller
+      høj puls kommer en note.
+    - Et fjernet kateter afkrydses ikke.
+  - *Hud:*
+    - Øjenlåg/ansigt, bulla/blærer og hurtigt tiltagende rødme genkendes.
+    - Krepitation tæller kun i huden, og myggestik er ikke dyrebid.
+    - "led" som verbum er ikke et led, og "upåvirket" efter kulderystelser vejer tungere.
+    - EM-stavevarianter og paronychi genkendes.
+  - *Nyre:*
+    - "DM type 2/NIDDM/AHT/PAI" genkendes. Type 1, "diabetes i familien", screening og insipidus
+      giver ikke T2D.
+    - Pauseret eller overvejet medicin afkrydses ikke.
+    - Dosis-siden kender handelsnavne og kombinationspræparater (Janumet, Metoject, Dolol,
+      Trimopan, Imadrax m.fl.). Nævnes et ukendt præparat med dosis, slås "kun nævnte" ikke til.
+  - *EKG:*
+    - "Korrigeret QT/QT korr./QTcBaz" er QTc. Respirationsfrekvens og klinisk puls er ikke
+      EKG-frekvens ("SR 64" foretrækkes).
+    - Tre akser efter "Akse:" læses som P/QRS/T. "ca."/"på" og QRS uden enhed accepteres.
+    - Lægens egne EKG-notater giver kun udsagnene i "maskinens tolkning".
+  - *Restordre:*
+    - Flere udløsere: "kan ikke levere(s)", "ikke på lager", "udsolgt" og "mangler på apoteket".
+      Præparatet i samme sætning som udløseren foretrækkes.
+    - Kombinationspræparater ("Losartan/hydrochlorthiazid") bevares med advarsel.
+    - Dosis fra teksten vælges i ækvivalenslisten.
 - **Begrænsninger:** reglerne forstår ikke sammenhæng som en sprogmodel — tjek altid de markerede
   felter. Ukendte formuleringer udfyldes ikke (hellere tomt end forkert). Felter uden for teksten
   bevarer standardværdien.
@@ -806,6 +863,24 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**6. oktober 2026 — Udfyld fra journaltekst: audit af alle værktøjer:**
+- Lægen fandt, at "Strep A pos" o.l. ikke altid blev fanget. Ved gennemgangen viste "Strep A-test er
+  positiv" sig at blive læst som **negativ** (bindestregen i "A-test" blev tolket som minus).
+- Tre uafhængige audits af alle syv værktøjer med udfyldning (luftveje, urinveje, hud, kronisk
+  nyresygdom, dosis efter nyrefunktion, EKG og restordre) med ca. 550 formuleringer fandt bl.a.
+  disse farlige fejl:
+  - "nitrit-positiv" læst som negativ.
+  - "Feber - målt 38,5" læst som afebril.
+  - Den gamle eGFR, kreatinin og kalium brugt i stedet for den nye.
+  - Grænser i planen læst som målinger.
+  - Korrigeret QT lagt i QT-feltet, så QTc blev falsk høj.
+  - Respirationsfrekvens læst som hjertefrekvens.
+  - Forkert præparat i restordre.
+  - Handelsnavne skjult af filtret "kun nævnte" på dosis-siden.
+- Alle fund er rettet (se "Revideret oktober 2026" ovenfor). Over 70 nye regressionstests i
+  `tests/udfyld.test.js`, `tests/ekg.test.js` og `tests/restordre.test.js`.
+- Service worker v13 (hjerte), v10 (infektion), v9 (nyre), v6 (notat, restordre).
 
 **3. oktober 2026 — MHT-risikovurdering: BRCA i det samlede resultat:**
 - Ved BRCA/stærk familiær disposition kan brystkræft-NNH ikke beregnes. Før blev det samlede

@@ -323,6 +323,8 @@
           u.push(chk("centor", "lymf", L.term("lymfeknude|glandler|glandel|lymfadenit|lymfadenopati"), "Centor: ømme lymfeknuder"));
           const hoste = L.term(`host(?:e|er|en|et|ende)?${L.E}`);
           if (hoste.status) u.push({ type: "check", name: "centor", value: "hoste", on: hoste.status === "nej", label: "Centor: ingen hoste", kilde: hoste.kilde });
+          const cs = L.find(`${L.B}centor\\s*(?:score)?\\s*[:=]?\\s*([0-4])(?![\\d,.])`);
+          if (cs) u.push({ type: "note", tekst: `Centor-score ${cs.m[1]} nævnt ("${cs.kilde}") — kontrollér, at de rigtige kriterier er afkrydset.` });
           if (strep) u.push({ type: "radio", name: "strep", value: strep.v, label: "Strep A-test", kilde: strep.kilde });
           if (strep && strep.note) u.push({ type: "note", tekst: `Strep A: ${strep.note}.` });
           const abs = L.term("peritonsillær absces|peritonsillit|trismus|kartoffeltale");

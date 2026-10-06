@@ -241,10 +241,11 @@
         const u = [];
         const E = L.E;
         const diag = L.vaelg([
-          { value: "em", staerk: "erythema migrans|borreli|flåtbid|skovflåt|flåt" },
-          { value: "bid", staerk: `hundebid|kattebid|menneskebid|bidsår|bidt${E}|bid${E}` },
+          { value: "em", staerk: `erythema? migrans|erytema migrans|em${E}(?=[^.;\\n]{0,40}(?:flåt|borreli|rødme|ring))|borreli|flåtbid|skovflåt|flåt`, svag: "ringformet rødme|vandrende rødme|ringformet udslæt" },
+          // Ikke insektbid: "bidt af myg/hveps/flåt".
+          { value: "bid", staerk: `hundebid|kattebid|menneskebid|dyrebid|bidsår|bidt${E}(?!\\s+af\\s+(?:en\\s+)?(?:myg|hveps|bi|insekt|flåt|skovflåt|loppe|væggelus|edderkop))|(?<!insekt|myg|hvepse|flåt)bid${E}(?!\\s+af\\s+(?:myg|hveps|insekt|flåt))` },
           { value: "impetigo", staerk: "impetigo|børnesår" },
-          { value: "cellulitis", staerk: "cellulit|absces|byld|sårinfektion|inficeret sår|furunkel" },
+          { value: "cellulitis", staerk: "cellulit|absces|byld|sårinfektion|inficeret sår|inficeret (?:fod)?sår|inficeret eksem|furunkel|paronyk\\w*|paronychi\\w*|neglebåndsbetændelse|diffus rødme omkring" },
           { value: "erysipelas", staerk: "erysipelas|rosen" },
         ]);
         const d = diag ? diag.value : "erysipelas";
@@ -258,14 +259,20 @@
         if (w) u.push({ type: "num", id: "vaegt", v: w.v, label: "Vægt (kg)", kilde: w.kilde });
         u.push(chk("andet", "allergi", L.allergi(), "Penicillinallergi"));
         u.push(chk("andet", "gravid", L.gravid(), "Gravid"));
-        const sep = L.term("septisk|sepsis|påvirket almentilstand|almen påvirket|almenpåvirket|kulderystelser|konfus");
-        if (sep.status === "ja") u.push(chk("rf", "sepsis", sep, "Påvirket almentilstand"));
-        const nek = L.term("nekros|nekrot|krepitation|smerter ude af proportion|bullae|bulløs|hurtigt progredierende|hurtig spredning");
+        const sep = L.term("septisk|sepsis|påvirket almentilstand|almentilstand\\s*[:=]?\\s*(?:let |lettere |moderat |svært |tydeligt )?påvirket|at\\s*[:=]?\\s*(?:let |lettere |moderat |svært )?påvirket|almen påvirket|almenpåvirket|medtaget|kulderystelser|konfus");
+        // "Kulderystelser i går … Upåvirket": det seneste udsagn om almentilstand gælder.
+        const upaav = L.term("upåvirket|alment upåvirket|ikke påvirket|god almentilstand");
+        if (sep.status === "ja" && !(upaav.status === "ja" && upaav.index > sep.index && /kulderystelser/.test(sep.kilde.toLowerCase()))) u.push(chk("rf", "sepsis", sep, "Påvirket almentilstand"));
+        else if (sep.status === "ja") u.push({ type: "note", tekst: `Kulderystelser nævnt ("${sep.kilde}"), men også "${upaav.kilde}" — markér selv "Påvirket almentilstand", hvis det gælder.` });
+        // Krepitation kun i huden/underhuden — ikke ved lungestetoskopi.
+        const nek = L.term(`nekros|nekrot|subkutan krepitation|krepitation (?:i|af) (?:huden|underhuden|vævet)|luft i (?:vævet|underhuden)|smerter ude af proportion|voldsomme smerter|bullae|bulla${E}|bulløs|blærer${E}|blæredannelse|hurtigt (?:progredierende|tiltagende)|hurtig spredning|progredierende trods`);
         if (nek.status === "ja") u.push(chk("rf", "nekrose", nek, "Tegn på nekrotiserende infektion"));
-        const ans = L.term("periorbital|omkring øjet|orbital");
+        const ans = L.term("periorbital|orbital|omkring (?:\\w+ )?øjet|øjenlåg|ved øjet|i ansigtet|ansigts\\w*|faciei");
         if (ans.status === "ja") u.push(chk("rf", "ansigt", ans, "Periorbital/ansigt"));
         if (d === "cellulitis") {
-          const abs = L.term("absces|byld|fluktuer");
+          // Byld/absces afkrydses — men ikke, når den udtrykkeligt ikke er fluktuerende ("Byld, ikke fluktuerende endnu").
+          const fluk = L.term("fluktuer\\w*");
+          const abs = fluk.status ? fluk : L.term("absces|byld");
           if (abs.status === "ja") u.push(chk("cell", "absces", abs, "Byld"));
           const om = L.term("omgivende rødme|cellulit|lymfangit");
           const feber = L.feber();
@@ -282,14 +289,14 @@
           const dyr = L.vaelg([
             { value: "menneske", staerk: "menneskebid|menneske|knytnæve|knoslag" },
             { value: "kat", staerk: `kattebid|kat${E}|katte` },
-            { value: "hund", staerk: `hundebid|hund(?:en|e|ene)?${E}` },
+            { value: "hund", staerk: `hundebid|hund(?:en|e|ene)?${E}|hvalp\\w*|schæfer|labrador|terrier|puddel|golden retriever|rottweiler|chihuahua|gravhund` },
           ]);
           if (dyr) u.push({ type: "radio", name: "dyr", value: dyr.value, label: "Bidt af", kilde: dyr.kilde });
           const inf = L.term(`inficeret|pus${E}|purulent|lymfangit|rødme og hævelse|hævelse og rødme`);
           if (inf.status === "ja") u.push(chk("bid", "inficeret", inf, "Tegn på infektion"));
-          const ris = L.term(`hånd(?:en|led)?${E}|fingre?${E}|fingeren|fod(?:en)?${E}|fødder|led${E}|over led|ansigt|dybt|punktur|kønsorgan`);
+          const ris = L.term(`(?<!egen |på egen )hånd(?:en|led|ryg)?${E}|fingre?${E}|fingeren|fod(?:en)?${E}|fødder|(?:over|i|ved|nær) (?:et )?led${E}|ledet${E}|ansigt|dybt|punktur|kønsorgan`);
           if (ris.status === "ja") u.push(chk("bid", "risiko", ris, "Risikolokalisation/dybt sår"));
-          const imm = L.term("diabetes|immunsuppr|miltløs|splenektom|levercirrose");
+          const imm = L.term("diabetes|immunsuppr|miltløs|splenektom|levercirrose", { familie: true });
           if (imm.status === "ja") u.push(chk("bid", "immun", imm, "Nedsat immunforsvar"));
           const udl = L.term("udlandet|rabies|flagermus");
           if (udl.status === "ja") u.push(chk("bid", "udland", udl, "Udland/flagermus (rabies)"));

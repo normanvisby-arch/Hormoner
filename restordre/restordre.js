@@ -88,6 +88,12 @@
       if (x.ord.some((o) => o === t)) eksakt.push(x);
       else if ((x.type === "detalje" && x.re.test(t)) || x.ord.some((o) => o.startsWith(t) || new RegExp(`${B}${reEsc(o)}${E}`).test(t))) del.push(x);
     });
+    // Kombinationspræparat skrevet som "losartan/hydrochlorthiazid" eller "a + b": vis det første stof
+    // (advarslen om det andet indholdsstof vises i resultatet).
+    if (!eksakt.length && del.length > 1 && /[\/+]/.test(t)) {
+      const foerste = find(t.split(/[\/+]/)[0]);
+      if (foerste.length === 1) return foerste;
+    }
     return eksakt.length ? eksakt : del;
   }
   const navnPaa = (h) => (h.type === "detalje" ? h.s.navn : stor(h.stof));
@@ -95,6 +101,7 @@
 
   let valgt = null;
   let valgtAlt = null;
+  let ventendeDosis = null;
 
   function vaelg(hit) {
     valgt = hit;
@@ -103,6 +110,13 @@
     const r = hit.type === "detalje" && hit.g.raekker;
     dosisFelt.hidden = !r;
     if (r) dosis.innerHTML = `<option value="">Ukendt</option>` + r.map((x, i) => `<option value="${i}">${esc(x.niveau)} — ${esc(x.doser[hit.s.id])}</option>`).join("");
+    // Dosis fra indsat journaltekst: vælg rækken med netop den dosis (kun ved ét entydigt match).
+    if (r && ventendeDosis) {
+      const re = new RegExp(`(?<![\\d,])${ventendeDosis.tal}\\s*${ventendeDosis.enhed}(?![a-zæøå])`, "i");
+      const match = r.map((x, i) => (re.test(String(x.doser[hit.s.id])) ? i : -1)).filter((i) => i >= 0);
+      if (match.length === 1) dosis.value = String(match[0]);
+    }
+    ventendeDosis = null;
     vis();
   }
 
@@ -270,7 +284,7 @@
     const { g, s } = valgt;
     const rk = dosis.value === "" ? null : +dosis.value;
     // Kombinationspræparat ("Losartan Comp", "… plus", "a + b"), der kun er fundet som enkeltstof.
-    const kombi = /(?:^|[^a-zæøå])(?:comp|plus|duo|forte comp)(?![a-zæøå])|\+/i.test(soeg.value)
+    const kombi = /(?:^|[^a-zæøå])(?:comp|plus|duo|hct|forte comp)(?![a-zæøå])|\+|[a-zæøå]\s*\/\s*[a-zæøå]/i.test(soeg.value)
       ? box("box-red", "Kombinationspræparat?", `<p>Søgningen ligner et kombinationspræparat, men værktøjet fandt kun enkeltstoffet <strong>${esc(s.navn)}</strong>. Tabellen gælder kun dette stof — det andet indholdsstof (fx hydrochlorthiazid) skal fortsat gives, fx som separat tablet. Tjek indholdsstofferne på pakningen eller <a href="${PROMEDICIN(soeg.value.trim())}" target="_blank" rel="noopener">pro.medicin.dk</a>.</p>`)
       : "";
     output.innerHTML = kombi + restordreBoks(soegeord) + samme(s.samme ? esc(s.samme) : null) + alternativer(g, s, rk) + skift(g) + notatBoks();
@@ -348,7 +362,9 @@
     Udfyld.init(
       (L) => {
         const t = L.lav;
-        const r = t.search(/restordre|kan ikke skaffes|ikke til at skaffe|forsyningsvanskelig|forsyningssvigt|leveringssvigt|udgået|mangel på/);
+        const rm = t.match(/restordre|restnoter|kan ikke (?:skaffes|leveres|levere|fås|få fat i|udleveres)|ikke kan (?:skaffes|leveres|levere)|ikke til at (?:skaffe|få)|ikke på lager|udsolgt|forsyningsvanskelig|forsyningssvigt|forsyningsproblem|leveringssvigt|leveringsproblem|udgået|mangel på|mangler på apoteket|apoteket mangler/);
+        const r = rm ? rm.index : -1;
+        const rSlut = rm ? rm.index + rm[0].length : -1;
         let bedst = null;
         INDEKS.forEach((x) => {
           const monster = x.type === "detalje" ? x.s.soeg : x.ord.filter((o) => o.length >= 4 && !ALMINDELIGE.has(o)).map(reEsc).join("|");
@@ -356,13 +372,26 @@
           L.alle(new RegExp(`${B}(?:${monster})${E}`, "g")).forEach((m) => {
             // Afstand til udløseren — fra navnets slutning, når navnet står før ("Ozempic er i restordre").
             const slut = m.index + m[0].length;
-            const afstand = r < 0 ? m.index : slut <= r ? r - slut : Math.abs(m.index - r);
+            const fra = Math.min(slut, r);
+            const til = Math.max(m.index, rSlut);
+            const afstand = r < 0 ? m.index : (slut <= r ? r - slut : Math.max(0, m.index - rSlut)) + (/[.;\n]/.test(t.slice(fra, til)) ? 100 : 0);
             if (!bedst || afstand < bedst.afstand) bedst = { afstand, m };
           });
         });
         if (!bedst) return [{ type: "note", tekst: "Intet præparat fra værktøjets register blev fundet i teksten — skriv navnet selv." }];
-        const ord = L.tekst.slice(bedst.m.index, bedst.m.index + bedst.m[0].length);
-        return [{ type: "tekst", id: "soeg", v: stor(ord), label: "Præparat i restordre", kilde: L.kilde(bedst.m.index, bedst.m.index + bedst.m[0].length) }];
+        let i0 = bedst.m.index;
+        let i1 = bedst.m.index + bedst.m[0].length;
+        // Kombinationspræparat: "Losartan comp", "Losartan/hydrochlorthiazid", "Atacand Plus" — hele navnet
+        // bevares, så advarslen om det andet indholdsstof vises.
+        const efter = t.slice(i1).match(/^\s*(?:-\s*)?(?:comp|plus|hct|duo|forte comp)(?![a-zæøå])|^\s*\/\s*[a-zæøå][a-zæøå-]+/);
+        const foer = t.slice(0, i0).match(/[a-zæøå][a-zæøå-]+\s*\/\s*$/);
+        if (efter) i1 += efter[0].length;
+        if (foer) i0 -= foer[0].length;
+        const navn = L.tekst.slice(i0, i1).replace(/\s+/g, " ");
+        // Dosis lige efter navnet ("Ozempic 1 mg", "Eltroxin 50 mikrog"): vælges i dosislisten, hvis den findes.
+        const d = t.slice(i1, i1 + 40).match(/^\s*(?:[a-zæøå]+\s+){0,2}?(\d+(?:[.,]\d+)?)(?:\s*\/\s*\d+(?:[.,]\d+)?)?\s*(mg|mikrog|µg|mcg|ie|g)(?![a-zæøå])/);
+        ventendeDosis = d && !foer && !efter ? { tal: d[1].replace(".", ","), enhed: d[2] === "µg" || d[2] === "mcg" ? "mikrog" : d[2] } : null;
+        return [{ type: "tekst", id: "soeg", v: stor(navn), label: "Præparat i restordre", kilde: L.kilde(i0, i1) }];
       },
       { vigtige: [["soeg", "præparat"]], eksempel: "Fx: Ozempic 1 mg er i restordre. Type 2-diabetes, HbA1c 58." }
     );

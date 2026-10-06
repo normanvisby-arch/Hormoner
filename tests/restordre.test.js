@@ -138,6 +138,15 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
   check('U3 præparat fra registeret udfyldes (Lyrica)', (await p.inputValue('#soeg')) === 'Lyrica' && (await p.locator('#output').innerText()).includes('Gabapentinoider'));
   await p.fill('#udfyldTekst', 'Pradaxa 110 mg × 2 i mange år, nu i restordre. Husk kontrol.'); await p.click('#udfyldBtn'); await p.waitForTimeout(200);
   check('U4 "Husk" læses ikke som præparat (Pradaxa udfyldes)', (await p.inputValue('#soeg')) === 'Pradaxa');
+  const ru = async (t) => { await p.fill('#udfyldTekst', t); await p.click('#udfyldBtn'); await p.waitForTimeout(250); return { soeg: await p.inputValue('#soeg'), out: await p.locator('#output').innerText(), dosis: await p.evaluate(() => { const d = document.getElementById('dosis'); return d.selectedOptions[0] ? d.selectedOptions[0].textContent : ''; }) }; };
+  let rr = await ru('Pt. i behandling med metformin og atorvastatin. Apoteket kan ikke levere Eliquis');
+  check('U5 "kan ikke levere" — præparatet efter udløseren (Eliquis)', rr.soeg === 'Eliquis', rr.soeg);
+  rr = await ru('Pt. får Pinex og Eliquis 5 mg x 2. Eliquis kan ikke leveres.');
+  check('U6 ikke det første præparat i teksten (Pinex)', rr.soeg === 'Eliquis', rr.soeg);
+  rr = await ru('Losartan/hydrochlorthiazid 50/12,5 mg i restordre');
+  check('U7 kombinationspræparat bevares og advarer', /losartan\/hydrochlorthiazid/i.test(rr.soeg) && rr.out.includes('Kombinationspræparat?'), rr.soeg);
+  rr = await ru('Ozempic 1 mg er i restordre');
+  check('U8 dosis fra teksten vælges i dosislisten', rr.soeg === 'Ozempic' && /1 mg/.test(rr.dosis), rr.dosis);
   await p.fill('#udfyldTekst', 'Pt. ringer om sin medicin.'); await p.click('#udfyldBtn'); await p.waitForTimeout(200);
   check('U2 intet præparat fundet → note', (await p.locator('#udfyldRapport').innerText()).includes('Intet præparat'));
 

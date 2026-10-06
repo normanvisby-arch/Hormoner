@@ -20,25 +20,28 @@ window.Udfyld = (function () {
   const B = "(?<![a-zæøåé0-9])";
   const E = "(?![a-zæøåé0-9])";
   // Nægtelse før et fund (højst ca. otte ord før) og efter et fund ("feber: nej", "strep A ÷").
-  const NEG = new RegExp(`${B}(ingen|ikke|uden|benægter|benægtes|negativ|neg\\.?|afkræft\\w*|aldrig|intet|ej|seponer\\w*|pauser\\w*|ophørt|stoppet)${E}|(?:^|\\s)÷\\s*$`);
-  // "-" er kun nægtelse, når det står alene ("feber -"), ikke i sammensatte ord ("KOL-kontrol").
-  const NEG_EFTER = /^\s*[:=]?\s*(?:er\s+|var\s+|blev\s+)?(nej|neg(?![a-zæøå])|negativ|÷|\(-\)|ikke til stede|benægtes|afkræftet|udelukket|seponeret|pauseret|ophørt|stoppet|udtrappet|-(?![\d>a-zæøåé]))/;
+  const NEG = new RegExp(`${B}(ingen|ikke|uden|benægter|benægtes|nægter|negativ|neg\\.?|afkræft\\w*|aldrig|intet|ej|seponer\\w*|pauser\\w*|ophørt|stoppet|undgå\\w*|fraråd\\w*)${E}|(?:^|\\s)÷\\s*$`);
+  // "-" er kun nægtelse, når det står alene sidst i leddet ("feber -", "feber: -"), ikke i sammensatte
+  // ord ("KOL-kontrol", "nitrit-positiv") og ikke som tankestreg ("Feber - målt 38,5 hjemme").
+  const NEG_EFTER = /^\s*[:=]?\s*(?:er\s+|var\s+|blev\s+)?(nej|neg(?![a-zæøå])|negativ|÷|\(\s*[-÷]\s*\)|ikke til stede|benægtes|afkræftet|udelukket|seponeret|pauseret|ophørt|stoppet|udtrappet|frarådes|frarådet|undgås|ingen(?![a-zæøå])|-(?=\s*(?:$|[,.;)\n])))/;
+  // Pauseret/seponeret senere i samme led: "Losartan 50 mg (pauseret under gastroenteritis)".
+  const NEG_SENERE = /^[^.;,\n]{0,40}?(?:^|[\s(])(?:er\s+|blev\s+)?(pauseret|seponeret|ophørt|udtrappet|stoppet)(?![a-zæøå])/;
   // Led, hvor nægtelsen ikke rækker ind: "uden bedring, men fortsat feber".
-  const SKIFT = new RegExp(`${B}(?:men|dog|stadig|fortsat|nu|til gengæld|derimod|udover|ud over|bortset fra|foruden)${E}`);
+  const SKIFT = new RegExp(`${B}(?:men|dog|stadig|fortsat|nu|til gengæld|derimod|udover|ud over|bortset fra|foruden|trods|på trods af)${E}`);
   // Hypotetisk omtale, råd og ønsker: "hvis feber", "informeret om at søge læge ved nakkestivhed".
   // Råd og betingelser gælder altid; ønsker og planer ("ønsker p-piller") kun ved udfyldning af felter.
   const HYPO = new RegExp(`${B}(?:hvis|såfremt|i tilfælde af|obs\\.?\\s*(?:for|på)|informeret|instrueret|vejledt|oplyst om|rådgivet|(?:at|bør|skal)\\s+søge|vaccin\\w*)${E}`);
   const HYPO_OENSKE = new RegExp(`${B}(?:forebyg\\w*|ønske\\w*|planlæg\\w*|forsøg\\w*|(?:at|vil|kan)\\s+blive)${E}`);
-  const HYPO_START = /^\s*ved(?![a-zæøå])(?!\s+(?:us|undersøg|obj|klinisk|stix|auskult|palp|insp|indlæg|kontrol|konsultation|besøg|lyt|tilsyn|fremmøde|ankomst|henvendelse|tlf|telefon|opkald|visitation|modtagelse))/;
+  const HYPO_START = /^\s*ved(?![a-zæøå])(?!\s+(?:us|undersøg|obj|klinisk|stix|auskult|palp|insp|indlæg|kontrol|konsultation|besøg|lyt|tilsyn|fremmøde|ankomst|henvendelse|tlf|telefon|opkald|visitation|modtagelse|sidste|seneste|blodprøve|måling|udskrivelse))/;
   // Råd med "ved" efter: "Genkontakt ved feber", "Kontakt lægen ved flankesmerter", "Panodil ved feber".
   const HYPO_VED = new RegExp(`${B}(?:(?:gen)?kontakt\\w*|henvend\\w*|søg\\w*|ring\\w*|retur\\w*|sikkerhedsnet|råd\\w*|panodil|pamol|pinex|paracetamol|ibuprofen|ipren|pn|p\\.n\\.)${E}[^.;\\n]{0,40}${B}ved${E}`);
-  const HYPO_EFTER = new RegExp(`${B}(?:genkontakt\\w*|kontakte?\\s+(?:igen|os|lægen|læge|vagtlægen|lægevagten|1813|112)|søge?\\s+(?:læge|lægevagt|skadestue))${E}`);
+  const HYPO_EFTER = new RegExp(`${B}(?:overvej\\w*|påtænk\\w*|planlægges|kan komme på tale|genkontakt\\w*|kontakte?\\s+(?:igen|os|lægen|læge|vagtlægen|lægevagten|1813|112)|søge?\\s+(?:læge|lægevagt|skadestue))${E}`);
   // Familieanamnese: "mor har diabetes", "disp. til hjertesygdom".
   const FAMILIE = new RegExp(`${B}(?:(?:mor|moder|far|fader|søster|bror|broder|forældre|søskende|bedstemor|bedstefar|mormor|morfar|farmor|farfar|onkel|tante)\\s+(?:har|havde|med|fik|døde|haft|er)|disp\\.?|disposition|familie\\w*|familiær\\w*|arvelig\\w*)${E}`);
   // Datoer før værdien springes over: "eGFR 12.03.26: 44".
   const DATO = "\\(?\\d{1,2}[./-]\\d{1,2}(?:[./-]\\d{2,4})?\\)?\\s*[:=]";
   const TAL = "(<|>|≤|≥)?\\s*(\\d+(?:[.,]\\d+)?)(?!\\d|[.,/-]\\d)";
-  const SEP = `\\s*(?:${DATO}|[:=]|på|er|var|af|ca\\.?|målt til)?\\s*`;
+  const SEP = `\\s*(?:${DATO}|[:=;\\t]|på|er|var|af|ca\\.?|målt til|nu|i dag|aktuelt)?\\s*`;
   const BOGSTAV = /[a-zæøåé0-9]/;
   const NU = /(?:^|[^a-zæøå])(nu|i dag|aktuel\w*|seneste|nyeste|p\.t\.)(?![a-zæøå])/;
   const TIDL = /tidligere|siden|sidste år|i fjor|forrige|året før|dengang|initialt|ved debut|(?:19|20)\d\d/;
@@ -58,7 +61,7 @@ window.Udfyld = (function () {
   const erSaetning = (t, i) => erGraense(t, i) && t[i] !== ",";
 
   // Samler mellemrum og tomme linjer, så lange mellemrum ikke gør de regulære udtryk langsomme.
-  const normaliser = (s) => String(s).replace(/[\r\v\f\u2028\u2029]/g, "\n").replace(/[ \t\u00a0\u2000-\u200b]+/g, " ").replace(/[ \n]*\n[ \n]*/g, "\n");
+  const normaliser = (s) => String(s).replace(/(\d)\s*½/g, "$1,5").replace(/[\r\v\f\u2028\u2029]/g, "\n").replace(/[ \t\u00a0\u2000-\u200b]+/g, " ").replace(/[ \n]*\n[ \n]*/g, "\n");
 
   function lib(raa) {
     const tekst = normaliser(raa);
@@ -124,7 +127,8 @@ window.Udfyld = (function () {
         const s = ledStart(j);
         const seg = t.slice(s, j);
         if (hypoTekst(seg, false)) return "?";
-        if (NEG.test(seg) && !SKIFT.test(seg)) {
+        // "ikke skarpt afgrænset, cellulitis": "ikke" nægter et udsagn, ikke en opremsning.
+        if (NEG.test(seg) && !SKIFT.test(seg) && !/^\s*ikke\s/.test(seg) && !new RegExp(`${B}ikke${E}`).test(seg.replace(/^\s*(?:ingen|uden)\b.*$/, ""))) {
           let slut = i;
           while (slut < t.length && !erSaetning(t, slut) && slut - i < 300) slut++;
           return new RegExp(`${B}eller${E}`).test(t.slice(i, slut)) ? "nej" : "?";
@@ -146,11 +150,11 @@ window.Udfyld = (function () {
     // ("ønsker p-piller") og ubesvarede spørgsmål ("SCORE2?", "Start levothyroxin?").
     function klassificer(i, slut, { familie = false, emne = false } = {}) {
       if (hypotetisk(i, slut, !emne)) return "?";
-      if (familie && FAMILIE.test(t.slice(ledStart(i), i))) return "?";
+      if (familie && (FAMILIE.test(t.slice(ledStart(i), i)) || /^[^.;\n]{0,20}?(?:i familien|hos (?:mor|moder|far|fader|søster|bror|broder|forældre\w*|søskende|bedste\w*|mormor|morfar|farmor|farfar))(?![a-zæøå])/.test(leddetEfter(slut)))) return "?";
       const dele = leddetFor(i).split(SKIFT);
       const foer = ord(dele[dele.length - 1]).slice(-8).join(" ");
       const efter = leddetEfter(slut);
-      if (NEG.test(foer) || NEG.test(foer + " ") || NEG_EFTER.test(efter)) return "nej";
+      if (NEG.test(foer) || NEG.test(foer + " ") || NEG_EFTER.test(efter) || NEG_SENERE.test(efter)) return "nej";
       // Spørgsmål: "Feber? Nej." / "Gravid? Ja."
       const k = slut + efter.length;
       if (t[k] === "?") {
@@ -184,6 +188,7 @@ window.Udfyld = (function () {
         const re = new RegExp(`${B}(?:${etiket})${E}(?:\\s*\\([^()\\d]{1,15}\\))?${SEP}${TAL}`, "g");
         const ud = [];
         for (const m of alle(re)) {
+          if (hypotetisk(m.index, m.index + m[0].length)) continue;
           const v = parseTal(m[2]);
           if (!(v >= min && v <= max)) continue;
           ud.push({ v, op: m[1] || "", kilde: kilde(m.index, m.index + m[0].length), index: m.index, slut: m.index + m[0].length, efter: leddetEfter(m.index + m[0].length), foer: leddetFor(m.index), led: leddet(m.index) });
@@ -225,62 +230,99 @@ window.Udfyld = (function () {
     // Fælles udtræk
     // ------------------------------------------------------------------
 
+    // Personer, der ikke er patienten: "Mor (34-årig) ringer om sin 3-årige søn", "gift, mand og to børn".
+    const ANDEN = /(?:mor|moder|far|fader|forælder\w*|ægtefælle|hustru|kone|ledsager\w*|søster|bror|broder|kæreste|gift\s*,?|sin|sit|hendes|hans|min|egen|ledsaget af|med|og)\s*\(?\s*$/;
+    // Varighed, ikke alder: "KOL gennem 15 år", "i 30 år", "for 10 år siden".
+    const VARIGHED_FOER = /(?:i|gennem|igennem|for|over|siden|de sidste|de seneste|sidste|efter|ca\.?|inden for|mere end|under|i ca\.?)\s*$/;
+
     L.alder = function () {
-      const mdr = L.find(`(\\d{1,2})\\s*(?:måneder|mdr\\.?|md\\.)\\s*(?:gammel|gl\\.?)`) || L.find(`(?:barn|dreng|pige|spædbarn)\\s*,?\\s*(?:på\\s*)?(\\d{1,2})\\s*(?:måneder|mdr)`);
-      if (mdr) return { v: Math.round((parseTal(mdr.m[1]) / 12) * 100) / 100, kilde: mdr.kilde, note: `${mdr.m[1]} måneder omregnet til år` };
+      const ok = (m, v, note) => (v >= 0 && v <= 110 ? { v, kilde: kilde(m.index, m.index + m[0].length), note } : null);
+      // "Mor (34-årig)" er ikke patienten — men "sin 3-årige søn" er.
+      const ikkePt = (m) => ANDEN.test(t.slice(Math.max(0, m.index - 22), m.index)) && !/^\s*-?\s*(?:årig\w*|år\s*(?:gammel|gl\.?))?\s*,?\s*(?:søn|datter|barn|dreng|pige|baby|spædbarn)/.test(t.slice(m.index + m[0].length - 6, m.index + m[0].length + 20).replace(/^.*?(?=årig|år|\s)/, ""));
+      // Måneder og uger (børn): "8 mdr gammel", "pige på 8 mdr", "8 mdr." alene (ikke "i 8 mdr").
+      for (const m of alle(new RegExp(`(?<![\\d.,])(\\d{1,2})\\s*(?:måneder|mdr\\.?|md\\.)(?:\\s*(?:gammel|gl\\.?))?${E}`, "g"))) {
+        const foer = t.slice(Math.max(0, m.index - 16), m.index);
+        if (ikkePt(m) || (VARIGHED_FOER.test(foer) && !/(?:dreng|pige|barn|spædbarn|pt\.?|patient)\s*,?\s*(?:på\s*)?$/.test(foer)) || /^\s*(?:siden|varighed)/.test(t.slice(m.index + m[0].length, m.index + m[0].length + 10))) continue;
+        if (!/gammel|gl/.test(m[0]) && !/(?:dreng|pige|barn|spædbarn|pt\.?|patient|søn|datter)\s*,?\s*(?:på\s*)?$|^\s*$/.test(foer.slice(-14)) && !/^\s*(?:gl|gammel|,?\s*(?:dreng|pige|barn))/.test(t.slice(m.index + m[0].length, m.index + m[0].length + 12))) continue;
+        return ok(m, Math.round((parseTal(m[1]) / 12) * 100) / 100, `${m[1]} måneder omregnet til år`);
+      }
       const uger = L.find(`(\\d{1,2})\\s*uger\\s*(?:gammel|gl)`);
       if (uger) return { v: Math.round((parseTal(uger.m[1]) / 52) * 100) / 100, kilde: uger.kilde, note: `${uger.m[1]} uger omregnet til år` };
+      const KON = "(?:mand|kvinde|dreng|pige|herre|dame|pt\\.?|patient|han|hun)";
       const mønstre = [
         `(\\d{1,3})\\s*-?\\s*årig`,
-        `(\\d{1,3})\\s*år\\s*gammel`,
-        `${B}alder\\s*[:=]?\\s*(\\d{1,3})${E}`,
-        `(\\d{1,3})\\s*år\\s*,?\\s*(?:gammel\\s*)?(?:mand|kvinde|dreng|pige|pt|patient)${E}`,
-        `${B}(?:mand|kvinde|dreng|pige)\\s*,?\\s*(\\d{1,3})\\s*år${E}`,
+        `(\\d{1,3}(?:[.,]5)?)\\s*år\\s*(?:gammel|gl\\.?)`,
+        `${B}(?:alder|age)\\s*[:=]?\\s*(\\d{1,3})${E}`,
+        `${B}(?:er|på)\\s+(\\d{1,3})\\s*år${E}(?!\\s*siden)`,
+        `(\\d{1,3})\\s*år\\s*,?\\s*(?:gammel\\s*)?${KON}${E}`,
+        `${B}(?:mand|kvinde|dreng|pige|herre|dame|mandlig\\s+patient|kvindelig\\s+patient|pt\\.?|patient|hr\\.?\\s+[a-zæøåé-]+|fru\\s+[a-zæøåé-]+)\\s*,?\\s*(?:på\\s*)?(\\d{1,3}(?:[.,]5)?)\\s*(?:år${E}|(?!\\d|[.,]\\d|\\s*(?:kg|mg|cm|%|\\/|x|×|gange|dage|uger|timer|mdr|måneder)))`,
+        `(?:^|\\n)\\s*[KMkm]\\s*,?\\s*(\\d{2,3})(?![\\d.,])`,
       ];
       for (const mo of mønstre) {
-        const f = L.find(mo);
-        if (f && parseTal(f.m[1]) <= 110) return { v: parseTal(f.m[1]), kilde: f.kilde };
+        for (const m of alle(new RegExp(mo, "g"))) {
+          if (ikkePt(m) || VARIGHED_FOER.test(t.slice(Math.max(0, m.index - 16), m.index))) continue;
+          const r = ok(m, parseTal(m[1]));
+          if (r) return r;
+        }
+      }
+      // "f. 1953", "født 1953" — alder ud fra årstallet.
+      const f = L.find(`${B}(?:f\\.|født)\\s*(?:\\d{1,2}[./-]\\d{1,2}[./-])?((?:19|20)\\d\\d)${E}`);
+      if (f) {
+        const v = new Date().getFullYear() - parseTal(f.m[1]);
+        if (v >= 0 && v <= 110) return { v, kilde: f.kilde, note: `beregnet ud fra fødselsåret ${f.m[1]} — kan være 1 år for høj` };
+      }
+      // "45 år" alene — ikke en varighed ("i 45 år", "for 2 år siden").
+      for (const m of alle(new RegExp(`(?<![\\d.,])(\\d{1,3})\\s*år${E}(?!\\s*(?:siden|tidligere|efter|før|med|i træk))`, "g"))) {
+        if (ikkePt(m) || VARIGHED_FOER.test(t.slice(Math.max(0, m.index - 16), m.index))) continue;
+        const r = ok(m, parseTal(m[1]), "kun \"år\" i teksten — kontrollér, at det er alderen");
+        if (r && r.v >= 1) return r;
       }
       return null;
     };
 
-    // Vægt: "vægt 72 kg", "vejer nu 22 kg" eller "72 kg" — ikke vægtændringer eller fødselsvægt.
-    L.vaegt = function () {
-      const ok = (m) => {
-        const v = parseTal(m[1]);
-        return v >= 1 && v <= 250 ? { v, kilde: kilde(m.index, m.index + m[0].length) } : null;
-      };
-      for (const m of alle(new RegExp(`${B}(?:vægt|vejer)(?:\\s*(?:nu|i dag|p\\.t\\.|aktuelt|ca\\.?))?\\s*[:=]?\\s*(\\d+(?:[.,]\\d+)?)\\s*kg${E}`, "g"))) {
-        const r = ok(m);
-        if (r) return r;
+    // Køn — ikke ledsagere ("ledsaget af sin mand", "gift, mand og to børn").
+    L.koen = function () {
+      const re = new RegExp(`${B}(mand|manden|kvinde|kvinden|dreng|drengen|pige|pigen|herre|hr\\.|mandlig|kvindelig|fru|han|hun)${E}|(?:^|\\n)\\s*([km])\\s*,?\\s*\\d{2}|${B}(?:køn|sex)\\s*[:=]?\\s*(m|k|f|mand|kvinde|male|female)${E}|(♀|♂)`, "g");
+      for (const m of alle(re)) {
+        if (ANDEN.test(t.slice(Math.max(0, m.index - 18), m.index))) continue;
+        if (/^\s*og\s+(?:\w+\s+)?børn/.test(t.slice(m.index + m[0].length, m.index + m[0].length + 20))) continue;
+        const x = (m[1] || m[2] || m[3] || m[4] || "").toLowerCase();
+        // "han"/"hun" kun som stedord om patienten tidligt i teksten, ikke "hun har en mand".
+        if ((x === "han" || x === "hun") && m.index > 200) continue;
+        const mand = /^(mand|dreng|herre|hr\.|mandlig|han|m|male|♂)/.test(x);
+        return { v: mand ? "mand" : "kvinde", kilde: kilde(m.index, m.index + m[0].length) };
       }
-      for (const m of alle(new RegExp(`(?<![\\d.,])(\\d+(?:[.,]\\d+)?)\\s*kg${E}(?!\\s*\\/)`, "g"))) {
+      return null;
+    };
+
+    // Vægt: "vægt 72 kg", "Vægt: 72,5", "vejer 58 kilo", "72 kg" — ikke vægtændringer eller fødselsvægt.
+    // Flere vægte: "Vægt 65 kg (2024), nu 58 kg" → den aktuelle.
+    L.vaegt = function () {
+      const s = L.serie(`vægt|vejer|kropsvægt|weight`, { min: 1, max: 250, navn: "vægt", enhed: "(?:kg|kilo)?", strategi: "sidste" });
+      if (s.nu) return s.nu;
+      for (const m of alle(new RegExp(`(?<![\\d.,])(\\d+(?:[.,]\\d+)?)\\s*(?:kg|kilo)${E}(?!\\s*\\/)`, "g"))) {
         const foer = t.slice(Math.max(0, m.index - 25), m.index);
         const efter = t.slice(m.index + m[0].length, m.index + m[0].length + 15);
-        if (/(tab\w*|taget|tog|øget|øgning|fald\w*|fødsel\w*|steget|mistet|gået|[+±-])\s*(?:ca\.?\s*)?$|fødsel/.test(foer)) continue;
-        if (/^\s*(på|op|ned|i vægt|vægttab|mere|mindre|lettere|tungere)(?![a-zæøå])/.test(efter)) continue;
-        const r = ok(m);
-        if (r) return r;
+        if (/(tab\w*|taget|tog|øget|øgning|fald\w*|fødsel\w*|steget|mistet|gået|tabt|[+±-])\s*(?:(?:på|med)\s*)?(?:ca\.?\s*)?(?:op til\s*)?$|fødsel/.test(foer)) continue;
+        if (/^\s*(på|op|ned|i vægt|vægttab|mere|mindre|lettere|tungere|vægttab)(?![a-zæøå])/.test(efter)) continue;
+        const v = parseTal(m[1]);
+        if (v >= 1 && v <= 250) return { v, kilde: kilde(m.index, m.index + m[0].length) };
       }
       return null;
     };
 
-    // Køn — ikke ledsagere ("ledsaget af sin mand").
-    L.koen = function () {
-      for (const m of alle(new RegExp(`${B}(mand|manden|kvinde|kvinden|dreng|drengen|pige|pigen)${E}`, "g"))) {
-        if (/(?:sin|sit|hendes|hans|min|egen|ledsaget af|ledsager|med|og)\s*$/.test(t.slice(Math.max(0, m.index - 15), m.index))) continue;
-        return { v: /^(mand|dreng)/.test(m[1]) ? "mand" : "kvinde", kilde: kilde(m.index, m.index + m[0].length) };
-      }
-      return null;
-    };
-
-    const TEMP = [`(?:${B}temp(?:eratur)?|${B}t|${B}feber)\\.?\\s*[:=]?\\s*(\\d{2}(?:[.,]\\d)?)(?!\\d|[.,]\\d)`, `(?<![\\d.,])(\\d{2}(?:[.,]\\d)?)\\s*(?:°\\s*c?|grader|c${E})`];
+    // Temperatur: "t. 38,5", "Temp. rektalt 38,9", "feber - målt 38,5", "38,2 i øret", "38,5 grader".
+    const TEMP = [
+      `(?:${B}temp(?:eratur)?|${B}t|${B}feber|${B}febril)\\.?\\s*(?:[-–:=]\\s*)?(?:(?:målt|rektalt|rektal|i øret|øre|oralt|axillært|i munden|hjemme|max|maks\\.?|op til|til|på|ca\\.?|i går|i nat|i dag)\\s*){0,3}[:=]?\\s*(\\d{2}(?:[.,]\\d)?)(?!\\d|[.,]\\d)`,
+      `(?<![\\d.,])(\\d{2}(?:[.,]\\d)?)\\s*(?:°\\s*c?|grader|c${E}|(?:målt\\s*)?(?:i øret|rektalt|axillært|i munden|oralt)${E})`,
+    ];
     const temps = () =>
       TEMP.flatMap((mo) => alle(new RegExp(mo, "g")))
         .filter((m) => !hypotetisk(m.index, m.index + m[0].length))
         .map((m) => ({ v: parseTal(m[1]), index: m.index, kilde: kilde(m.index, m.index + m[0].length) }))
         .filter((x) => x.v >= 34 && x.v <= 43)
-        .sort((p, q) => p.index - q.index);
+        .sort((p, q) => p.index - q.index)
+        .filter((x, i, a) => !i || x.index !== a[i - 1].index);
     L.temp = () => temps()[0] || null;
 
     // Feber: den sidste oplysning i teksten gælder ("afebril i går, i aften 39"); konflikt giver en note.
@@ -290,39 +332,172 @@ window.Udfyld = (function () {
       (afeb.fund || []).forEach((f) => f.k !== "?" && h.push({ i: f.m.index, s: f.k === "ja" ? "nej" : "ja", kilde: kilde(f.m.index, f.m.index + f.m[0].length) }));
       const fe = L.term("feber(?!fri)|febril|pyreksi");
       (fe.fund || []).forEach((f) => f.k !== "?" && h.push({ i: f.m.index, s: f.k, kilde: kilde(f.m.index, f.m.index + f.m[0].length) }));
-      temps().forEach((x) => h.push({ i: x.index, s: x.v >= 38 ? "ja" : "nej", kilde: x.kilde }));
-      if (!h.length) return { status: null };
-      h.sort((p, q) => p.i - q.i);
-      // Et temperaturtal lige efter ordet "feber" hører til samme oplysning.
-      const sidste = h[h.length - 1];
-      const konflikt = h.some((x) => x.s !== sidste.s);
+      // Et temperaturtal i samme led som ordet "feber" er samme oplysning — tallet afgør.
+      temps().forEach((x) => {
+        const sammeLed = h.filter((y) => y.i <= x.index && x.index - y.i < 30 && !/[.;\n]/.test(t.slice(y.i, x.index)));
+        sammeLed.forEach((y) => (y.s = null));
+        h.push({ i: x.index, s: x.v >= 38 ? "ja" : "nej", kilde: x.kilde });
+      });
+      const hh = h.filter((x) => x.s);
+      if (!hh.length) return { status: null };
+      hh.sort((p, q) => p.i - q.i);
+      const sidste = hh[hh.length - 1];
+      const konflikt = hh.some((x) => x.s !== sidste.s);
       return { status: sidste.s, kilde: sidste.kilde, note: konflikt ? `teksten nævner både feber og feberfrihed — den sidste oplysning ("${sidste.kilde}") er brugt` : "" };
     };
 
     L.gravid = function () {
-      const test = L.find(`graviditetstest\\w*\\s*[:=]?\\s*(pos\\w*|\\+|neg\\w*|÷|-)`);
-      if (test) return { status: /^(pos|\+)/.test(test.m[1]) ? "ja" : "nej", kilde: test.kilde };
-      return L.term(`gravid${E}|gravide${E}|graviditetsuge|uge\\s*\\d{1,2}\\s*\\+\\s*\\d|ga\\s*\\d{1,2}\\s*\\+\\s*\\d`);
+      const test = L.find(`${B}(?:graviditetstest\\w*|[usp]-?hcg|hcg)\\s*[:=]?\\s*(?:er\\s+|var\\s+)?(pos\\w*|\\+|\\(\\s*\\+\\s*\\)|neg\\w*|÷|\\(\\s*[-÷]\\s*\\)|-(?![a-zæøå\\d]))`);
+      if (test) return { status: /^(pos|\+|\(\s*\+)/.test(test.m[1]) ? "ja" : "nej", kilde: test.kilde };
+      return L.term(`gravid${E}|gravide${E}|graviditet\\s+(?:i\\s+)?uge|graviditetsuge|gravida${E}|uge\\s*\\d{1,2}\\s*\\+\\s*\\d|ga\\s*\\d{1,2}\\s*\\+\\s*\\d`);
     };
 
-    // Penicillinallergi i de almindelige skriveformer. "Tåler ikke penicillin" og "ingen allergier
-    // udover penicillin" er altid ja; "ingen kendte allergier" er kun nej, hvis intet andet siger ja.
-    const STOF = "penicillin\\w*|amoxicillin|ampicillin|pivampicillin|pivmecillinam|dicloxacillin|flucloxacillin|pcv?|betalaktam\\w*|beta-laktam\\w*";
+    // Penicillinallergi i de almindelige skriveformer — også handelsnavne (Selexid, Primcillin, Imadrax …)
+    // og stavefejl. "Tåler ikke penicillin" og "ingen allergier udover penicillin" er altid ja; "ingen kendte
+    // allergier" er kun nej, hvis intet andet siger ja. Familiens allergier tæller ikke.
+    const STOF = "pe(?:n|nn)ic?ill?in\\w*|pencillin\\w*|amoxicillin|ampicillin|pivampicillin|pivmecillinam|mecillinam|dicloxacillin|flucloxacillin|phenoxymethylpenicillin|pcv?|betalaktam\\w*|beta-laktam\\w*|selexid|primcillin|primve|vepicombin|imadrax|amoxi-?clav|spektramox|bioclavid|dicillin|heracillin|nerbutix|pondocillin|penomax|pivampicillin";
+    const REAKTION = "allergi\\w*|allergisk|overfølsom\\w*|reaktion|udslæt|urticaria|nældefeber|anafylaksi|anafylaktisk\\w*|angioødem|quincke\\w*|ødem";
     L.allergi = function () {
-      const sikker = L.find(`${B}(?:tåler ikke|tålte ikke|udover|ud over|bortset fra|undtagen)\\s+(?:${STOF})${E}`);
-      if (sikker) return { status: "ja", kilde: sikker.kilde };
-      const t1 = L.term(`(?:${STOF})-?\\s*allergi\\w*|(?:${STOF})-?\\s*overfølsomhed|(?:allergi\\w*|allergisk|overfølsom\\w*|reaktion|udslæt)\\s*(?:over for|overfor|for|mod|på|af|efter)\\s*(?:${STOF})${E}`);
+      const F = { familie: true };
+      const sikker = alle(new RegExp(`${B}(?:tåler ikke|tålte ikke|udover|ud over|bortset fra|undtagen|udslæt af|reaktion på)\\s+(?:${STOF})${E}`, "g")).find((m) => klassificer(m.index, m.index + m[0].length, F) === "ja");
+      if (sikker) return { status: "ja", kilde: kilde(sikker.index, sikker.index + sikker[0].length) };
+      const t1 = L.term(`(?:${STOF})-?\\s*(?:allergi\\w*|overfølsomhed)|(?:${REAKTION})\\s*(?:\\([^)]{0,20}\\)\\s*)?(?:over for|overfor|for|mod|på|af|efter|ved)\\s*(?:${STOF})${E}|(?:${STOF})\\s*[:=]\\s*(?:${REAKTION})`, F);
       if (t1.status) return t1;
-      for (const m of alle(new RegExp(`${B}(?:allergi\\w*|cave)\\s*[:=]?\\s*([^.;\\n]{0,40}?)(?:${STOF})${E}`, "g"))) {
+      for (const m of alle(new RegExp(`${B}(?:allergi\\w*|cave|lægemiddelallergi\\w*)\\s*[:=]?\\s*([^.;\\n]{0,40}?)(?:${STOF})${E}`, "g"))) {
         const mellem = m[1];
         const efter = leddetEfter(m.index + m[0].length);
-        if (NEG.test(mellem) || /(?:^|\s)(nej|÷|-|0)(?:\s|,|$)/.test(mellem) || /^\s*(tåles|tålt|afkræftet|udelukket|nej|÷)/.test(efter)) continue;
+        if (klassificer(m.index, m.index + 1, F) === "?") continue;
+        if (NEG.test(mellem) || /(?:^|\s)(nej|÷|-|0)(?:\s|,|$)/.test(mellem) || /^\s*(tåles|tålt|afkræftet|udelukket|nej|÷|-(?![a-zæøå]))/.test(efter)) continue;
         return { status: "ja", kilde: kilde(m.index, m.index + m[0].length) };
       }
-      const ingen = L.find(`${B}(?:ingen (?:kendte )?(?:medicin)?allergier|nka${E}|allergi\\w*\\s*[:=]\\s*(?:ingen|nej|÷|0|-)(?![\\w\\d]))`);
+      const ingen = L.find(`${B}(?:ingen (?:kendte )?(?:lægemiddel|medicin)?-?allergier|nka${E}|allergi\\w*\\s*[:=]?\\s*(?:ingen|nej|÷|0|-)(?![\\w\\d])|allergi\\w*\\s*(?:[:=]\\s*)?(?:${STOF})\\s*[:=]?\\s*(?:nej|÷|ingen)${E})`);
       if (ingen) return { status: "nej", kilde: ingen.kilde };
       return { status: null };
     };
+
+    // ------------------------------------------------------------------
+    // Måleserier med tid. Hver værdi får et tidsmærke, så den aktuelle vælges:
+    // "eGFR 52 (2024), nu 44", "eGFR faldet fra 58 (2025) til 43 (2026)", "eGFR 44 (tidligere 52)",
+    // "eGFR 14.09.2026: 52. eGFR 01.09.2025: 38", "kalium 5,8 for 2 uger siden; kalium nu 5,1",
+    // "P-Kreatinin;112;µmol/L" og laboratorietabeller med datokolonner.
+    // ------------------------------------------------------------------
+    const TID = "(?:nu|i dag|aktuel\\w*|p\\.t\\.|seneste|nyeste|tidligere|sidste år|i fjor|forrige år|året før|for (?:ca\\.?\\s*)?(?:\\d+|et|en|to|tre|fire|fem|seks|otte|ti|flere|mange|nogle) (?:år|måneder|mdr\\.?|uger|dage) siden|under indlæggelse(?: med \\w+)?|ved indlæggelse|ved udskrivelse|ved sidste (?:blodprøve|måling|kontrol)|(?:i |fra |ved |i år |)(?:19|20)\\d\\d|\\(?\\d{1,2}[./-]\\d{1,2}[./-]\\d{2,4}\\)?)";
+    const datoAf = (s) => {
+      const d = String(s).match(/(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+      if (d) {
+        let y = +d[3];
+        if (y < 100) y += y < 70 ? 2000 : 1900;
+        return Date.UTC(y, +d[2] - 1, +d[1]);
+      }
+      const y = String(s).match(/(?<!\d)((?:19|20)\d\d)(?!\d)/);
+      return y ? Date.UTC(+y[1], 6, 1) : null;
+    };
+    const tidAf = (s) => ({
+      nu: /(?:^|[^a-zæøå])(?:nu|i dag|aktuel\w*|p\.t\.|seneste|nyeste)(?![a-zæøå])/.test(s),
+      gammel: /tidligere|siden|sidste år|i fjor|forrige år|året før|indlæggelse|udskrivelse|ved sidste/.test(s) && !/(?:^|[^a-zæøå])(?:nu|i dag)(?![a-zæøå])/.test(s),
+      dato: datoAf(s),
+    });
+    // Tal, der ikke er målingen: alder, dosis, varighed, BT-brøk.
+    const IKKE_MAAL = "(?![\\d.,]?\\d|\\s*(?:år|årig|kg|mg(?!\\s*\\/)|mikrog|%|cm|x|×|gange|dage|døgn|uger|måneder|mdr|timer|stk|tbl|\\/\\s*\\d))";
+    const FORBIND = "(?:\\s|[,;:()]|→|->|–|og|men|til|ned til|op til|faldet til|steget til)*";
+
+    L.serie = function (etiket, { min = -Infinity, max = Infinity, navn = "værdi", enhed = "", strategi = "sidste", omregn = null } = {}) {
+      const LBL = `${B}(?:${etiket})${E}(?:\\s*\\([^()]{0,30}\\))?(?:\\s*\\/\\s*1[.,]73\\s*m(?:²|2)?)?`;
+      const PRE = `((?:\\s*(?:[:=;\\t]|på|er|var|af|ca\\.?|målt til|omkring|faldet fra|steget fra|gået fra|fra|${TID}))*)\\s*`;
+      const ENH = `(\\s*${enhed || ""}(?:\\s*(?:ml\\/min(?:\\/1[.,]73\\s*m(?:²|2)?)?|mg\\/g|mg\\/mmol|g\\/mol|µmol\\/l|umol\\/l|mmol\\/l|mmol\\/mol))?)`;
+      const POST = new RegExp(`^\\s*(?:\\(\\s*(${TID})\\s*\\)|(${TID})(?=\\s*(?:$|[,.;)\\n]|og|men)))`);
+      const IKKE = /kg/.test(enhed) ? IKKE_MAAL.replace("kg|", "") : IKKE_MAAL;
+      const ud = [];
+      const linjer = t.split("\n");
+      const linjeStart = [];
+      linjer.reduce((pos, l) => (linjeStart.push(pos), pos + l.length + 1), 0);
+      const tilfoej = (v, op, i0, i1, tidTekst, rk, kaede, enhedTekst) => {
+        let x = parseTal(v);
+        let note = "";
+        if (omregn) {
+          const o = omregn(x, enhedTekst || "");
+          if (o) [x, note] = [o.v, o.note];
+        }
+        if (!(x >= min && x <= max)) return;
+        if (op === "<" && x > min) {
+          const trin = Number.isInteger(x) ? 1 : 0.1;
+          note = [note, `angivet som < ${String(x).replace(".", ",")} — sat til ${String(Math.round((x - trin) * 10) / 10).replace(".", ",")}`].filter(Boolean).join("; ");
+          x = Math.round((x - trin) * 10) / 10;
+        }
+        ud.push(Object.assign({ v: x, op: op || "", index: i0, slut: i1, kilde: kilde(i0, i1), rk, kaede, note, efter: leddetEfter(i1), led: leddet(i0) }, tidAf(tidTekst)));
+      };
+      for (const m of alle(new RegExp(`${LBL}${PRE}(<|>|≤|≥)?\\s*(\\d+(?:[.,]\\d+)?)${IKKE}${ENH}`, "g"))) {
+        if (hypotetisk(m.index, m.index + m[0].length)) continue;
+        let slut = m.index + m[0].length;
+        const post = t.slice(slut).match(POST);
+        // Tidsord lige foran etiketten hører med: "tidligere eGFR 58", "i dag kalium 5,1".
+        const foran = (leddetFor(m.index).match(/(?:tidligere|nu|i dag|aktuel\w*|sidste år|i fjor|seneste|ved indlæggelse|ved udskrivelse)\s*[:=]?\s*$/) || [""])[0];
+        let tidTekst = foran + " " + m[1] + (post ? " " + (post[1] || post[2]) : "");
+        const startRk = ud.length;
+        tilfoej(m[3], m[2], m.index, slut + (post ? post[0].length : 0), tidTekst, 0, false, m[4]);
+        if (post) slut += post[0].length;
+        // Fortsættelse uden etiket: ", nu 44", "til 43 (2026)", "(tidligere 52)", "52 49 44".
+        const linje = linjer.findIndex((l, i) => linjeStart[i] <= m.index && m.index < linjeStart[i] + l.length + 1);
+        const linjeSlut = linjeStart[linje] + linjer[linje].length;
+        const FORT = new RegExp(`^(${FORBIND})((?:${TID}\\s*[:=]?\\s*)*)(<|>|≤|≥)?\\s*(\\d+(?:[.,]\\d+)?)${IKKE}${ENH}`);
+        let n = 1;
+        for (;;) {
+          const rest = t.slice(slut, linjeSlut).split(/\.(?!\d)/)[0];
+          const f = rest.match(FORT);
+          if (!f || /[a-zæøå]/.test(f[1].replace(/og|men|til|ned|op|faldet|steget/g, ""))) break;
+          const i0 = slut + f[1].length;
+          let i1 = slut + f[0].length;
+          const p2 = t.slice(i1).match(POST);
+          const tt = f[2] + (p2 ? " " + (p2[1] || p2[2]) : "");
+          if (p2) i1 += p2[0].length;
+          tilfoej(f[4], f[3], i0, i1, tt, n++, /til|→|->/.test(f[1]), f[5]);
+          slut = i1;
+        }
+        // Tabel: "eGFR 52 49 44" under en linje med lige så mange datoer.
+        const raekke = ud.slice(startRk);
+        if (raekke.length >= 2 && raekke.every((x) => x.dato == null)) {
+          for (let i = linje - 1; i >= 0 && i >= linje - 12; i--) {
+            const datoer = linjer[i].match(/\d{1,2}[./-]\d{1,2}[./-]\d{2,4}/g);
+            if (datoer && datoer.length >= 2) {
+              if (datoer.length === raekke.length) raekke.forEach((x, j) => (x.dato = datoAf(datoer[j])));
+              break;
+            }
+          }
+        }
+      }
+      return vaelgAktuel(ud, navn, strategi);
+    };
+
+    function vaelgAktuel(ud, navn, strategi) {
+      if (!ud.length) return { nu: null, foer: null, alle: ud };
+      const vis = (x) => String(x.v).replace(".", ",");
+      let nu;
+      let grund;
+      const nuMaerket = ud.filter((x) => x.nu);
+      const daterede = ud.filter((x) => x.dato != null);
+      const umaerkede = ud.filter((x) => !x.nu && !x.gammel && x.dato == null);
+      if (nuMaerket.length) [nu, grund] = [nuMaerket[nuMaerket.length - 1], "den aktuelle"];
+      else if (umaerkede.length === 1) [nu, grund] = [umaerkede[0], "den uden tidsangivelse"];
+      else if (umaerkede.length > 1 && umaerkede.some((x) => x.kaede)) [nu, grund] = [umaerkede[umaerkede.length - 1], "den seneste"];
+      else if (!umaerkede.length && daterede.length) [nu, grund] = [daterede.slice().sort((p, q) => q.dato - p.dato)[0], "den nyeste dato"];
+      else if (umaerkede.length > 1) {
+        nu = strategi === "laveste" ? umaerkede.reduce((p, q) => (q.v < p.v ? q : p)) : umaerkede[umaerkede.length - 1];
+        grund = `${strategi === "laveste" ? "den laveste" : "den sidst nævnte"} — uden klar tidsangivelse. Kontrollér`;
+      } else [nu, grund] = [ud[ud.length - 1], "den sidst nævnte — alle er angivet som tidligere. Kontrollér"];
+      const andre = ud.filter((x) => x !== nu);
+      // Tidligere værdi (ca. 1 år før): dato tættest på 1 år før, ellers "sidste år", ellers den første i en kæde.
+      let foer = null;
+      const ref = nu.dato != null ? nu.dato : null;
+      const dAndre = andre.filter((x) => x.dato != null && (ref == null || x.dato < ref));
+      if (dAndre.length) {
+        const maal = (ref != null ? ref : Date.now()) - 365 * 864e5;
+        foer = dAndre.sort((p, q) => Math.abs(p.dato - maal) - Math.abs(q.dato - maal))[0];
+      } else {
+        foer = andre.find((x) => /sidste år|i fjor|for (?:ca\.?\s*)?(?:et|1) år siden/.test(x.led)) || andre.filter((x) => x.gammel).pop() || andre.find((x) => x.kaede === false && x.rk === 0 && nu.kaede) || null;
+      }
+      const note = [nu.note, ud.length > 1 ? `flere ${navn}-værdier (${ud.map(vis).join(", ")}) — ${grund} er brugt` : ""].filter(Boolean).join("; ");
+      return { nu: Object.assign({}, nu, { note }), foer: foer ? Object.assign({}, foer, { note: foer.note || "" }) : null, alle: ud };
+    }
 
     // Laboratorieværdier
     L.egfr = (o) => L.tal(`e-?gfr|gfr`, Object.assign({ min: 2, max: 200 }, o));
@@ -335,60 +510,47 @@ window.Udfyld = (function () {
       }
       return null;
     };
-    L.kalium = function () {
-      for (const x of L.tal(`p-?kalium|kalium|p-k|(?<!-)k\\+?`, { min: 1.5, max: 9, alle: true })) {
-        if (/^\s*(mg|µg|mikrog|ie|mcg)(?![a-zæøå])/.test(x.efter)) continue;
-        return x;
-      }
-      return null;
-    };
+    L.kalium = () => L.serie(`p-?kalium|kalium|p-k|(?<!-)k\\+?`, { min: 1.5, max: 9, navn: "kalium" }).nu;
+    // UACR i mg/g; mg/mmol og g/mol (samme enhed) omregnes × 8,84.
     L.uacr = function () {
-      const f = L.tal(`uacr|u-?acr|acr|u-?albumin\\s*\\/\\s*kreatinin(?:-?ratio)?|albumin\\s*\\/\\s*kreatinin(?:-?ratio)?|albumin-?kreatinin-?ratio|u-?alb\\s*\\/\\s*krea`, { min: 0, max: 50000 });
-      if (!f) return null;
-      const enhed = f.efter.match(/^\s*mg\s*\/\s*(?:mmol|g)/);
-      L.brug(f.index, f.slut + (enhed ? enhed[0].length : 0));
-      if (/^\s*mg\s*\/\s*mmol/.test(f.efter)) return Object.assign(f, { v: Math.round(f.v * 8.84), note: `${String(f.v).replace(".", ",")} mg/mmol omregnet til mg/g (× 8,84)` });
-      return f;
+      const r = L.serie(`uacr|u-?acr|acr|u-?albumin\\s*[\\/-]\\s*kreat(?:inin)?(?:\\s*-?\\s*ratio)?|albumin\\s*[\\/-]\\s*kreat(?:inin)?(?:\\s*-?\\s*ratio)?|albumin-?kreatinin-?ratio|u-?alb\\s*\\/\\s*krea\\w*`, {
+        min: 0,
+        max: 50000,
+        navn: "UACR",
+        omregn: (v, e) => (/mg\s*\/\s*mmol|g\s*\/\s*mol/.test(e) ? { v: Math.round(v * 8.84), note: `${String(v).replace(".", ",")} ${/g\s*\/\s*mol/.test(e) && !/mg/.test(e) ? "g/mol" : "mg/mmol"} omregnet til mg/g (× 8,84)` } : null),
+      });
+      r.alle.forEach((x) => L.brug(x.index, x.slut));
+      return r.nu;
     };
     // P-kreatinin i µmol/l — ikke U-kreatinin (mmol/l) eller mg/dl.
-    L.kreat = function () {
-      for (const x of L.tal(`p-?kreatinin|(?<!u-?)kreatinin|p-?krea|(?<!u-?)krea`, { min: 20, max: 2000, alle: true })) {
-        if (/^\s*(mmol|mg)(?![a-zæøå])/.test(x.efter)) continue;
-        return x;
-      }
-      return null;
-    };
+    L.kreat = () => L.serie(`p-?kreatinin|(?<![u\\/]-?)kreatinin|creatinin|p-?krea\\.?|(?<![u\\/]-?)krea(?:t)?\\.?`, { min: 20, max: 2000, navn: "kreatinin" }).nu;
+    // BT: "BT 142/88", "BT hjemme 138/84", "Hjemme-BT gns. 138/84", "BT 160/90 sidste år, i dag 132/78".
     L.bt = function () {
-      const f = L.find(`${B}(?:bt|blodtryk)${E}${SEP}(\\d{2,3})\\s*\\/\\s*(\\d{2,3})`);
-      if (!f) return null;
-      const s = parseTal(f.m[1]);
-      const d = parseTal(f.m[2]);
-      return s >= 60 && s <= 280 && d >= 30 && d <= 170 ? { s, d, kilde: f.kilde } : null;
+      const ud = [];
+      const MID = `((?:\\s*(?:[:=]|hjemme|gns\\.?|gennemsnit\\w*|ve\\.?|hø\\.?|venstre|højre|arm|siddende|liggende|stående|målt|ca\\.?|på|${TID}))*)\\s*`;
+      const PAR = "(\\d{2,3})\\s*\\/\\s*(\\d{2,3})";
+      for (const m of alle(new RegExp(`${B}(?:bt|blodtryk|hjemme-?bt)${E}${MID}${PAR}`, "g"))) {
+        if (hypotetisk(m.index, m.index + m[0].length) || /mål/.test(t.slice(Math.max(0, m.index - 6), m.index + 8))) continue;
+        let slut = m.index + m[0].length;
+        const push = (s1, d1, i0, i1, tt) => {
+          const s = parseTal(s1);
+          const d = parseTal(d1);
+          if (s >= 60 && s <= 280 && d >= 30 && d <= 170) ud.push(Object.assign({ s, d, v: s, index: i0, kilde: kilde(i0, i1), led: leddet(i0), rk: ud.length }, tidAf(tt)));
+        };
+        const post = t.slice(slut).match(new RegExp(`^\\s*(?:mmhg)?\\s*(?:\\(\\s*(${TID})\\s*\\)|(${TID})(?=\\s*(?:$|[,.;)\\n])))`));
+        push(m[2], m[3], m.index, slut + (post ? post[0].length : 0), m[1] + (post ? " " + (post[1] || post[2]) : ""));
+        if (post) slut += post[0].length;
+        const f = t.slice(slut).match(new RegExp(`^\\s*(?:mmhg)?\\s*[,;]\\s*((?:${TID}\\s*[:=]?\\s*)+)${PAR}`));
+        if (f) push(f[2], f[3], slut, slut + f[0].length, f[1]);
+      }
+      const r = vaelgAktuel(ud, "BT", "sidste");
+      return r.nu ? Object.assign(r.nu, { s: r.nu.s, d: r.nu.d }) : null;
     };
 
-    // eGFR nu og tidligere: "faldet fra 52 til 44", "52 → 44", årstal eller "tidligere"/"nu".
-    // Uden klar tidsangivelse bruges den laveste værdi (forsigtigst) med en bemærkning.
+    // eGFR nu og tidligere. Uden klar tidsangivelse bruges den laveste værdi (forsigtigst) med en bemærkning.
     L.egfrTid = function () {
-      const ft = L.find(`e-?gfr[^.;\\n]{0,30}?(?:fra\\s*(\\d{1,3})\\s*(?:til|→|->)\\s*(\\d{1,3})|(\\d{1,3})\\s*(?:→|->)\\s*(\\d{1,3}))(?!\\d)`);
-      if (ft) {
-        const a = parseTal(ft.m[1] || ft.m[3]);
-        const b = parseTal(ft.m[2] || ft.m[4]);
-        return { nu: { v: b, kilde: ft.kilde }, foer: { v: a, kilde: ft.kilde } };
-      }
-      const liste = L.egfr({ alle: true });
-      if (liste.length <= 1) return { nu: liste[0] || null, foer: null };
-      const aar = (x) => {
-        const m = (x.foer + " " + x.efter.slice(0, 16)).match(/((?:19|20)\d\d)/);
-        return m ? +m[1] : null;
-      };
-      if (liste.every(aar)) {
-        const s = liste.slice().sort((p, q) => aar(q) - aar(p));
-        return { nu: s[0], foer: s[s.length - 1] };
-      }
-      const tidl = (x) => TIDL.test(x.led) && !NU.test(x.led);
-      const foer = liste.find(tidl) || null;
-      const nu = L.seneste(liste.filter((x) => !tidl(x)).length ? liste.filter((x) => !tidl(x)) : liste, "eGFR", "laveste");
-      return { nu, foer: foer && foer !== nu ? foer : null };
+      const r = L.serie(`e-?gfr|gfr|egfr\\s*\\(?ckd-?epi\\)?`, { min: 2, max: 200, navn: "eGFR", strategi: "laveste" });
+      return { nu: r.nu, foer: r.foer };
     };
 
     // Vælg en kategori ud fra en prioriteret liste: stærke udtryk først, svage bagefter.

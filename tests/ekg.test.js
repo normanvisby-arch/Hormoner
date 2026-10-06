@@ -311,6 +311,20 @@ Sokolow-Lyon 2.53 mV`;
   check('Y22 store/små bogstaver: ikke "aV-blok"', !r.includes('aV-blok') && !(await p.locator('#journalTekst').innerText()).includes('aV-blok'));
   await p.click('#resetBtn');
 
+  // ---------------- Audit oktober 2026: lægens notater og andre skriveformer ----------------
+  const ud2 = async (t) => { await p.click('#resetBtn'); await p.fill('#udfyldTekst', t); await p.click('#udfyldBtn'); await p.waitForTimeout(150); return p.locator('#udfyldRapport').innerText(); };
+  let r2 = await ud2('Korrigeret QT 480 ms. Vent rate 72'); check('A1 "korrigeret QT" er QTc, ikke QT', (await v('qtc')) === '480' && (await v('qt')) === '', r2);
+  r2 = await ud2('QT korr. 470. QTc-B'); check('A2 "QT korr." er QTc', (await v('qtc')) === '470' && (await v('qt')) === '', r2);
+  r2 = await ud2('QT/QTcBaz 380/412'); check('A3 QT/QTcBaz', (await v('qt')) === '380' && (await v('qtc')) === '412' && (await v('qtcFormel')) === 'B', r2);
+  r2 = await ud2('Resp. frekvens 24. EKG taget: Sinusrytme 64/min'); check('A4 respirationsfrekvens er ikke hjertefrekvens', (await v('hr')) === '64', r2);
+  r2 = await ud2('Puls 88. EKG: SR 64'); check('A5 EKG-frekvens frem for klinisk puls', (await v('hr')) === '64', r2);
+  r2 = await ud2('P akse 60, QRS akse 30, T akse 40'); check('A6 QRS-akse er ikke P-aksen', (await v('qrsaxe')) === '30' && (await v('paxe')) === '60', r2);
+  r2 = await ud2('Akse: 45 / 30 / 40'); check('A7 tre akser = P/QRS/T', (await v('paxe')) === '45' && (await v('qrsaxe')) === '30' && (await v('taxe')) === '40', r2);
+  r2 = await ud2('EKG: Sinusrytme, frekvens ca. 72, PR-interval på 220 ms, QRS 0,12, QTc 450. Venstresidigt grenblok.');
+  check('A8 lægens notat: "ca.", "på", QRS uden enhed, kun udsagn i maskinens tekst', (await v('hr')) === '72' && (await v('pr')) === '220' && (await v('qrs')) === '120' && (await v('qtc')) === '450' && (await v('maskine')) === 'Sinusrytme. Venstresidigt grenblok', r2);
+  r2 = await ud2('Age: 67 Sex: M. Frekv. 54'); check('A9 Age/Sex og "Frekv."', (await v('alder')) === '67' && (await p.isChecked('input[name="koen"][value="mand"]')) && (await v('hr')) === '54', r2);
+  r2 = await ud2('Ledsaget af sin mand. Kvinde 70 år. HR 60'); check('A10 ledsageren er ikke patientens køn', await p.isChecked('input[name="koen"][value="kvinde"]'), r2);
+
   // ---------------- Udfyld uden fund ----------------
   await ud('Pt. ringer om sin medicin.');
   check('U10 ingen EKG-værdier → note', (await p.locator('#udfyldRapport').innerText()).includes('Ingen EKG-værdier'));
