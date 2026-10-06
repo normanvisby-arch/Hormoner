@@ -110,6 +110,16 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
   let n = await p.locator('#journalTekst').innerText();
   check('T3 journalnotat med ækvivalent dosis af det valgte', n.includes('Semaglutid s.c. (ugentlig) 1 mg i restordre') && n.includes('Skiftet til Dulaglutid (ugentlig) (omtrentlig ækvivalent dosis 3 mg) — startes på lav vedligeholdelsesdosis'), n);
   check('T4 restordre.dk-link og kopi af søgeordet', (await p.getAttribute('#restordreLink', 'href')) === 'https://restordre.dk/' && (await p.locator('#kopierNavn').innerText()).includes('Ozempic'));
+  // Ét klik: "Åbn restordre.dk" kopierer også navnet og åbner siden i en ny fane.
+  await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: new URL(SIDE).origin });
+  await ctx.route('https://restordre.dk/**', (r) => r.fulfill({ contentType: 'text/html', body: '<title>restordre.dk</title>' }));
+  await p.evaluate(() => navigator.clipboard.writeText(''));
+  const [fane] = await Promise.all([ctx.waitForEvent('page', { timeout: 5000 }).catch(() => null), p.click('#restordreLink')]);
+  await p.waitForTimeout(150);
+  const klip = await p.evaluate(() => navigator.clipboard.readText());
+  check('T4b "Åbn restordre.dk" kopierer navnet og åbner ny fane', klip === 'Ozempic' && !!fane && fane.url().startsWith('https://restordre.dk/'), `${klip} ${fane && fane.url()}`);
+  check('T4c ét-kliks-hint vises', (await p.locator('#output').innerText()).includes('kopierer også "Ozempic"'));
+  if (fane) await fane.close();
   await soeg('ramipril'); await p.selectOption('#dosis', '2'); await p.waitForTimeout(80); await p.check('input[name="alt"][value="lisinopril"]'); await p.waitForTimeout(80);
   n = await p.locator('#journalTekst').innerText();
   check('T5 notat med plan for kontrol', n.includes('Skiftet til Lisinopril 40 mg × 1') && n.includes('Plan: Kontrollér blodtryk, kalium og kreatinin'), n);
@@ -173,7 +183,7 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
     await ctx.setOffline(false);
     // Links fra de andre apps
     await p.goto(ROOT + 'oversigt.html'); await p.waitForTimeout(100);
-    check('W5 Restordre er skjult på oversigten (efter ønske)', (await p.locator('a[href="restordre/index.html"]').count()) === 0);
+    check('W5 link fra oversigten', (await p.locator('a[href="restordre/index.html"]').count()) >= 2);
   }
 
   // Mobil

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Hent klinikværktøjerne</title>
-<meta name="description" content="Syv gratis klinikværktøjer til almen praksis — installér dem som apps på computer, iPhone og Android. Virker uden internet.">
+<meta name="description" content="Otte gratis klinikværktøjer til almen praksis — installér dem som apps på computer, iPhone og Android. Virker uden internet.">
 <meta name="theme-color" content="#0b6e5f">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -131,7 +131,7 @@
   <header>
     <p class="eyebrow">Almen praksis · danske forhold</p>
     <h1>Hent klinikværktøjerne</h1>
-    <p class="lede">Syv små, gratis apps til konsultationen. De installeres fra browseren — uden App Store — og virker uden internet, når de har været åbnet én gang. Intet sendes nogen steder hen.</p>
+    <p class="lede">Otte små, gratis apps til konsultationen. De installeres fra browseren — uden App Store — og virker uden internet, når de har været åbnet én gang. Intet sendes nogen steder hen.</p>
   </header>
 
   <section class="card del" aria-labelledby="delTitel">
@@ -238,6 +238,17 @@
       <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/nyre.svg" alt="QR-kode til Nyrer" width="132" height="132" loading="lazy"></details>
       <img class="print-qr" src="qr/nyre.svg" alt="" width="90" height="90">
     </article>
+    <article class="card app" style="--farve:#7c4a03" data-app="restordre">
+      <div class="app-head"><img src="restordre/icons/icon.svg" alt="" width="44" height="44"><h2>Restordre</h2></div>
+      <p class="indhold">Når et præparat ikke kan skaffes: restordre.dk, samme indholdsstof og alternativer med vejledende ækvivalente doser.</p>
+      <div class="actions">
+        <a class="btn btn-open" href="restordre/index.html#installer" target="_blank" rel="noopener">Åbn og installér</a>
+        <button class="btn btn-copy" type="button" data-kopier="https://normanvisby-arch.github.io/Hormoner/restordre/">Kopiér link</button>
+        <span class="status" aria-live="polite"></span>
+      </div>
+      <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/restordre.svg" alt="QR-kode til Restordre" width="132" height="132" loading="lazy"></details>
+      <img class="print-qr" src="qr/restordre.svg" alt="" width="90" height="90">
+    </article>
   </div>
 
   <footer>Uafhængige hjælpeværktøjer til almen praksis — erstatter ikke den kliniske vurdering, nationale vejledninger eller opslag på pro.medicin.dk. Der indtastes ingen personhenførbare oplysninger, og intet gemmes eller sendes. Senest opdateret 1. oktober 2026.</footer>
@@ -267,7 +278,7 @@
     if (navigator.share) {
       del.hidden = false;
       del.addEventListener("click", function () {
-        navigator.share({ title: "Klinikværktøjer til almen praksis", text: "Syv gratis apps til konsultationen — installeres fra browseren og virker uden internet.", url: url }).catch(function () {});
+        navigator.share({ title: "Klinikværktøjer til almen praksis", text: "Otte gratis apps til konsultationen — installeres fra browseren og virker uden internet.", url: url }).catch(function () {});
       });
     }
     document.getElementById("printBtn").addEventListener("click", function () { window.print(); });

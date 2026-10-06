@@ -54,7 +54,7 @@ eller "usikker" end et falsk præcist tal.
   `tests/restordre.test.js`.
 - `apps.html` (downloadside "Hent klinikværktøjerne"): alle apps med "Åbn og installér" (→ `…#installer`),
   delbart link og QR-koder i `qr/` (lav dem med `python3 tools/mkqr.py`; listen `KODER` skal svare til
-  kortene). Nyt app-modul: tilføj kort, QR-kode og filerne i rodens `sw.js`. Notat-indgang og Restordre er skjult efter ønske (som blødningskalenderen): ikke på downloadsiden, oversigten eller i "Andre apps" — filerne findes fortsat. Test: `tests/apps.test.js`.
+  kortene). Nyt app-modul: tilføj kort, QR-kode og filerne i rodens `sw.js`. Notat-indgang er skjult efter ønske (som blødningskalenderen): ikke på downloadsiden, oversigten eller i "Andre apps" — filerne findes fortsat. Restordre er synlig igen; alle værktøjer med præparatvalg har under resultatet linjen `restordre-hint` (restordre.dk + Restordre) — hold den med på nye værktøjssider. Test: `tests/apps.test.js`.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
   **Hæv `VERSION` i `sw.js`** og i den berørte apps `*/sw.js` (hjerte, lunge, thyreoidea,
