@@ -268,20 +268,32 @@
 
   if (window.Udfyld) {
     const chk = (name, value, r, label, on) => (r && r.status ? { type: "check", name, value, on: on === undefined ? r.status === "ja" : on, label, kilde: r.kilde } : null);
-    // Stix: "leuk +", "nitrit neg", "positiv for leukocytter og nitrit".
+    // Stix: "leuk +", "nitrit neg", "leu 2+", "nitrit-positiv", "leuk (+)", "+ nitrit", "Leuk. 2+, Nit. pos",
+    // "positiv for leukocytter og negativ for nitrit", "nitrit og leukocytter positive", "Stix: negativ".
+    // Ikke nitrofurantoin, leukocytose (blodprøve) eller "-" i et sammensat ord. Flere stix → det seneste.
+    const SVAR = "(\\d\\s*\\+|\\(\\s*\\++\\s*\\)|\\++|pos\\w*|neg\\w*|spor|÷|\\(\\s*[-÷]\\s*\\)|-(?![a-zæøå\\d])|0(?![,.\\d]))";
     function stix(L, stof) {
-      const direkte = L.find(`${L.B}(?:${stof})\\w*\\s*[:=]?\\s*(\\d\\s*\\+|\\++|pos\\w*|neg\\w*|spor|÷|\\(-\\)|-(?!\\d)|0(?![,.\\d]))`);
-      if (direkte) {
-        const v = direkte.m[1];
-        if (/spor/.test(v)) return { spor: true, kilde: direkte.kilde };
-        return { value: /^(\d\s*\+|\+|pos)/.test(v) ? "pos" : "neg", kilde: direkte.kilde };
+      const navn = `${L.B}(?:${stof})${L.E}\\.?`;
+      const fund = [
+        ...L.alle(new RegExp(`${navn}\\s*[-:=]?\\s*(?:er\\s+|var\\s+)?${SVAR}`, "g")).map((m) => ({ m, v: m[1] })),
+        ...L.alle(new RegExp(`(?<![a-zæøå\\d])(\\++|\\d\\s*\\+)\\s*${navn}`, "g")).map((m) => ({ m, v: m[1] })),
+        ...L.alle(new RegExp(`${L.B}(positiv|negativ)\\s+(?:for\\s+)?(?:${stof})${L.E}`, "g")).map((m) => ({ m, v: m[1] })),
+      ].sort((p, q) => p.m.index - q.m.index);
+      if (fund.length) {
+        const f = fund[fund.length - 1];
+        const kilde = L.kilde(f.m.index, f.m.index + f.m[0].length);
+        if (/spor/.test(f.v)) return { spor: true, kilde };
+        return { value: /^(\d\s*\+|\(\s*\+|\+|pos)/.test(f.v) ? "pos" : "neg", kilde, flere: new Set(fund.map((x) => /^(\d\s*\+|\(\s*\+|\+|pos)/.test(x.v))).size > 1 };
       }
-      const i = L.find(`${L.B}(?:${stof})`);
+      // Fælles svar for flere stoffer: "nitrit og leukocytter positive", "Stix: negativ".
+      const i = L.alle(new RegExp(navn, "g")).pop() || L.find(`${L.B}(?:u-?)?stix${L.E}\\s*[:=]?\\s*(?:negativ|neg|ua|normal|u\\.a\\.)(?![a-zæøå])`);
       if (!i) return null;
-      const led = L.leddetFor(i.index) + L.leddetEfter(i.index);
-      const pos = /(?<![a-zæøå])(positiv|pos)(?![a-zæøå])/.test(led);
-      const neg = /(?<![a-zæøå])(negativ|neg)(?![a-zæøå])/.test(led);
-      if (pos !== neg) return { value: pos ? "pos" : "neg", kilde: i.kilde };
+      const idx = i.index;
+      const led = L.leddetFor(idx) + L.leddetEfter(idx);
+      if (/(?<![a-zæøå])stix\s*[:=]?\s*(?:negativ|neg|ua|u\.a\.|normal)(?![a-zæøå])/.test(led)) return { value: "neg", kilde: L.kilde(idx, idx + (i[0] || i.m[0]).length) };
+      const pos = /(?<![a-zæøå])(positiv\w*|pos)(?![a-zæøå])/.test(led);
+      const neg = /(?<![a-zæøå])(negativ\w*|neg)(?![a-zæøå])/.test(led);
+      if (pos !== neg) return { value: pos ? "pos" : "neg", kilde: L.kilde(idx, idx + (i[0] || i.m[0]).length) };
       return null;
     }
     Udfyld.init(
@@ -300,27 +312,37 @@
         // Klinisk billede
         const feber = L.feber();
         if (feber.note) u.push({ type: "note", tekst: `Feber: ${feber.note}.` });
-        const flanke = L.term("flankesmerter|flankeømhed|nyrelogeømhed|ømhed over nyrelogen|dunkeøm|pyelonefrit|urosepsis");
-        const asympt = L.term("asymptomatisk|uden symptomer|ingen symptomer|symptomfri");
-        const cyst = L.term("svie|dysuri|hyppig vandladning|pollakisuri|blærebetændelse|cystit|vandladningstrang|urgency");
+        const flanke = L.term("flankesmerter|flankeømhed|flanke\\w*\\s+(?:øm|smert)\\w*|nyrelogeømhed|nyrelogesmerter|ømhed (?:over|i|ved) (?:[a-zæøå]+\\s+){0,2}(?:nyreloge|flanke)\\w*|(?:øm\\w*|banke-?øm\\w*|dunke-?øm\\w*|smerter?)\\s+(?:over|i|ved)?\\s*(?:[a-zæøå]+\\s+){0,2}nyreloge\\w*|nyreloge\\w*\\s+(?:øm|bankeøm|dunkeøm)\\w*|dunkeøm|bankeøm|pyelonefrit|urosepsis");
+        // "Ingen symptomer på pyelonefritis" er ikke asymptomatisk bakteriuri.
+        const asympt = L.term("asymptomatisk|uden symptomer(?! på)|ingen symptomer(?! på)|symptomfri");
+        const cyst = L.term("svie|dysuri|hyppig vandladning|tisser hyppigt|pollakisuri|blærebetændelse|cystit|vandladningstrang|urgency|smerter? ved vandladning|ondt (?:når|ved at) (?:hun|han)? ?tisse\\w*|uvi-?symptomer|uvi${L.E}|urinvejsinfektion");
         if (feber.status === "ja" || flanke.status === "ja") u.push({ type: "radio", name: "billede", value: "feber", label: "Klinisk billede", kilde: (flanke.status === "ja" ? flanke : feber).kilde });
         else if (asympt.status === "ja" && cyst.status !== "ja") u.push({ type: "radio", name: "billede", value: "asympt", label: "Klinisk billede", kilde: asympt.kilde });
         else if (cyst.status === "ja") u.push({ type: "radio", name: "billede", value: "cystitis", label: "Klinisk billede", kilde: cyst.kilde });
-        const sep = L.term("septisk|sepsis|påvirket almentilstand|almen påvirket|almenpåvirket|konfus");
+        const sep = L.term("septisk|sepsis|påvirket almentilstand|almentilstand\\s*[:=]?\\s*(?:let |lettere |moderat |svært |tydeligt )?påvirket|at\\s*[:=]?\\s*(?:let |lettere |moderat |svært )?påvirket|almen påvirket|almenpåvirket|medtaget|konfus");
         if (sep.status === "ja") u.push(chk("andet", "sepsis", sep, "Påvirket almentilstand"));
         const kul = L.term("kulderystelser");
         if (kul.status === "ja" && sep.status !== "ja") u.push({ type: "note", tekst: `Kulderystelser nævnt ("${kul.kilde}") — markér "Påvirket almentilstand", hvis patienten er påvirket.` });
+        // Kredsløb: lavt BT eller høj puls nævnes som note (afkrydses ikke automatisk).
+        const bt = L.bt();
+        const puls = L.tal("puls|p", { min: 30, max: 220 });
+        if (sep.status !== "ja" && ((bt && bt.s < 100) || (puls && puls.v > 110))) u.push({ type: "note", tekst: `${bt && bt.s < 100 ? `BT ${bt.s}/${bt.d}` : ""}${bt && bt.s < 100 && puls && puls.v > 110 ? ", " : ""}${puls && puls.v > 110 ? `puls ${puls.v}` : ""} — overvej "Påvirket almentilstand" (sepsis?).` });
         // Stix
-        const leu = stix(L, "leu[kc]\\w*|leu");
-        const nit = stix(L, "nit\\w*|nitrit");
+        const leu = stix(L, "leu(?:k|kocytter|kocyt|ko|c|cocytter)?(?!\\w*(?:ocytose|kæmi|kemi))");
+        const nit = stix(L, "nit|nitr|nitrit");
         for (const [navn, r, label] of [["leuk", leu, "Stix: leukocytter"], ["nitrit", nit, "Stix: nitrit"]]) {
           if (r && r.spor) u.push({ type: "note", tekst: `${label}: "spor" — angiv selv positiv eller negativ.` });
-          else if (r) u.push({ type: "radio", name: navn, value: r.value, label, kilde: r.kilde });
+          else if (r) {
+            u.push({ type: "radio", name: navn, value: r.value, label, kilde: r.kilde });
+            if (r.flere) u.push({ type: "note", tekst: `${label}: teksten nævner flere stix-svar — det sidste ("${r.kilde}") er brugt.` });
+          }
         }
-        u.push(chk("andet", "kateter", L.term(`blærekateter|kateter|kad${L.E}`), "Blærekateter"));
-        const rec = L.term("recidiv|gentagne (?:urinvejsinfektioner|uvi|cystitis|blærebetændelser)|hyppige (?:uvi|urinvejsinfektioner|blærebetændelser)");
+        const kat = L.term(`blærekateter|kateter|kad${L.E}|rik${L.E}|sik${L.E}|intermitterende kateterisation|suprapubisk`);
+        if (kat.status === "ja" && /fjernet|seponeret|tidligere|under indlæggelse|(?:19|20)\d\d/.test(L.leddet(kat.index) + " " + L.leddetEfter(kat.index).slice(0, 30))) u.push({ type: "note", tekst: `Kateter nævnt som tidligere/fjernet ("${kat.kilde}") — ikke afkrydset.` });
+        else u.push(chk("andet", "kateter", kat, "Blærekateter"));
+        const rec = L.term("recidiv|tilbagevendende (?:uvi|urinvejsinfektion\\w*|blærebetændelse\\w*|cystit\\w*)|gentagne (?:urinvejsinfektioner|uvi|cystitis|blærebetændelser)|hyppige (?:uvi|urinvejsinfektioner|blærebetændelser)|(?:[3-9]|tre|fire|fem|seks)\\s*(?:uvi|urinvejsinfektioner|blærebetændelser|episoder)[^.;\\n]{0,20}(?:år|12 mdr|12 måneder)|(?:[3-9])\\.\\s*episode");
         if (rec.status === "ja") u.push(chk("andet", "recidiv", rec, "Gentagne infektioner"));
-        const kompl = L.term("nyresten|sten i urinvejene|misdannelse|resturin|blæretømningsproblem|neurogen blære|immunsupprim");
+        const kompl = L.term("nyresten|uretersten|konkrement|sten i urinvejene|misdannelse|resturin|blæretømningsproblem|neurogen blære|immunsuppr\\w*|immunsupprim\\w*|prednisolon|methotrexat|kemoterapi");
         if (kompl.status === "ja") u.push(chk("andet", "kompl", kompl, "Komplicerende forhold"));
         return u;
       },

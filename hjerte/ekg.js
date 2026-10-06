@@ -960,36 +960,44 @@
     const find = (re) => re.exec(t);
     let m;
     // Frekvens: ventrikelfrekvens/hjertefrekvens først, så "frekvens/rate", til sidst puls (ikke atriefrekvens).
-    for (const navn of ["ventrikelfrekvens|ventrikulær frekvens|vent\\.? ?rate|ventricular rate|hjertefrekvens|heart rate", "(?<![a-zæøå])(?<!atrial |atrie)(?:frekvens|hf|hr|rate)", "(?<![a-zæøå])puls"]) {
-      if ((m = find(new RegExp(`(?:${navn})\\s*[:=]?\\s*${TAL}\\s*(?:spm|slag\\/min|\\/min|bpm|min-1|min⁻¹)?`, "i")))) {
+    // Ikke respirationsfrekvens ("Resp. frekvens 24") eller atriefrekvens. "SR 72" / "Sinusrytme 64/min"
+    // kommer før puls, så en klinisk puls ikke tages som EKG-frekvens.
+    const IKKE_HR = "(?<!atrial |atrie)(?<!resp[a-zæøå]*\\.?\\s*)(?<!respirations)";
+    const MELLEM = "\\s*(?:[:=]|ca\\.?|på|omkring|af)?\\s*(?:ca\\.?\\s*)?";
+    for (const navn of ["ventrikelfrekvens|ventrikulær frekvens|vent\\.? ?(?:rate|frekv\\.?|frekvens)|ventricular rate|hjertefrekvens|heart rate", `(?<![a-zæøå])${IKKE_HR}(?:frekvens|frekv\\.?|hf|hr|rate)`, "(?<![a-zæøå])(?:sr|sinusrytme|sinus rhythm|sinus rytme)\\s*(?:med\\s*)?(?:frekvens\\s*)?", "(?<![a-zæøå])puls(?:frekvens)?"]) {
+      for (const mm of t.matchAll(new RegExp(`(?:${navn})${MELLEM}${TAL}\\s*(?:spm|slag\\/min|\\/min|bpm|min-1|min⁻¹)?`, "gi"))) {
+        m = mm;
         saet("hr", "Frekvens", tal(m[1]), m, 20, 300);
         if (fundet.has("hr")) break;
       }
+      if (fundet.has("hr")) break;
     }
     // PR/PQ
-    if ((m = find(new RegExp(`(?<![a-zæøå-])(?:pr|pq|p-r|p-q)(?![-\\/]?\\s*(?:t|qrs)\\b)(?:[- ]?(?:interval\\w*|tid\\w*|int\\.?))?\\s*[:=]?\\s*${TAL}\\s*(ms|s)?(?![\\d\\/])`, "i")))) saet("pr", "PR", ms(tal(m[1])), m, 60, 600);
+    if ((m = find(new RegExp(`(?<![a-zæøå-])(?:pr|pq|p-r|p-q)(?![-\\/]?\\s*(?:t|qrs)\\b)(?:[- ]?(?:interval\\w*|tid\\w*|int\\.?))?${MELLEM}${TAL}\\s*(ms|s)?(?![\\d\\/])`, "i")))) saet("pr", "PR", ms(tal(m[1])), m, 60, 600);
     // QRS-varighed
-    if ((m = find(new RegExp(`qrs\\s*(?:[- ]?(?:varighed|duration|bredde|dur\\.?|d)|(?=\\s*[:=]?\\s*\\d+(?:[.,]\\d+)?\\s*(?:ms|s)\\b))\\s*[:=]?\\s*${TAL}\\s*(?:ms|s)?`, "i")))) saet("qrs", "QRS", ms(tal(m[1])), m, 40, 250);
+    if ((m = find(new RegExp(`qrs(?:[- ]?(?:varighed|varigh\\.?|duration|bredde|dur\\.?|d|tid|interval|int\\.?))?${MELLEM}${TAL}(?!\\s*(?:°|grader|\\/|[.,]?\\d))\\s*(?:ms|s)?`, "i")))) saet("qrs", "QRS", ms(tal(m[1])), m, 40, 250);
     // QT / QTc (fx "QT / QTc(B) 418 / 427 ms", "QT/QTcB 418/427", "QT/QTc 418 ms / 427 ms", "QT/QTcB/QTcF 410/445/430 ms")
-    const F = "(?:\\(?\\s*(bazett|fridericia|framingham|hodges|b|f|h|fr)\\s*\\)?)?";
-    if ((m = find(new RegExp(`(?<![a-z])qt\\s*\\/\\s*qtc\\s*${F}\\s*\\/\\s*qtc\\s*${F}(?:[- ]?interval\\w*)?\\s*[:=]?\\s*${TAL}\\s*(?:ms)?\\s*\\/\\s*${TAL}\\s*(?:ms)?\\s*\\/\\s*${TAL}`, "i")))) {
+    const F = "(?:\\(?\\s*-?\\s*(bazett|baz|fridericia|fri|framingham|hodges|b|f|h|fr)(?![a-zæøå])\\s*\\)?)?";
+    // "Korrigeret QT", "QT korr.", "QT-c" og "QTcorr" er QTc.
+    const QTC = "(?:qtc(?!orr)|qt-c|qtcorr\\w*|korrigeret qt|qt[- ]?korr\\w*\\.?)";
+    if ((m = find(new RegExp(`(?<![a-z])qt\\s*\\/\\s*${QTC}\\s*${F}\\s*\\/\\s*${QTC}\\s*${F}(?:[- ]?interval\\w*)?\\s*[:=]?\\s*${TAL}\\s*(?:ms)?\\s*\\/\\s*${TAL}\\s*(?:ms)?\\s*\\/\\s*${TAL}`, "i")))) {
       saet("qt", "QT", ms(tal(m[3])), m, 200, 700);
       saet("qtc", "QTc (apparatet)", ms(tal(m[4])), m, 250, 700);
       if (m[1]) formel(m[1], m);
-    } else if ((m = find(new RegExp(`(?<![a-z])qt\\s*\\/\\s*qtc\\s*${F}(?:[- ]?interval\\w*)?\\s*[:=]?\\s*${TAL}\\s*(?:ms)?\\s*\\/\\s*${TAL}`, "i")))) {
+    } else if ((m = find(new RegExp(`(?<![a-z])qt\\s*\\/\\s*${QTC}\\s*${F}(?:[- ]?interval\\w*)?\\s*[:=]?\\s*${TAL}\\s*(?:ms)?\\s*\\/\\s*${TAL}`, "i")))) {
       saet("qt", "QT", ms(tal(m[2])), m, 200, 700);
       saet("qtc", "QTc (apparatet)", ms(tal(m[3])), m, 250, 700);
       if (m[1]) formel(m[1], m);
     }
     // Enkeltstående QTc — aldrig fra en "QT/QTc"-linje, vi ikke kunne læse (så er det første tal QT).
-    if (!fundet.has("qtc") && !/(?<![a-z])qt\s*\/\s*qtc/i.test(t) && (m = find(new RegExp(`(?<![a-z])qtc\\s*${F}(?!\\s*\\/)(?:[- ]?(?:interval|tid)\\w*)?\\s*[:=]?\\s*${TAL}\\s*(?:ms|s)?`, "i")))) {
+    if (!fundet.has("qtc") && !new RegExp(`(?<![a-z])qt\\s*\\/\\s*${QTC}`, "i").test(t) && (m = find(new RegExp(`(?<![a-z])${QTC}\\s*${F}(?!\\s*\\/)(?:[- ]?(?:interval|tid)\\w*)?${MELLEM}${TAL}\\s*(?:ms|s)?`, "i")))) {
       saet("qtc", "QTc (apparatet)", ms(tal(m[2])), m, 250, 700);
       if (m[1]) formel(m[1], m);
     }
-    if (!fundet.has("qt") && !/(?<![a-z])qt\s*\/\s*qtc/i.test(t) && (m = find(new RegExp(`(?<![a-z])qt(?![a-z\\/]|\\s*\\/)(?:[- ]?(?:interval|tid|int\\.?))?\\s*[:=]?\\s*${TAL}\\s*(?:ms|s)?`, "i")))) saet("qt", "QT", ms(tal(m[1])), m, 200, 700);
+    if (!fundet.has("qt") && !new RegExp(`(?<![a-z])qt\\s*\\/\\s*${QTC}`, "i").test(t) && (m = find(new RegExp(`(?<![a-z])(?<!korrigeret )qt(?![a-z\\/]|\\s*\\/|-c|[- ]?korr)(?:[- ]?(?:interval|tid|int\\.?))?${MELLEM}${TAL}\\s*(?:ms|s)?`, "i")))) saet("qt", "QT", ms(tal(m[1])), m, 200, 700);
     function formel(f, mm) {
       const x = f.toLowerCase();
-      const v = x === "b" || x === "bazett" ? "B" : x === "f" || x === "fridericia" ? "F" : x === "h" || x === "hodges" ? "H" : "Fr";
+      const v = x === "b" || x === "bazett" || x === "baz" ? "B" : x === "f" || x === "fridericia" || x === "fri" ? "F" : x === "h" || x === "hodges" ? "H" : "Fr";
       ud.push({ type: "tekst", id: "qtcFormel", v, vis: FORMEL[v], label: "QTc-formel", kilde: L.kilde(mm.index, mm.index + mm[0].length) });
     }
     // Akser: "P-R-T akser 61 / 33 / 53 °", "P/QRS/T axis 61 33 53", "P-QRS-T akse: 61/33/53"
@@ -997,13 +1005,14 @@
       saet("paxe", "P-akse", tal(m[1]), m, -180, 360);
       saet("qrsaxe", "QRS-akse", tal(m[2]), m, -180, 360);
       saet("taxe", "T-akse", tal(m[3]), m, -180, 360);
-    } else if ((m = find(/-+\s*ax[ie]s\s*-+\s*p\s+(-?\d+)\s+qrs\s+(-?\d+)\s+t\s+(-?\d+)/i))) {
+    } else if ((m = find(/-+\s*ax[ie]s\s*-+\s*p\s+(-?\d+)\s+qrs\s+(-?\d+)\s+t\s+(-?\d+)/i)) || (m = find(new RegExp(`(?:akser|akse|axes|axis)\\s*[:=]?\\s*p\\s*[:=]?\\s*${TAL}\\s*°?\\s*[,;/]?\\s*qrs\\s*[:=]?\\s*${TAL}\\s*°?\\s*[,;/]?\\s*t\\s*[:=]?\\s*${TAL}`, "i"))) || (m = find(new RegExp(`(?<![a-z])(?:akser|akse|axes|axis)\\s*[:=]?\\s*${TAL}\\s*°?\\s*\\/\\s*${TAL}\\s*°?\\s*\\/\\s*${TAL}`, "i")))) {
+      // Tre akser i rækkefølgen P / QRS / T.
       saet("paxe", "P-akse", tal(m[1]), m, -180, 360);
       saet("qrsaxe", "QRS-akse", tal(m[2]), m, -180, 360);
       saet("taxe", "T-akse", tal(m[3]), m, -180, 360);
     } else {
       if ((m = find(new RegExp(`(?<![a-z])p[- ]?(?:akse|axis)\\s*[:=]?\\s*${TAL}`, "i")))) saet("paxe", "P-akse", tal(m[1]), m, -180, 360);
-      if ((m = find(new RegExp(`(?:qrs[- ]?akse|qrs[- ]?axis|(?<![a-z-])akse|elektrisk akse)\\s*[:=]?\\s*${TAL}`, "i")))) saet("qrsaxe", "QRS-akse", tal(m[1]), m, -180, 360);
+      if ((m = find(new RegExp(`(?:qrs[- ]?akse|qrs[- ]?axis|(?<![a-z-])(?<!(?:^|[^a-z])[pt][- ])akse|elektrisk akse)\\s*[:=]?\\s*${TAL}`, "i")))) saet("qrsaxe", "QRS-akse", tal(m[1]), m, -180, 360);
       if ((m = find(new RegExp(`(?<![a-z])t[- ]?(?:akse|axis)\\s*[:=]?\\s*${TAL}`, "i")))) saet("taxe", "T-akse", tal(m[1]), m, -180, 360);
     }
     // P-varighed
@@ -1026,13 +1035,16 @@
       saet("cornell", "Cornell-voltage", (m[2] || "").toLowerCase() === "mm" || x > 10 ? x / 10 : x, m, 0, 10);
     }
     // Køn og alder (hvis udskriften har dem)
-    if ((m = find(/(?<![a-zæøå])(mand|kvinde|male|female)(?![a-zæøå])/i))) {
-      const x = m[1].toLowerCase();
-      const k = x === "mand" || x === "male" ? "mand" : "kvinde";
-      ud.push({ type: "radio", name: "koen", value: k, label: "Køn", vis: k, kilde: L.kilde(m.index, m.index + m[0].length) });
+    // Ikke ledsagere ("ledsaget af sin mand") eller spørgsmål ("Kvinde? nej").
+    for (const mm of t.matchAll(/(?:(?:sex|køn|gender)\s*[:=]?\s*(m|k|f|male|female|mand|kvinde)|(?<![a-zæøå])(mand|kvinde|male|female))(?![a-zæøå])(?!\s*\?)/gi)) {
+      if (/(?:sin|sit|hendes|hans|min|egen|ledsaget af|ledsager|med|og)\s*$/i.test(t.slice(Math.max(0, mm.index - 18), mm.index))) continue;
+      const x = (mm[1] || mm[2]).toLowerCase();
+      const k = x === "mand" || x === "male" || x === "m" ? "mand" : "kvinde";
+      ud.push({ type: "radio", name: "koen", value: k, label: "Køn", vis: k, kilde: L.kilde(mm.index, mm.index + mm[0].length) });
+      break;
     }
     // Alder: "Alder 67", "67-årig", "Mand 67 år", "67 years old" — ikke løse "i 30 år".
-    for (const re of [/alder\s*[:=]?\s*(\d{2,3})(?!\d)/i, /(?<![\d,.])(\d{2,3})\s*-?\s*årig/i, /(?:mand|kvinde|male|female|pt\.?|patient)[^.\n\d]{0,15}(\d{2,3})\s*(?:år|years|yrs)(?![a-zæøå])/i, /(?<![\d,.])(\d{2,3})\s*(?:år|years|yrs)\s*(?:gammel|old)/i, /(?<![\d,.])(\d{2,3})\s*(?:år|years|yrs)[^.\n\d]{0,12}(?:mand|kvinde|male|female)/i]) {
+    for (const re of [/(?:alder|age)\s*[:=]?\s*(\d{2,3})(?!\d)/i, /(?<![a-zæøå])(?:mand|kvinde|male|female)\s*,?\s*(\d{2,3})(?![\d.,]|\s*(?:kg|mg|ms|cm|%|\/))/i, /(?:køn|sex)\s*[:=]?\s*[mkf]\s*,\s*(\d{2,3})(?!\d)/i, /(?<![\d,.])(\d{2,3})\s*-?\s*årig/i, /(?:mand|kvinde|male|female|pt\.?|patient)[^.\n\d]{0,15}(\d{2,3})\s*(?:år|years|yrs)(?![a-zæøå])/i, /(?<![\d,.])(\d{2,3})\s*(?:år|years|yrs)\s*(?:gammel|old)/i, /(?<![\d,.])(\d{2,3})\s*(?:år|years|yrs)[^.\n\d]{0,12}(?:mand|kvinde|male|female)/i]) {
       if ((m = find(re))) {
         saet("alder", "Alder", +m[1], m, 18, 110);
         if (fundet.has("alder")) break;
@@ -1066,10 +1078,21 @@
       const MAALING = /^\s*(?:hjertefrekvens|ventrikelfrekvens|vent\.? ?rate|pr|pq|qrs\w*|qt\w*|p[- ]?(?:varighed|duration)|rr|pp|p-r-t|sokolow|cornell|akse|axis)\b/i;
       const SAMMENLIGN = /when compared|compared with|sammenlignet med|sammenligning med|i forhold til tidligere/i;
       const sl = linjer.findIndex((l) => SAMMENLIGN.test(l));
+      // Lægens egne notater ("EKG: Sinusrytme, frekvens 72, PR 220 ms …"): kun de led, der er udsagn —
+      // måleværdierne er allerede læst ind i felterne.
+      // Rene måleled ("frekvens ca. 72", "PR-interval på 220 ms") fjernes; i et udsagn fjernes kun
+      // måledelen ("Atrieflimren med frekvens 130" → "Atrieflimren").
+      const MAAL = "(?<![a-zæøå])(?:frekvens|frekv\\.?|rate|pr|pq|qrs[a-zæøå-]*|qt[a-zæøå-]*|akse[a-zæøå]*|axis|rr|pp|sokolow(?:-lyon)?|cornell)(?![a-zæøå])";
+      const MAALELED = new RegExp(`^\\s*${MAAL}[^.,;]*\\d[^.,;]*$`, "i");
+      const MAALEDEL = new RegExp(`\\s*(?:\\(\\s*)?(?:med\\s+|og\\s+)?${MAAL}\\s*(?:[:=]|ca\\.?|på)?\\s*-?\\d[\\d.,]*\\s*(?:ms|s|mv|mm|°|\\/min|spm|bpm)?\\s*\\)?`, "gi");
       maskine = (sl >= 0 ? linjer.slice(0, sl) : linjer)
         .map((l) => l.replace(/^\s*(?:rate|vent\.? ?rate)\s*\d+\s*/i, ""))
-        .filter((l) => UDSAGN.some((u) => u.m.test(l.toLowerCase())) && !MAALING.test(l) && !PERSON.test(l))
+        .filter((l) => !MAALING.test(l) && !PERSON.test(l))
+        .flatMap((l) => l.replace(/^\s*ekg\s*(?:taget|i dag|nu)?\s*:\s*/i, "").split(/[.;,]\s+|\.\s*$/))
         .map((l) => l.trim())
+        .filter((l) => l && !MAALELED.test(l))
+        .map((l) => l.replace(MAALEDEL, "").trim())
+        .filter((l) => l && UDSAGN.some((u) => u.m.test(l.toLowerCase())))
         .join(". ");
     }
     maskine = maskine.replace(/(?<!\d)\d{6}[- ]?\d{4}(?!\d)/g, "[CPR]").replace(/\s+/g, " ").trim();

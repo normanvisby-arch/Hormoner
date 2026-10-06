@@ -100,39 +100,39 @@
   ];
   // Navne i journaltekst (generiske navne og hyppige handelsnavne) — bruges af "Udfyld fra journaltekst".
   const SYNONYMER = {
-    "Metformin": "metformin|glucophage|metformax",
+    "Metformin": "metformin|glucophage|metformax|janumet|synjardy|xigduo|jentadueto|eucreas|vokanamet|segluromet",
     "SGLT-2-hæmmer (empagliflozin, dapagliflozin)": "sglt-?2|empagliflozin|dapagliflozin|jardiance|forxiga|synjardy|xigduo",
     "Sitagliptin": "sitagliptin|januvia|janumet",
-    "Linagliptin": "linagliptin|trajenta",
-    "GLP-1-receptoragonist (semaglutid, dulaglutid, liraglutid)": "glp-?1|semaglutid|dulaglutid|liraglutid|ozempic|rybelsus|trulicity|victoza|wegovy|tirzepatid|mounjaro",
+    "Linagliptin": "linagliptin|trajenta|jentadueto",
+    "GLP-1-receptoragonist (semaglutid, dulaglutid, liraglutid)": "glp-?1|semaglutid|dulaglutid|liraglutid|ozempic|rybelsus|trulicity|victoza|wegovy|tirzepatid|mounjaro|bydureon|byetta|exenatid|saxenda|xultophy|lyxumia",
     "Glimepirid (sulfonylurinstof)": "glimepirid|gliclazid|glipizid|sulfonylurinstof|amaryl",
-    "Insulin": "insulin|lantus|levemir|tresiba|toujeo|insulatard|novorapid|humalog|abasaglar|semglee",
-    "ACE-hæmmer eller ARB": "ace-?hæmmer|enalapril|lisinopril|ramipril|perindopril|captopril|losartan|candesartan|valsartan|irbesartan|telmisartan|olmesartan|cozaar|atacand|diovan",
+    "Insulin": "insulin|lantus|levemir|tresiba|toujeo|insulatard|novorapid|humalog|abasaglar|semglee|novomix|fiasp|humulin|actrapid|mixtard|apidra|lyumjev|ryzodeg|insuman|xultophy",
+    "ACE-hæmmer eller ARB": "ace-?hæmmer|enalapril|lisinopril|ramipril|perindopril|captopril|losartan|candesartan|valsartan|irbesartan|telmisartan|olmesartan|cozaar|atacand|diovan|triatec|coversyl|exforge|micardis|aprovel|olmetec|sevikar|renitec|zestril|quinapril|fosinopril|benazepril",
     "Spironolakton eller eplerenon": "spironolakton|eplerenon|spirix|inspra",
-    "Thiazid (bendroflumethiazid, hydrochlorthiazid)": "thiazid|bendroflumethiazid|hydrochlorthiazid|centyl|chlorthalidon|indapamid",
+    "Thiazid (bendroflumethiazid, hydrochlorthiazid)": "thiazid|bendroflumethiazid|hydrochlorthiazid|centyl|chlorthalidon|indapamid|(?:losartan|candesartan|valsartan|irbesartan|telmisartan|olmesartan|enalapril|lisinopril|ramipril|cozaar|atacand|diovan|micardis|olmetec|aprovel|exforge)\\s*-?\\s*(?:comp|plus|hct)",
     "DOAK ved atrieflimren (apixaban, rivaroxaban, edoxaban, dabigatran)": "doak|noak|apixaban|rivaroxaban|edoxaban|dabigatran|eliquis|xarelto|lixiana|pradaxa",
     "Statin": "statin|atorvastatin|simvastatin|rosuvastatin|pravastatin|lipitor|zarator|crestor|zocor",
     "Digoxin": "digoxin|lanoxin",
     "Paracetamol": "paracetamol|panodil|pamol|pinex",
-    "NSAID (ibuprofen, naproxen, diclofenac m.fl.)": "nsaid|ibuprofen|naproxen|diclofenac|etoricoxib|celecoxib|ipren|ibumetin|voltaren|arcoxia",
-    "Morfin": "morfin|contalgin|oramorph",
+    "NSAID (ibuprofen, naproxen, diclofenac m.fl.)": "nsaid|ibuprofen|naproxen|diclofenac|etoricoxib|celecoxib|ipren|ibumetin|voltaren|arcoxia|celebra|diclon|confortid|bonyl|brufen|nurofen|ibumax|ketoprofen|meloxicam|ketorolac",
+    "Morfin": "morfin|contalgin|oramorph|malfin|dolcontin",
     "Oxycodon": "oxycodon|oxycontin|oxynorm|targin",
-    "Tramadol": "tramadol|tradolan|nobligan",
+    "Tramadol": "tramadol|tradolan|nobligan|dolol|mandolgin",
     "Gabapentin": "gabapentin|neurontin",
     "Pregabalin": "pregabalin|lyrica",
     "Nitrofurantoin": "nitrofurantoin|furadantin",
     "Pivmecillinam": "pivmecillinam|selexid",
-    "Trimethoprim": "trimethoprim",
-    "Penicillin V, dicloxacillin": "penicillin v|phenoxymethylpenicillin|dicloxacillin|diclocil",
-    "Amoxicillin (også med clavulansyre)": "amoxicillin|amoxiclav|bioclavid|spektramox",
+    "Trimethoprim": "trimethoprim|trimopan",
+    "Penicillin V, dicloxacillin": "penicillin|phenoxymethylpenicillin|primcillin|primve|vepicombin|dicloxacillin|diclocil|dicillin|heracillin|flucloxacillin|nerbutix",
+    "Amoxicillin (også med clavulansyre)": "amoxicillin|amoxi-?clav|bioclavid|spektramox|imadrax",
     "Ciprofloxacin": "ciprofloxacin|ciproxin",
     "Clarithromycin": "clarithromycin|klacid",
     "Valaciclovir (herpes zoster)": "valaciclovir|valtrex|aciclovir",
-    "Allopurinol": "allopurinol|apurin",
-    "Colchicin": "colchicin",
-    "Methotrexat": "methotrexat|metex|ebetrex",
+    "Allopurinol": "allopurinol|apurin|zyloric",
+    "Colchicin": "colchicin|colrefuz",
+    "Methotrexat": "methotrexat|metex|ebetrex|metoject|methotrexate",
     "Lithium": "lithium|litarex",
-    "Alendronat, risedronat": "alendronat|risedronat|fosamax|optinate|bisfosfonat",
+    "Alendronat, risedronat": "alendronat|alendronsyre|risedronat|fosamax|optinate|bisfosfonat",
     "Metoclopramid": "metoclopramid|primperan",
     "Magnesiumoxid (afføringsmiddel)": "magnesiumoxid|magnesia|mablet",
     "Kaliumtilskud": "kaliumklorid|kaliumtilskud|kaleorid|kalium retard",
@@ -257,11 +257,20 @@
         const k = L.koen();
         if (k) u.push({ type: "radio", name: "koen", value: k.v, label: "Køn", kilde: k.kilde });
         // Ethvert nævnt lægemiddel tæller (også "ingen bivirkninger af Eliquis") — filtret skjuler kun rækker.
-        const fundne = MIDLER.filter((m) => SYNONYMER[m.navn] && L.alle(new RegExp(`${L.B}(?:${SYNONYMER[m.navn]})`, "g")).length);
+        // "Penicillinallergi" er ikke penicillin i behandling.
+        const fundne = MIDLER.filter((m) => SYNONYMER[m.navn] && L.alle(new RegExp(`${L.B}(?:${SYNONYMER[m.navn]})(?![a-zæøå]*\\s*-?\\s*(?:allergi|overfølsom))`, "g")).length);
+        // Præparater med dosis, som værktøjet ikke kender ("Furix 40 mg", "Kodimagnyl 1 tbl"): så slås
+        // "Vis kun nævnte" ikke til, så intet skjules for lægen.
+        const KENDT = new RegExp(`^(?:${Object.values(SYNONYMER).join("|")})`);
+        const IKKE_PRAEP = /^(?:dosis|ca|og|med|af|på|til|i|x|nu|dag|døgn|uge|vægt|kreatinin|krea|egfr|gfr|kalium|uacr|bt|hba1c|ldl|crp|alder|mand|kvinde|tbl|tabl|kaps|stk|fast|pn|eller|samt|ved|efter|før|comp|plus|retard|depot|mite|forte|tager|får|giver|givet|startet|øget|reduceret|nedsat|dosis|styrke|tablet|tabletter|kapsel|kapsler|insulin|enheder)$/;
+        const ukendte = [...new Set(L.alle(/(?<![a-zæøå0-9])([a-zæøå][a-zæøå-]{2,})\.?\s+\d+(?:[.,]\d+)?(?:\s*\/\s*\d+(?:[.,]\d+)?)?\s*(?:mg|mikrog|µg|g|ie|ml|tbl|tabl|kaps|stk|pust|dråber)(?![a-zæøå])/g)
+          .map((m) => m[1])
+          .filter((w) => !IKKE_PRAEP.test(w) && !KENDT.test(w)))];
         if (fundne.length) {
           u.push({ type: "hidden", id: "naevnte", v: fundne.map((m) => m.navn).join("|"), label: "Lægemidler nævnt", vis: fundne.map((m) => m.navn.split(" (")[0]).join(", ") });
-          u.push({ type: "check", name: "vis", value: "naevnte", on: true, label: "Vis kun nævnte lægemidler" });
-        }
+          if (!ukendte.length) u.push({ type: "check", name: "vis", value: "naevnte", on: true, label: "Vis kun nævnte lægemidler" });
+          else u.push({ type: "note", tekst: `Præparater, som værktøjet ikke har en række for (${ukendte.join(", ")}) — "Vis kun nævnte" er derfor ikke slået til. Tjek dem på pro.medicin.dk.` });
+        } else if (ukendte.length) u.push({ type: "note", tekst: `Præparater, som værktøjet ikke har en række for: ${ukendte.join(", ")} — tjek dem på pro.medicin.dk.` });
         return u;
       },
       { vigtige: [["egfr", "eGFR"], ["kreat", "kreatinin"], ["vaegt", "vægt"], ["koen", "køn (bruges i Cockcroft-Gault)"]], eksempel: "Fx: 82-årig kvinde, 58 kg, kreatinin 128, eGFR 38. Fast medicin: metformin 1 g × 2, Eliquis 5 mg × 2, gabapentin 300 mg × 3, Pinex." }

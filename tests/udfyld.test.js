@@ -214,6 +214,96 @@ const SIDE = (f) => process.env['UDFYLD_' + f.replace(/\W/g, '_').toUpperCase()]
   await udfyld('eGFR 40. Metformin.'); await p.click('#resetBtn'); await p.waitForTimeout(100);
   check('D5 Nulstil rydder nævnte lægemidler', (await val('naevnte')) === '' && await p.locator('#naevnteLabel').isHidden());
 
+  // ---------------- Audit oktober 2026: journaltekst, der før blev overset eller misforstået ----------------
+  await go('infektion/luftveje.html');
+  const strep = [['Strep A pos', 'pos'], ['Strep A-test er positiv', 'pos'], ['Strep A (+)', 'pos'], ['Strep A: (-)', 'neg'], ['strep. A pos', 'pos'], ['Strep A taget, positiv', 'pos'], ['Strep A er negativ', 'neg'], ['positiv strep A', 'pos'], ['GAS-test positiv', 'pos'], ['Halspodning positiv for streptokokker', 'pos'], ['StrepA-test neg', 'neg']];
+  for (const [t, v] of strep) { r = await udfyld(t); check(`Q1 "${t}" → strep A ${v} og halsbetændelse`, (await on('strep', v)) && (await on('diag', 'tonsillitis')), r); }
+  r = await udfyld('Strep A-test: positiv. Kontrol: strep A negativ'); check('Q2 to strep A-svar → det sidste + note', (await on('strep', 'neg')) && r.includes('både positiv og negativ'), r);
+  r = await udfyld('Tonsilitis. Svulne tonsiller med pus. Temp. rektalt 38,9. Glandler.'); check('Q3 "tonsilitis", svulne tonsiller med pus, rektal temp', (await on('diag', 'tonsillitis')) && (await on('centor', 'belaeg')) && (await on('centor', 'feber')) && (await on('centor', 'lymf')), r);
+  r = await udfyld('Hoste - 2 uger. Feber - målt 38,5 hjemme. Ondt i halsen.'); check('Q4 tankestreg er ikke nægtelse', (await on('centor', 'feber')) && !(await on('centor', 'hoste')), r);
+  r = await udfyld('4-årig med ørepine, temp 39, påvirket'); check('Q5 "påvirket" alene ved otitis', (await on('ot', 'paavirket')), r);
+  r = await udfyld('Mor (34-årig) ringer om sin 3-årige søn med ørepine'); check('Q6 barnets alder, ikke moderens', (await val('alder')) === '3', r);
+  r = await udfyld('Pt med KOL gennem 15 år, kvinde 72. Hoste'); check('Q7 varighed er ikke alder', (await val('alder')) === '72', r);
+  r = await udfyld('Pige 1½ år med ørepine, 11 kg. Vægttab på 2 kg.'); check('Q8 1½ år og vægt (ikke vægttab)', (await val('alder')) === '1.5' && (await val('vaegt')) === '11', r);
+  r = await udfyld('Ondt i halsen. Mor har penicillinallergi.'); check('Q9 moderens allergi tæller ikke', !(await on('andet', 'allergi')), r);
+  r = await udfyld('Ondt i halsen. Anafylaksi på Primcillin.'); check('Q10 handelsnavn og anafylaksi → allergi', await on('andet', 'allergi'), r);
+
+  await go('infektion/urinveje.html');
+  r = await udfyld('U-stix: nitrit-positiv, leukocyt-positiv. Svie.'); check('Q11 "nitrit-positiv" er positiv', (await on('nitrit', 'pos')) && (await on('leuk', 'pos')), r);
+  r = await udfyld('Nitrofurantoin ÷ effekt. Blodprøver: leukocytose. Stix: leuk neg, nitrit +'); check('Q12 nitrofurantoin/leukocytose er ikke stix', (await on('nitrit', 'pos')) && (await on('leuk', 'neg')), r);
+  r = await udfyld('Stix sidste uge: nitrit pos. I dag stix: leuk +, nitrit neg'); check('Q13 seneste stix bruges', (await on('nitrit', 'neg')) && r.includes('flere stix-svar'), r);
+  r = await udfyld('Stix positiv for leukocytter og negativ for nitrit'); check('Q14 "positiv for … negativ for"', (await on('leuk', 'pos')) && (await on('nitrit', 'neg')), r);
+  r = await udfyld('UVI-symptomer. Ingen symptomer på pyelonefritis. Stix leuk+ nitrit+'); check('Q15 "ingen symptomer på pyelonefritis" er ikke asymptomatisk', await on('billede', 'cystitis'), r);
+  r = await udfyld('Svie. Let ømhed over højre nyreloge.'); check('Q16 nyrelogeømhed → feber/flanke', await on('billede', 'feber'), r);
+  r = await udfyld('Hr. Jensen, 72 år, svie'); check('Q17 "Hr." → mand', (await on('koen', 'mand')) && (await val('alder')) === '72', r);
+  r = await udfyld('34-årig. Gift, mand og to børn. Svie.'); check('Q18 ægtefællen er ikke patientens køn', !r.includes('Køn: Mand'), r);
+  r = await udfyld('Svie. U-hCG positiv. Allergi over for Selexid.'); check('Q19 hCG og Selexid', (await on('andet', 'gravid')) && (await on('andet', 'allergi')), r);
+  r = await udfyld('Svie. AT påvirket. eGFR i dag 28.'); check('Q20 "AT påvirket" og "eGFR i dag"', (await on('andet', 'sepsis')) && (await val('egfr')) === '28', r);
+  r = await udfyld('Nægter feber og kulderystelser. Svie.'); check('Q21 "nægter feber"', await on('billede', 'cystitis'), r);
+  r = await udfyld('Havde KAD under indlæggelse i 2019, fjernet. Svie.'); check('Q22 fjernet kateter afkrydses ikke', !(await on('andet', 'kateter')), r);
+
+  await go('infektion/hud.html');
+  r = await udfyld('Rosen med bulla. Hævet øjenlåg.'); check('Q23 bulla og øjenlåg', (await on('rf', 'nekrose')) && (await on('rf', 'ansigt')), r);
+  r = await udfyld('KOL, let krepitation basalt. Cellulitis på underarmen.'); check('Q24 lungekrepitation er ikke nekrose', !(await on('rf', 'nekrose')) && (await on('diag', 'cellulitis')), r);
+  r = await udfyld('Bidt af myg på armen.'); check('Q25 myggestik er ikke dyrebid', !(await on('diag', 'bid')), r);
+  r = await udfyld('Hundebid på låret. Han led meget af smerter. Mor har diabetes.'); check('Q26 "led" som verbum og moderens diabetes', !(await on('bid', 'risiko')) && !(await on('bid', 'immun')), r);
+  r = await udfyld('Kulderystelser i går. Rosen på underben. Upåvirket.'); check('Q27 "upåvirket" efter kulderystelser', !(await on('rf', 'sepsis')), r);
+
+  await go('nyre/ckd.html');
+  for (const [t, nu, foer] of [['eGFR 52 (2024), nu 44', '44', '52'], ['eGFR 60 for 2 år siden, 52 sidste år og 44 nu', '44', '52'], ['eGFR 14.09.2026: 52. eGFR 01.09.2025: 38', '52', '38'], ['eGFR faldet fra 58 (2025) til 43 (2026)', '43', '58'], ['eGFR 44 (tidligere 52)', '44', '52'], ['eGFR 38 under indlæggelse med pneumoni, nu 55', '55', '38']]) {
+    r = await udfyld(t); check(`Q28 "${t}" → nu ${nu}, tidligere ${foer}`, (await val('egfr')) === nu && (await val('egfrFoer')) === foer, r);
+  }
+  r = await udfyld('Analyse 01.09.25 03.03.26 14.09.26\neGFR 52 49 44\nU-ACR 22 28 35'); check('Q29 labtabel med datokolonner → nyeste', (await val('egfr')) === '44' && (await val('uacr')) === '35', r);
+  r = await udfyld('Plan: henvis hvis eGFR < 30. eGFR 41. Hvis kalium > 5,5 pauseres losartan. Kalium 4,6.'); check('Q30 grænser i planen er ikke målinger', (await val('egfr')) === '41' && (await val('kalium')) === '4.6', r);
+  r = await udfyld('eGFR <15. UACR 35 g/mol.'); check('Q31 "<15" → G5-side, g/mol omregnes', (await val('egfr')) === '14' && (await val('uacr')) === '309', r);
+  r = await udfyld('P-Kreatinin;112;µmol/L\neGFR;44;ml/min\nP-Kalium;5,4;mmol/L\nU-Albumin/kreatinin-ratio;35;mg/g'); check('Q32 semikolon-format fra lab', (await val('egfr')) === '44' && (await val('kalium')) === '5.4' && (await val('uacr')) === '35', r);
+  r = await udfyld('BT 160/90 sidste år, i dag 132/78'); check('Q33 aktuelt BT', (await val('sbp')) === '132', r);
+  r = await udfyld('Diabetes i familien. Diabetes type 1. eGFR 50'); check('Q34 familie og type 1 → ikke T2D', !(await on('syg', 't2d')), r);
+  r = await udfyld('DM type 2, AHT. Losartan 50 mg (pauseret under gastroenteritis). Undgå NSAID.'); check('Q35 pauseret ACE/ARB og "undgå NSAID"', (await on('syg', 't2d')) && (await on('syg', 'hypertension')) && !(await on('med', 'acearb')) && !(await on('med', 'nsaid')), r);
+  r = await udfyld('BT ikke i mål trods amlodipin og losartan'); check('Q36 "ikke i mål trods losartan" → losartan i behandling', await on('med', 'acearb'), r);
+
+  await go('nyre/dosis.html');
+  r = await udfyld('Kvinde 84 år, 52 kg, krea 142, eGFR 29. Janumet 50/1000 x 2. Dolol 50 mg x 3. Metoject 10 mg. Trimopan 100 mg');
+  check('Q37 handelsnavne/kombinationer findes', ['Metformin', 'Sitagliptin', 'Tramadol', 'Methotrexat', 'Trimethoprim'].every((x) => r.includes(x)), r);
+  r = await udfyld('eGFR 38. Metformin 1 g x 2, Furix 40 mg'); check('Q38 ukendt præparat → "kun nævnte" slås ikke til', !(await on('vis', 'naevnte')) && r.includes('furix'), r);
+  r = await udfyld('Kreatinin 98 (2025), nu 165 µmol/l. Vægt 65 kg (2024), nu 58 kg.'); check('Q39 aktuel kreatinin og vægt', (await val('kreat')) === '165' && (await val('vaegt')) === '58', r);
+
+  // ---------------- Re-audit oktober 2026: regressioner, som rettelserne ikke må give ----------------
+  await go('nyre/ckd.html');
+  r = await udfyld('Kalium 5,8 (3,5-4,6). U-albumin/kreatinin-ratio 52 mg/mmol (<3,0). eGFR 72, 45-årig kvinde.');
+  check('R1 referenceintervaller og alder er ikke målinger', (await val('kalium')) === '5.8' && (await val('uacr')) === '460' && (await val('egfr')) === '72' && (await val('alder')) === '45', r);
+  r = await udfyld('U-Albumin/Kreatinin;52;mg/mmol'); check('R2 semikolon før enhed → omregnet', (await val('uacr')) === '460', r);
+  r = await udfyld('Ramipril 10 mg (tidligere losartan, stoppet pga. hoste)'); check('R3 aktuel ramipril tæller trods tidligere losartan', await on('med', 'acearb'), r);
+  await go('nyre/dosis.html');
+  r = await udfyld('krea 98, eGFR 62, 2 g paracetamol dagligt. Vægt 58 kg, 1,62 m. Krea 110 µmol/l (60-105).');
+  check('R4 tal efter målingen er ikke nye målinger', (await val('egfr')) === '62' && (await val('vaegt')) === '58' && (await val('kreat')) === '110', r);
+  r = await udfyld('Vægt 82 kg, 3 kg vægttab. Penicillinallergi. Losartan comp, tager 2 tbl.');
+  check('R5 vægttab, allergi og "comp/tager"', (await val('vaegt')) === '82' && !(await val('naevnte')).includes('Penicillin') && !r.includes('comp,') && !r.includes('tager'), r);
+  r = await udfyld('Hustru ringer. Hun oplyser at pt. har eGFR 40.'); check('R6 pårørendes "hun" er ikke patientens køn', !r.includes('Køn: Kvinde'), r);
+
+  await go('infektion/luftveje.html');
+  r = await udfyld('Hoste og feber 38,8. Svælg ua. Krepitation basalt hø. CRP 120, sat 93.'); check('R7 "svælg ua" vælger ikke halsbetændelse', (await on('diag', 'pneumoni')) && (await val('crp')) === '120', r);
+  r = await udfyld('Ørepine. Svælg: let rødt, tonsiller små.'); check('R8 ørepine forbliver otitis', await on('diag', 'otitis'), r);
+  r = await udfyld('Ondt i halsen ingen hoste feber 39'); check('R9 "ingen" efter et ord nægter ikke det', (await on('diag', 'tonsillitis')) && (await on('centor', 'hoste')) && (await on('centor', 'feber')), r);
+  r = await udfyld('Ondt i halsen. Har ikke feber, hoste eller snue.'); check('R10 "ikke feber, hoste eller …" nægter listen', !(await on('centor', 'feber')) && (await on('centor', 'hoste')), r);
+  r = await udfyld('Hoste siden hun er stoppet med at ryge. Bronkitis.'); check('R11 "stoppet med at ryge" nægter ikke hosten', await on('diag', 'bronkitis'), r);
+  r = await udfyld('Ondt i halsen. Feber hjemme 36 timer.'); check('R12 "36 timer" er ikke temperatur', await on('centor', 'feber'), r);
+  r = await udfyld('Patient 2 tbl panodil. Ægtefællen er 80 år. Ondt i halsen.'); check('R13 dosis og ægtefælles alder er ikke alder', (await val('alder')) === '', r);
+  r = await udfyld('Otitis. Hørelsen påvirket. Alment upåvirket.'); check('R14 "hørelsen påvirket" er ikke almen påvirket', !(await on('ot', 'paavirket')), r);
+  r = await udfyld('Streptokokhals - start penicillin'); check('R15 tankestreg efter strep er ikke negativ', !(await on('strep', 'neg')), r);
+  r = await udfyld('Ondt i halsen, positiv for strep A'); check('R16 "positiv for strep A"', await on('strep', 'pos'), r);
+  // Ydelse: ingen katastrofal backtracking.
+  let t0 = Date.now(); await udfyld('Vægt 20 kg, ' + 'nu '.repeat(40) + '. BT 140/90, ' + 'nu '.repeat(40) + '. eGFR 44, ' + 'i 2024 '.repeat(40)); 
+  check('R17 mange tidsord efter en måling udfyldes hurtigt (< 1,5 s)', Date.now() - t0 < 1500, `${Date.now() - t0} ms`);
+
+  await go('infektion/urinveje.html');
+  r = await udfyld('Svie ved vandladning, ikke feber, kulderystelser eller flankesmerter. Smerter i lænden som vanligt.'); check('R18 nægtet liste og kendt lændesmerte → cystitis', await on('billede', 'cystitis'), r);
+  r = await udfyld('Svie ingen feber ingen flankesmerter'); check('R19 diktat uden komma', await on('billede', 'cystitis'), r);
+
+  await go('infektion/hud.html');
+  r = await udfyld('Impetigo omkring munden og i ansigtet. Små blærer.'); check('R20 børnesår med blærer i ansigtet → ingen alarm', !(await on('rf', 'nekrose')) && !(await on('rf', 'ansigt')), r);
+  r = await udfyld('Erysipelas, hurtigt tiltagende. Byld med voldsomme smerter.'); check('R21 "tiltagende"/"voldsomme smerter" alene er ikke nekrose', !(await on('rf', 'nekrose')), r);
+
   // Mobil
   const m = await ctx.newPage(); await m.setViewportSize({ width: 390, height: 844 }); await m.goto(SIDE('infektion/luftveje.html'));
   await m.click('.udfyld summary'); await m.fill('#udfyldTekst', '6-årig dreng, 20 kg, ondt i halsen, feber, strep A positiv'); await m.click('#udfyldBtn'); await m.waitForTimeout(150);

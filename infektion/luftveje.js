@@ -266,17 +266,39 @@
 
   if (window.Udfyld) {
     const crpFund = (c) => ({ type: "num", id: "crp", v: c.op === "<" ? Math.max(0, c.v - 1) : c.v, label: "CRP", kilde: c.kilde, note: [c.op === "<" ? `angivet som ${c.op} ${String(c.v).replace(".", ",")} — sat til ${Math.max(0, c.v - 1)}` : "", c.note || ""].filter(Boolean).join("; ") });
+    // Strep A-test i de almindelige skriveformer: "Strep A pos", "Strep A-test er positiv",
+    // "StrepA (+)", "strep. A: neg", "Strep A taget, positiv", "positiv strep A", "GAS-test +",
+    // "halspodning positiv for streptokokker". Bindestregen i "Strep A-test" er ikke et minus.
+    const RES = "(positiv\\w*|pos(?![a-zæøå])\\.?|påvist|\\(\\s*\\+\\s*\\)|\\+|negativ\\w*|neg(?![a-zæøå])\\.?|ikke påvist|\\(\\s*[-÷]\\s*\\)|÷|-(?=\\s*(?:$|[,.;)\\n])))";
+    const NAVN = "(?:strep\\w*\\.?(?:\\s*-?\\s*a(?![a-zæøå]))?|streptokok\\w*(?:\\s*a(?![a-zæøå]))?|gas(?=\\s*-?\\s*test)|halspodning|svælgpodning|podning fra svælg)(?:\\s*-?\\s*(?:hurtig|antigen)?test)?";
+    function strepA(L) {
+      const fund = [
+        new RegExp(`${L.B}${NAVN}\\s*(?:[:=]|er|var|blev|viste|taget,?|udført,?|\\s)*\\s*${RES}`, "g"),
+        new RegExp(`${L.B}(positiv|negativ)\\w*\\s+(?:for\\s+)?(?:${NAVN})`, "g"),
+        new RegExp(`${L.B}(?:halspodning|svælgpodning|podning)\\w*\\s+(?:er\\s+|var\\s+)?(positiv|negativ)\\w*\\s+for\\s+streptokok`, "g"),
+      ]
+        .flatMap((re) => L.alle(re))
+        .sort((p, q) => p.index - q.index)
+        .map((m) => ({ v: /^(neg|ikke|\(\s*[-÷]|÷|-)/.test(m[1]) ? "neg" : "pos", kilde: L.kilde(m.index, m.index + m[0].length) }));
+      if (!fund.length) return null;
+      // Flere svar (fx en kontrol): det sidste i teksten bruges, og uenighed nævnes.
+      const sidste = fund[fund.length - 1];
+      return Object.assign({}, sidste, { note: fund.some((x) => x.v !== sidste.v) ? `teksten nævner både positiv og negativ strep A-test — den sidste ("${sidste.kilde}") er brugt` : "" });
+    }
     const chk = (name, value, r, label, on) => (r && r.status ? { type: "check", name, value, on: on === undefined ? r.status === "ja" : on, label, kilde: r.kilde } : null);
     Udfyld.init(
       (L) => {
         const u = [];
-        const diag = L.vaelg([
-          { value: "tonsillitis", staerk: "tonsillit|faryngit|faryngo-?tonsillit|halsbetændelse|streptokokhals", svag: "ondt i halsen|halssmerter|synkesmerter|synkebesvær" },
+        let diag = L.vaelg([
+          { value: "tonsillitis", staerk: "tonsill?it|faryngit|faryngo-?tonsill?it|halsbetændelse|streptokokhals|angina", svag: "ondt i halsen|halssmerter|synkesmerter|synkebesvær|strep\\w*\\.?\\s*-?\\s*a(?![a-zæøå])" },
           { value: "otitis", staerk: "otitis|mellemørebetændelse|ørebetændelse", svag: "ørepine|øresmerter|ondt i øret" },
           { value: "sinuitis", staerk: "sinuit|rhinosinuit|bihulebetændelse", svag: "bihule|ansigtssmerter" },
           { value: "pneumoni", staerk: "pneumoni|lungebetændelse", svag: "krepitation|infiltrat" },
           { value: "bronkitis", staerk: "bronkit", svag: `host(?:e|er|en|et|ende)?${L.E}` },
         ]);
+        // Et strep A-svar betyder halsbetændelse, også når ordet ikke står (fx "Strep A neg").
+        const strep = strepA(L);
+        if (!diag && strep) diag = { value: "tonsillitis", kilde: strep.kilde };
         const d = diag ? diag.value : "tonsillitis";
         if (diag) {
           u.push({ type: "radio", name: "diag", value: d, label: "Problemstilling", kilde: diag.kilde });
@@ -297,12 +319,14 @@
 
         if (d === "tonsillitis") {
           u.push(chk("centor", "feber", feber, "Centor: feber"));
-          u.push(chk("centor", "belaeg", L.term("belægning|belæg|pus på tonsil|hævede tonsiller|forstørrede tonsiller|tonsilhypertrofi|eksudat"), "Centor: belægninger/hævede tonsiller"));
-          u.push(chk("centor", "lymf", L.term("lymfeknude|glandler|lymfadenit|lymfadenopati"), "Centor: ømme lymfeknuder"));
+          u.push(chk("centor", "belaeg", L.term("belægning|belæg|pus på tonsil|tonsiller (?:med|m\\.) (?:pus|belæg|eksudat)|(?:hævede|svulne|forstørrede|store|hypertrofiske) tonsiller|tonsiller (?:er )?(?:hævede|svulne|forstørrede|hypertrofiske)|tonsilhypertrofi|eksudat"), "Centor: belægninger/hævede tonsiller"));
+          u.push(chk("centor", "lymf", L.term("lymfeknude|glandler|glandel|lymfadenit|lymfadenopati"), "Centor: ømme lymfeknuder"));
           const hoste = L.term(`host(?:e|er|en|et|ende)?${L.E}`);
           if (hoste.status) u.push({ type: "check", name: "centor", value: "hoste", on: hoste.status === "nej", label: "Centor: ingen hoste", kilde: hoste.kilde });
-          const s1 = L.find(`${L.B}strep\\w*(?:[ -]?a)?(?:[ -]?(?:test|hurtigtest|antigentest))?\\s*[:=]?\\s*(pos\\w*|\\+|neg\\w*|÷|-(?!\\d))`) || L.find("(positiv|negativ)\\w*\\s+strep");
-          if (s1) u.push({ type: "radio", name: "strep", value: /^(pos|\+)/.test(s1.m[1]) ? "pos" : "neg", label: "Strep A-test", kilde: s1.kilde });
+          const cs = L.find(`${L.B}centor\\s*(?:score)?\\s*[:=]?\\s*([0-4])(?![\\d,.])`);
+          if (cs) u.push({ type: "note", tekst: `Centor-score ${cs.m[1]} nævnt ("${cs.kilde}") — kontrollér, at de rigtige kriterier er afkrydset.` });
+          if (strep) u.push({ type: "radio", name: "strep", value: strep.v, label: "Strep A-test", kilde: strep.kilde });
+          if (strep && strep.note) u.push({ type: "note", tekst: `Strep A: ${strep.note}.` });
           const abs = L.term("peritonsillær absces|peritonsillit|trismus|kartoffeltale");
           if (abs.status === "ja") u.push(chk("rf", "absces", abs, "Mistanke om peritonsillær absces"));
           const lv = L.term("stridor|savl");
@@ -310,9 +334,13 @@
         }
         if (d === "otitis") {
           const upaav = L.term("upåvirket|alment upåvirket|almen upåvirket");
-          const paav = L.term("almen påvirket|almenpåvirket|påvirket almentilstand|påvirket almen tilstand|sløv|medtaget");
+          const paav = L.term(`almen påvirket|almenpåvirket|påvirket almentilstand|påvirket almen tilstand|(?:lettere|let|moderat|svært|tydeligt|alment|almen)\\s+påvirket${L.E}|sløv|medtaget|alment dårlig`);
+          // "…, påvirket." som eget led (ikke "hørelsen påvirket" eller "søvnen er påvirket").
+          const alene = paav.status ? null : L.find("(?:^|[,.;:\\n]\\s*)(?:barnet er |pt\\.? er |er )?påvirket(?=\\s*(?:$|[,.;\\n]))");
+          if (alene) u.push({ type: "check", name: "ot", value: "paavirket", on: true, label: "Almen påvirket", kilde: alene.kilde });
           if (paav.status === "ja") u.push(chk("ot", "paavirket", paav, "Almen påvirket"));
           else if (upaav.status === "ja" || paav.status === "nej") u.push(chk("ot", "paavirket", upaav.status ? upaav : paav, "Almen påvirket", false));
+          if (!paav.status && !alene && upaav.status !== "ja" && feber.status === "ja") u.push({ type: "note", tekst: `Feber nævnt ("${feber.kilde}") — afkryds "Almen påvirket", hvis barnet er påvirket.` });
           const draen = L.term("dræn");
           const flaad = L.term("flåd|sekretion|otorr|løber fra øret");
           if (draen.status === "ja" && flaad.status === "ja") u.push(chk("ot", "otore3", flaad, "Flåd gennem trommehindedræn"));

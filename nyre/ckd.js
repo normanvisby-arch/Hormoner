@@ -346,11 +346,11 @@
     const chk = (name, value, r, label) => (r && r.status === "ja" ? { type: "check", name, value, on: true, label, kilde: r.kilde } : null);
     // Lægemidler (generiske navne og hyppige handelsnavne).
     const MED = {
-      acearb: "ace-?hæmmer|angiotensin|arb" + "(?![a-zæøå])|enalapril|lisinopril|ramipril|perindopril|captopril|trandolapril|losartan|candesartan|valsartan|irbesartan|telmisartan|olmesartan|cozaar|atacand|diovan|aprovel|micardis",
+      acearb: "ace-?hæmmer|angiotensin|arb" + "(?![a-zæøå])|enalapril|lisinopril|ramipril|perindopril|captopril|trandolapril|losartan|candesartan|valsartan|irbesartan|telmisartan|olmesartan|cozaar|atacand|diovan|aprovel|micardis|triatec|coversyl|exforge|olmetec|sevikar|renitec|zestril|quinapril|fosinopril",
       sglt2: "sglt-?2|empagliflozin|dapagliflozin|canagliflozin|ertugliflozin|jardiance|forxiga|synjardy|xigduo",
       statin: "statin|atorvastatin|simvastatin|rosuvastatin|pravastatin|fluvastatin|lipitor|zarator|crestor|zocor",
       finerenon: "finerenon|kerendia",
-      nsaid: "nsaid|ibuprofen|naproxen|diclofenac|etoricoxib|celecoxib|ipren|ibumetin|voltaren|arcoxia|celebra|naproxen",
+      nsaid: "nsaid|ibuprofen|naproxen|diclofenac|etoricoxib|celecoxib|ipren|ibumetin|voltaren|arcoxia|celebra|diclon|confortid|bonyl|brufen|nurofen|ibumax|meloxicam|ketoprofen",
     };
     Udfyld.init(
       (L) => {
@@ -375,29 +375,40 @@
         if (kal) u.push({ type: "num", id: "kalium", v: kal.v, label: "Kalium", kilde: kal.kilde });
         // Sygdomme
         const F = { familie: true };
-        const t1 = L.term("type 1-diabetes|type 1 diabetes|t1d|dm1", F);
-        const t2 = L.term("type 2-diabetes|type 2 diabetes|t2d|dm2|diabetes mellitus type 2|diabetes", F);
-        if (t2.status === "ja" && t1.status !== "ja") {
+        const t1 = L.term(`type 1-diabetes|type 1 diabetes|t1d${L.E}|dm1|dm type 1|diabetes (?:mellitus )?type 1|lada${L.E}`, F);
+        // "Diabetes" alene tolkes som type 2 — men ikke screening, insipidus eller graviditetsdiabetes.
+        const t2 = L.term(`type 2-diabetes|type 2 diabetes|t2d${L.E}|dm2|dm type 2|diabetes (?:mellitus )?type 2|niddm|diabetiker|diabetisk nefropati|diabetes(?!\\s*(?:insipidus|type 1|mellitus type 1|-?screening))(?![a-zæøå])`, F);
+        const ikkeT2 = (r) => r.status === "ja" && /screen|udelukke|insipidus|gestationel|graviditetsdiabetes|tidligere graviditet/i.test(L.leddet(r.index));
+        if (t2.status === "ja" && t1.status !== "ja" && !ikkeT2(t2)) {
           u.push(chk("syg", "t2d", t2, "Type 2-diabetes"));
           if (!/type 2|t2d|dm2/i.test(t2.kilde)) u.push({ type: "note", tekst: `"Diabetes" er tolket som type 2-diabetes ("${t2.kilde}").` });
         } else if (t1.status === "ja") u.push({ type: "note", tekst: "Type 1-diabetes nævnt — værktøjets diabetesråd gælder type 2." });
-        u.push(chk("syg", "hypertension", L.term("hypertension|forhøjet blodtryk|hypertoni", F), "Hypertension"));
+        u.push(chk("syg", "hypertension", L.term(`hypertension|forhøjet blodtryk|hypertoni|aht${L.E}|ht${L.E}(?=\\s*(?:i beh|behandl|,|\\.|$))|essentiel hypertension`, F), "Hypertension"));
         u.push(chk("syg", "hs", L.term("hjertesvigt|hfref|hfpef|hjerteinsufficiens", F), "Hjertesvigt"));
-        u.push(chk("syg", "ascvd", L.term(`iskæmisk hjertesygdom|ihs${L.E}|ami${L.E}|blodprop i (?:hjertet|hjernen)|myokardieinfarkt|apopleksi|tci${L.E}|perifer arteriesygdom|claudicatio|pci${L.E}|cabg|(?:koronar|hjerte-?)bypass|stent`, F), "Hjerte-kar-sygdom"));
+        u.push(chk("syg", "ascvd", L.term(`iskæmisk hjertesygdom|ihs${L.E}|ami${L.E}|blodprop i (?:hjertet|hjernen)|myokardieinfarkt|apopleksi|tci${L.E}|perifer arteriesygdom|perifer arteriel insufficiens|pai${L.E}|claudicatio|pci${L.E}|cabg|(?:koronar|hjerte-?)bypass|stent`, F), "Hjerte-kar-sygdom"));
         u.push(chk("syg", "pkd", L.term(`polycystisk\\w*\\s+nyre\\w*|cystenyre\\w*|adpkd`, F), "Polycystisk nyresygdom"));
         u.push(chk("syg", "immun", L.term("nyretransplant|transplanteret|immunsuppr", F), "Immunsuppression/transplanteret"));
-        u.push(chk("syg", "haematuri", L.term("hæmaturi|blod i urinen", F), "Hæmaturi"));
+        u.push(chk("syg", "haematuri", L.term("hæmaturi|blod i urinen|stix[^.;\\n]{0,20}blod\\s*[:=]?\\s*(?:\\+|[1-4]\\s*\\+|pos)|erytrocytter i urinen", F), "Hæmaturi"));
         u.push(chk("syg", "arvelig", L.term("arvelig nyresygdom|familiær nyresygdom|nyresygdom i familien"), "Arvelig nyresygdom"));
-        u.push(chk("syg", "resistent", L.term("behandlingsresistent hypertension|resistent hypertension|4 (?:blodtrykspræparater|antihypertensiva)|fire (?:blodtrykspræparater|antihypertensiva)"), "Resistent hypertension"));
+        u.push(chk("syg", "resistent", L.term("behandlingsresistent hypertension|resistent hypertension|(?:4|fire|5|fem) (?:blodtrykspræparater|antihypertensiva|præparater)|trods (?:4|fire|5|fem) (?:præparater|blodtrykspræparater)"), "Resistent hypertension"));
         for (const [key, monster] of Object.entries(MED)) {
           const label = { acearb: "ACE-hæmmer/ARB", sglt2: "SGLT-2-hæmmer", statin: "Statin", finerenon: "Finerenon", nsaid: "NSAID" }[key];
-          u.push(chk("med", key, L.term(monster), label));
+          // "Tidligere Ipren, er stoppet" / "SGLT2-hæmmer overvejes": ikke aktuel behandling.
+          // Mindst én aktuel omtale: kun ordets eget led (til komma/parentes), fx
+          // "Ramipril 10 mg (tidligere losartan, stoppet)" → ramipril tæller.
+          const r = L.term(monster);
+          const lokalt = (f) => {
+            const i = f.m.index;
+            return L.lav.slice(Math.max(0, i - 25), i).split(/[,;.(\n]/).pop() + L.lav.slice(i, i + 50).split(/[,;.()\n]/)[0];
+          };
+          const aktuel = r.status === "ja" && r.fund.find((f) => f.k === "ja" && !/tidligere|stoppet|seponeret|pauseret|overvej|frarådes|undgå/.test(lokalt(f)));
+          if (aktuel) u.push({ type: "check", name: "med", value: key, on: true, label, kilde: L.kilde(aktuel.m.index, aktuel.m.index + aktuel.m[0].length) });
         }
-        if (L.term("nyligt startet|startet for|opstartet for|påbegyndt for").status === "ja") u.push({ type: "note", tekst: 'Nylig opstart af medicin nævnt — markér "startet inden for 3 måneder", hvis det gælder ACE-hæmmer/ARB eller SGLT-2-hæmmer.' });
+        if (L.term("nyligt startet|nystartet|startet (?:for|op|på|i|med)|opstartet|påbegyndt|sat i behandling med").status === "ja") u.push({ type: "note", tekst: 'Nylig opstart af medicin nævnt — markér "startet inden for 3 måneder", hvis det gælder ACE-hæmmer/ARB eller SGLT-2-hæmmer.' });
         if (L.term("bekræftet|vedvarende|over 3 måneder|gentagne målinger").status === "ja") u.push({ type: "note", tekst: 'Teksten nævner bekræftet/vedvarende fund — markér selv "bekræftet over mindst 3 måneder", hvis det er rigtigt.' });
         return u;
       },
-      { vigtige: [["alder", "alder"], ["egfr", "eGFR"], ["uacr", "UACR"]], eksempel: "Fx: 68-årig mand med type 2-diabetes og hypertension. eGFR faldet fra 52 til 44, UACR 180 mg/g. BT 142/84, kalium 4,6. Metformin, ramipril og atorvastatin." }
+      { vigtige: [["alder", "alder"], ["egfr", "eGFR"], ["uacr", "UACR"], ["koen", "køn"]], eksempel: "Fx: 68-årig mand med type 2-diabetes og hypertension. eGFR faldet fra 52 til 44, UACR 180 mg/g. BT 142/84, kalium 4,6. Metformin, ramipril og atorvastatin." }
     );
   }
 
