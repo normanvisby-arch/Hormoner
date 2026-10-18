@@ -3,7 +3,7 @@
  * internet. Netværket prøves først, så opdateringer slår igennem ved næste
  * åbning med forbindelse. Hæv VERSION, når filer tilføjes eller ændres.
  */
-const VERSION = "v6";
+const VERSION = "v7";
 const CACHE = `ryg-${VERSION}`;
 const FILES = [
   "./",
@@ -18,6 +18,7 @@ const FILES = [
   "lib/BufferGeometryUtils.js",
   "lib/OrbitControls.js",
   "lib/meshopt_decoder.module.js",
+  "lib/RoomEnvironment.js",
   "manifest.webmanifest",
   "icons/icon.svg",
   "icons/icon-192.png",

@@ -593,18 +593,23 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
     S1); foraminal/ekstraforaminal prolaps og foraminal stenose → den udtrædende rod (L3, L4, L5)
     (Fardon 2014; klassisk rodtopografi). Flavumhypertrofi ved L5/S1 kan ikke vises (Z-Anatomys
     lig. flavum slutter ved L5) og giver en note.
-- **Visning (`ryg/visning.js`, three.js r170 i `ryg/lib/`):** 3D, bagfra, fra siderne og snit.
+- **Visning (`ryg/visning.js`, three.js r170 i `ryg/lib/`):** 3D, bagfra, "Buer fjernet", fra
+  siderne og snit. "Buer fjernet" ses skråt bagfra med alt bag et snit gennem durasækkens midte
+  skåret væk (snittet følger lændelordosen på niveauet), og ledbånd og cauda equina skjult, så
+  prolapsen ses foran i kanalen med roden spændt ud over sig.
   Det aksiale snit ses nedefra som et MR-billede (patientens højre i billedets venstre side, fortil
   opad), det sagittale fra den side, fundet sidder, med snittet gennem fundet. Skyder for snittets
   placering og for "Normal ↔ Med fund", så patienten kan se forskellen. Væv, der er flyttet af
-  patologien, farves orangerødt; klemte rødder røde. Navne står som billedtekster i kanten med streg ind til strukturen (slået fra som standard). Durasæk og ledbånd kan slås fra, og
+  patologien, farves orangerødt; klemte rødder røde. Prolapsmassen er blank og geléagtig (kernevæv,
+  med blød refleksion fra et indbygget "rum"); når et fund vises, kommer de øvrige forandringer
+  først, og prolapsen presses derefter ud gennem sprækken med en blød opbremsning (ca. 2,6 s). Navne står som billedtekster i kanten med streg ind til strukturen (slået fra som standard). Durasæk og ledbånd kan slås fra, og
   knoglerne kan gøres gennemsigtige.
 - **Helingsforløbet (`ryg/heling.js`):** pædagogisk animation af en diskusprolaps' heling over 26 uger
   (afspil, træk i tidslinjen eller klik i grafen). Modellen viser kun prolapsen, som skrumper mod en
   typisk restgrad (sekvester 15 %, ekstrusion 30 %, protrusion 65 % af debutstørrelsen). De tre
   biologiske mekanismer vises i 3D og som målere: inflammation (pulserende rød prolaps, uge 0–12),
   makrofager (lilla partikler, der vandrer ind og nedbryder prolapsen, uge 1–15), udtørring
-  (prolapsen bliver grålig, uge 3–12) og tilbagetrækning (blå pil, uge 3–14, "kan ske"); i
+  (prolapsen bliver gullig-grå, mat og stribet, uge 3–12) og tilbagetrækning (blå pil, uge 3–14, "kan ske"); i
   stabiliseringsfasen lukker arvæv sprækken i annulus (lys farve, uge 10–24). Den klemte rod falmer
   mod normal i takt med en typisk smertekurve (halveringstid ca. 6,5 uger fra uge 1). Faserne følger
   lægens skema: akut fase uge 1–4, nedbrydningsfase uge 4–12, stabiliseringsfase måned 3–6+.
@@ -618,7 +623,7 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
   udbredelse (L4: forside af knæ/inderside af underben, knæstrækning; L5: yderside af underben,
   fodryg og storetå, løft af fod/storetå; S1: yderside af fod og lilletå, tågang) og en påmindelse
   om, at fundene også ses hos mange uden smerter.
-- **3D-modellen (`ryg/model/l3-s1.glb`, 3,5 MB):** bearbejdning af Z-Anatomy (CC BY-SA 4.0, afledt
+- **3D-modellen (`ryg/model/l3-s1.glb`, 3,6 MB):** bearbejdning af Z-Anatomy (CC BY-SA 4.0, afledt
   af BodyParts3D) via Svitylo-atlassets datapakke på npm (`@authorod/svitylo-3d-anatomy-data`
   1.2.0). Se `ryg/model/LICENS.txt`.
   - Fra Z-Anatomy: L3, L4, L5, sacrum, diskene og nucleus L3/L4–L5/S1, lig. flavum, PLL og ALL.
@@ -635,8 +640,13 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
     med niveauets egne disk-akser, facetled (fundet som nærmeste punkter mellem ledtappene),
     foramina og rødder: disken deformeres (protrusion: bred base,
     4,6 mm; ekstrusion: afrundet masse 7 mm med kaudal udbredning; foraminal/ekstraforaminal rettes
-    mod spinalganglion/nerven). Ved ekstrusion fortsætter nucleus som en tunge gennem annulus ud i
-    prolapsen; ved protrusion skubbes den bagud, men bliver inden for annulus. Nucleus farves ikke
+    mod spinalganglion/nerven). Selve prolapsen er en særskilt masse pr. niveau (`Prolaps_L4L5`
+    osv.): i hvile en lille kugle skjult i kernen, som prolapsnøglen former langs en rygrad fra
+    kernens midte gennem sprækken. Ved ekstrusion har den en smal hals i annulus og en bred,
+    lobuleret masse i kanalen, der er let kaudalt forskudt; annulus' læber buler kun 1,8 mm. Ved
+    protrusion bliver massen under den intakte annulus-kuppel. Tværsnittene ligger i parallelle
+    planer (rygraden følges ved skævvridning), så massen ikke folder sig ind i sig selv. Nucleus
+    skubbes desuden mildt mod sprækken. Nucleus farves ikke
     som forandring, så den kan følges i snittene. Flavum fortykkes ind mod kanalen, facetleddene
     får osteofytter (forskydning langs normalen med støj), og ved recesstenose vokser den nederste
     hvirvels øvre ledtap medialt. Sæk, PLL og rødder skubbes derefter ud af det deformerede væv (kollision), og
@@ -965,6 +975,17 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**18. oktober 2026 — MR-columna i 3D: mere naturtro prolaps:**
+- Prolapsen er nu en særskilt, blank og geléagtig masse af kernevæv, der presses ud gennem en
+  sprække i annulus. Ved ekstrusion har den en smal hals og en lobuleret masse i kanalen, der vandrer
+  lidt nedad, og ved protrusion bliver den under den intakte ring.
+- Animation: de øvrige forandringer kommer først, og prolapsen presses derefter langsomt ud med en
+  blød opbremsning. Under helingen bliver massen rødlig og gløder i kanten (inflammation), bliver
+  siden gullig-grå, mat og stribet (udtørring) og skrumper; makrofagerne søger mod massen i kanalen.
+- Ny visning "Buer fjernet": skråt bagfra med hvirvelbuer, ledbånd og cauda equina skåret væk, så
+  man ser prolapsen og roden, der er spændt ud over den.
+- Test: `tests/ryg.test.js` (M1b, M3c, M9b). Service worker hævet (ryg).
 
 **18. oktober 2026 — MR-columna i 3D: rolige navne:**
 - Navne og helingstekster skjules, mens modellen drejes, zoomes eller skifter visning, og vises,

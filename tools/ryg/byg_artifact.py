@@ -176,6 +176,7 @@ def main():
     vis = open(os.path.join(ROOT, "ryg", "visning.js"), encoding="utf-8").read()
     vis = vis.replace('from "./lib/GLTFLoader.js"', 'from "three/addons/loaders/GLTFLoader.js"')
     vis = vis.replace('from "./lib/OrbitControls.js"', 'from "three/addons/controls/OrbitControls.js"')
+    vis = vis.replace('from "./lib/RoomEnvironment.js"', 'from "three/addons/environments/RoomEnvironment.js"')
     vis = re.sub(r'import \{ MeshoptDecoder \} from "\./lib/meshopt_decoder\.module\.js";\n', "", vis)
     vis = vis.replace("  loader.setMeshoptDecoder(MeshoptDecoder);\n", "")
     if "./lib/" in vis or "MeshoptDecoder" in vis.split("async function hentModel")[1].split("async function indlaes")[0].replace("loadAsync", ""):

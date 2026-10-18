@@ -247,6 +247,16 @@ for niv, (over, under, zmin, ymin) in FACET_DEF.items():
         fac[niv][side] = (c, n)
         print('facet', niv, side, [round(x * 1000, 1) for x in c], [round(x, 2) for x in n], len(par))
 
+# ---------------------------------------------------------------- prolapsmasse pr. niveau
+# Den udpressede kerne er et eget objekt: i hvile en lille kugle skjult midt i nucleus; hver
+# prolaps-shape key former den til en masse, der går fra kernen gennem annulus ud i kanalen.
+for niv in ('L3L4', 'L4L5', 'L5S1'):
+    vs = [v.co for v in O[f'Nucleus_{niv}'].data.vertices]; cn = sum(vs, Vector()) / len(vs)
+    bm = bmesh.new(); bmesh.ops.create_icosphere(bm, subdivisions=4, radius=2.5 * mm)
+    bmesh.ops.translate(bm, verts=bm.verts, vec=cn)
+    me = bpy.data.meshes.new(f'Prolaps_{niv}'); bm.to_mesh(me); bm.free()
+    o = bpy.data.objects.new(f'Prolaps_{niv}', me); bpy.context.scene.collection.objects.link(o); glat(o); O[f'Prolaps_{niv}'] = o
+
 exec(open(__file__.replace('byg_model.py', 'patologi.py')).read())
 
 # ---------------------------------------------------------------- materialer og eksport
@@ -264,7 +274,7 @@ def mat(navn):
 def gruppe(n):
     if n[0] == 'L' or n == 'Sacrum': return 'knogle'
     if n.startswith('Disc'): return 'diskus'
-    if n.startswith('Nucleus'): return 'nucleus'
+    if n.startswith('Nucleus') or n.startswith('Prolaps'): return 'nucleus'
     if n == 'Durasaek': return 'dura'
     if n.startswith('Rod') or n.startswith('Cauda') or n == 'Filum': return 'nerve'
     return 'ligament'

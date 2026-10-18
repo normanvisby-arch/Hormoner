@@ -4,6 +4,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "./lib/GLTFLoader.js";
 import { OrbitControls } from "./lib/OrbitControls.js";
 import { MeshoptDecoder } from "./lib/meshopt_decoder.module.js";
+import { RoomEnvironment } from "./lib/RoomEnvironment.js";
 
 const boks = document.getElementById("visning");
 // Kameraets mål pr. niveau: lige foran spinalkanalen ved disken (glTF: +Y op, +Z fortil, +X venstre).
@@ -11,16 +12,22 @@ const MAAL_NIV = { "L3/L4": new THREE.Vector3(0, 1.031, 0.034), "L4/L5": new THR
 // Aksialt snit: højden (y) går fra 0,94 til 1,055; standard ved diskens bageste del på niveauet.
 const AKSIAL_NIV = { "L3/L4": 1.030, "L4/L5": 0.997, "L5/S1": 0.965 };
 const aksialTilSnit = (y) => (y - 0.94) / 0.115;
+// Durasækkens midte pr. niveau [højde y, dybde z] og kanalens hældning (lændelordosen) til
+// visningen "Buer fjernet", hvor alt bag snittet gennem kanalen skæres væk.
+const KANAL_NIV = { "L3/L4": [1.031, 0.027, 0.22], "L4/L5": [0.999, 0.020, 0.26], "L5/S1": [0.964, 0.0096, 0.30] };
 let MAAL = MAAL_NIV["L4/L5"];
 const FARVER = {
-  knogle: 0xe9dfc9, diskus: 0x93b4d6, nucleus: 0x4f86cf, ligament: 0xe0c062, dura: 0x86a8ee, nerve: 0xf0dc8c,
+  knogle: 0xe9dfc9, diskus: 0x93b4d6, nucleus: 0x4f86cf, prolaps: 0x5d93dc, ligament: 0xe0c062, dura: 0x86a8ee, nerve: 0xf0dc8c,
   rodRoed: 0xd62828, rodOrange: 0xf08c00,
 };
 // Snitflader (bagsiden af lukkede flader): spongiøs knogle, diskusvæv osv.
-const KAPPE = { knogle: 0xd8c2a0, diskus: 0xa7c3e2, nucleus: 0x6f9ee0, ligament: 0xd9b95a, nerve: 0xe8cf6e };
+const KAPPE = { knogle: 0xd8c2a0, diskus: 0xa7c3e2, nucleus: 0x6f9ee0, prolaps: 0x6f9ee0, ligament: 0xd9b95a, nerve: 0xe8cf6e };
 const VISNINGER = {
   "3d": { retning: [0.78, 0.38, -1], afstand: 0.27 },
   bag: { retning: [0, 0.08, -1], afstand: 0.25 },
+  // Bagfra med hvirvelbuer, ledbånd og sækkens bageste del skåret væk: prolapsen ses presse på
+  // durasækken og roden. Kameraet står skråt fra den side, fundet sidder.
+  koronal: { retning: [0.45, 0.2, -1], afstand: 0.16, snit: "koronal" },
   venstre: { retning: [1, 0.06, -0.05], afstand: 0.25 },
   hoejre: { retning: [-1, 0.06, -0.05], afstand: 0.25 },
   // Snit vises som MR-billeder: aksialt set nedefra (patientens højre i billedets venstre side,
@@ -29,8 +36,8 @@ const VISNINGER = {
   sagittal: { retning: [1, 0.05, 0], afstand: 0.2, snit: "sagittal" },
 };
 
-const tilstand = { keys: {}, roder: {}, styrke: 1, visning: "3d", snitSide: 1, niveau: "L4/L5", snit: { aksial: aksialTilSnit(AKSIAL_NIV["L4/L5"]), sagittal: 0.5 }, klar: false };
-let renderer, scene, camera, controls, model;
+const tilstand = { keys: {}, roder: {}, styrke: 1, visning: "3d", snitSide: 1, niveau: "L4/L5", snit: { aksial: aksialTilSnit(AKSIAL_NIV["L4/L5"]), sagittal: 0.5, koronal: 0.5 }, klar: false };
+let renderer, scene, camera, controls, model, miljoe = null;
 const meshes = [];              // { mesh, gruppe, kappe }
 const etiketter = [];
 let animStart = 0, animFra = 0;
@@ -64,6 +71,8 @@ function lav() {
   const lys2 = new THREE.DirectionalLight(0xfff4e8, 0.9); lys2.position.set(-0.8, 0.6, 1.0);
   const lys3 = new THREE.DirectionalLight(0xe8f0ff, 1.1); lys3.position.set(0.2, -1, 0.3);
   scene.add(lys1, lys2, lys3);
+  // Et blødt "rum" som refleksion giver kernen og prolapsen et vådt, geléagtigt skær (kun dem).
+  try { miljoe = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture; } catch (e) { miljoe = null; }
   new ResizeObserver(tilpas).observe(boks);
   tilpas();
   return true;
@@ -82,6 +91,7 @@ function gruppe(navn) {
   if (/^(L\d|Sacrum)/.test(navn)) return "knogle";
   if (/^Disc/.test(navn)) return "diskus";
   if (/^Nucleus/.test(navn)) return "nucleus";
+  if (/^Prolaps_/.test(navn)) return "prolaps";
   if (/^Durasaek/.test(navn)) return "dura";
   if (/^(Rod_|Cauda|Filum)/.test(navn)) return "nerve";
   return "ligament";
@@ -115,7 +125,46 @@ function markerForandring(m, heling) {
 // Kernen (nucleus) holder sin farve, så den kan følges ud i en ekstrusion i snittene.
 const MED_FORANDRING = ["knogle", "diskus", "ligament"];
 
+// Prolapsmassen (Prolaps_L4L5 osv.) er kernevæv, der er presset ud gennem sprækken i annulus:
+// blank og geléagtig. Under helingen bliver den rødlig (inflammation) og siden gullig, mat og
+// rynket (udtørring), mens den skrumper.
+function prolapsMateriale() {
+  const m = new THREE.MeshPhysicalMaterial({
+    color: FARVER.prolaps, roughness: 0.3, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.1,
+    sheen: 0.5, sheenRoughness: 0.4, sheenColor: new THREE.Color(0xd4e6ff), envMap: miljoe, envMapIntensity: 0.55,
+  });
+  m.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, HEL.uni);
+    sh.vertexShader = sh.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying vec3 vHvile;")
+      .replace("#include <begin_vertex>", "#include <begin_vertex>\nvHvile = position * 900.0;");
+    sh.fragmentShader = sh.fragmentShader
+      .replace("#include <common>", `#include <common>
+        varying vec3 vHvile;
+        uniform float uInflam, uTor, uAr, uTid;
+        float hS(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+        float stoej(vec3 p) {
+          vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+          return mix(mix(mix(hS(i), hS(i + vec3(1, 0, 0)), f.x), mix(hS(i + vec3(0, 1, 0)), hS(i + vec3(1, 1, 0)), f.x), f.y),
+                     mix(mix(hS(i + vec3(0, 0, 1)), hS(i + vec3(1, 0, 1)), f.x), mix(hS(i + vec3(0, 1, 1)), hS(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+        }`)
+      .replace("#include <color_fragment>", `#include <color_fragment>
+        // Fibrøse striber i kernevævet (ses mest, når det er udtørret) og en lys, gennemskinnelig kerne.
+        float st = stoej(vHvile * vec3(1.0, 3.0, 1.0)) * 0.6 + stoej(vHvile * 3.1) * 0.4;
+        diffuseColor.rgb *= 0.9 + 0.2 * st;
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.88, 0.16, 0.12), uInflam * (0.6 + 0.25 * sin(uTid * 4.0)));
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.76, 0.71, 0.55) * (0.8 + 0.35 * st), uTor * 0.85);`)
+      .replace("#include <emissivemap_fragment>", `#include <emissivemap_fragment>
+        // Kanten gløder svagt rødt, mens betændelsen er aktiv; ellers et lyst, vådt randskær.
+        float rand = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.5);
+        totalEmissiveRadiance += rand * (vec3(0.10, 0.16, 0.24) * (1.0 - uTor) * (1.0 - uInflam) + vec3(0.55, 0.06, 0.03) * uInflam * (0.7 + 0.3 * sin(uTid * 4.0)));`);
+  };
+  return m;
+}
+
 function materiale(g) {
+  if (g === "prolaps") return prolapsMateriale();
+  if (g === "nucleus") return new THREE.MeshPhysicalMaterial({ color: FARVER.nucleus, roughness: 0.35, clearcoat: 0.8, clearcoatRoughness: 0.15, envMap: miljoe, envMapIntensity: 0.4 });
   const m = new THREE.MeshStandardMaterial({ color: FARVER[g], roughness: g === "knogle" ? 0.72 : 0.55, metalness: 0 });
   if (MED_FORANDRING.includes(g)) markerForandring(m, g === "diskus");
   if (g === "dura") { m.transparent = true; m.opacity = 0.38; m.depthWrite = false; }
@@ -280,6 +329,12 @@ function snitPlan() {
     const y = 0.94 + tilstand.snit.aksial * 0.115;              // delen over snittet vises
     return new THREE.Plane(new THREE.Vector3(0, 1, 0), -y);
   }
+  if (v.snit === "koronal") {
+    const [y0, z0, k] = KANAL_NIV[tilstand.niveau];
+    const n = new THREE.Vector3(0, -k, 1).normalize();          // delen foran snittet vises
+    const p0 = new THREE.Vector3(0, y0, z0 + (tilstand.snit.koronal - 0.5) * 0.02);  // ±10 mm om sækkens midte
+    return new THREE.Plane(n, -n.dot(p0));
+  }
   const x = (tilstand.snit.sagittal - 0.5) * 0.03;                // -15 til +15 mm
   return tilstand.snitSide > 0 ? new THREE.Plane(new THREE.Vector3(-1, 0, 0), x) : new THREE.Plane(new THREE.Vector3(1, 0, 0), -x);
 }
@@ -296,6 +351,7 @@ function saetVisning(navn, straks) {
     // Kameraet ses fra den side, fundet sidder; snittet lægges gennem fundet.
     r.x = tilstand.snitSide;
   }
+  if (v.snit === "koronal") r.x = 0.5 * tilstand.snitSide;
   r.normalize();
   const pos = MAAL.clone().add(r.multiplyScalar(v.afstand));
   camera.up.set(...(v.op || [0, 1, 0]));
@@ -310,6 +366,7 @@ function saetVisning(navn, straks) {
     m.kappe.material.needsUpdate = true;
   }
   klip();
+  synlighed();
   document.getElementById("snitKontrol").hidden = !pl;
   if (pl) document.getElementById("snitPos").value = Math.round(tilstand.snit[v.snit] * 100);
   document.querySelectorAll("[data-visning]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.visning === navn)));
@@ -346,7 +403,7 @@ function findProlaps() {
   model.updateMatrixWorld(true);
   const kand = [];
   for (const m of meshes) {
-    if (m.gruppe !== "diskus") continue;
+    if (m.gruppe !== "diskus" && m.gruppe !== "prolaps") continue;
     const d = m.mesh.morphTargetDictionary;
     if (!d) continue;
     const lin = new THREE.Matrix3().setFromMatrix4(m.mesh.matrixWorld);
@@ -356,10 +413,13 @@ function findProlaps() {
       for (let v = 0; v < delta.count; v++) {
         tmp.set(delta.getX(v), delta.getY(v), delta.getZ(v));
         const l = tmp.clone().applyMatrix3(lin).length();
-        if (l > 0.0018) kand.push({ m: m.mesh, v, k, i, l, d: tmp.clone() });
+        if (l > 0.0018) kand.push({ m: m.mesh, v, k, i, l, d: tmp.clone(), masse: m.gruppe === "prolaps" });
       }
     }
   }
+  // Af prolapsmassen bruges kun den yderste del (den, der er kommet ud af disken).
+  const maks = kand.reduce((b, c) => (c.masse ? Math.max(b, c.l) : b), 0);
+  for (let j = kand.length - 1; j >= 0; j--) if (kand[j].masse && kand[j].l < maks * 0.6) kand.splice(j, 1);
   if (!prolaps) {
     const inst = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.00085, 1), new THREE.MeshStandardMaterial({ color: 0xa07ad8, roughness: 0.4, emissive: 0x2a1450 }), MAKRO_N);
     inst.frustumCulled = false; inst.count = 0; scene.add(inst);
@@ -426,25 +486,47 @@ function klip() {
   for (const mt of [prolaps.inst.material]) { mt.clippingPlanes = pl ? [pl] : []; mt.needsUpdate = true; }
 }
 
+// Når fundene vises, kommer de øvrige forandringer først (1,2 s); prolapsen presses derefter ud
+// gennem sprækken med en blød opbremsning og et lille efterslag (i alt ca. 2,6 s).
+const PROLAPS_FORSINK = 350, PROLAPS_VARIGHED = 2250;
+function udPres(t) {
+  const c1 = 0.9, c3 = c1 + 1, u = t - 1;
+  return t <= 0 ? 0 : t >= 1 ? 1 : 1 + c3 * u * u * u + c1 * u * u;
+}
 function opdaterMorph() {
-  const t = animStart ? Math.min(1, (performance.now() - animStart) / 1200) : 1;
+  const ms = animStart ? performance.now() - animStart : Infinity;
+  const t = Math.min(1, ms / 1200);
   const e = t * t * (3 - 2 * t);
+  const ep = udPres((ms - PROLAPS_FORSINK) / PROLAPS_VARIGHED);
   const faktor = tilstand.styrke * (animFra + (1 - animFra) * e);
+  const faktorP = tilstand.styrke * (animFra + (1 - animFra) * ep);
   for (const m of meshes) {
     const d = m.mesh.morphTargetDictionary;
     if (!d) continue;
-    for (const [k, i] of Object.entries(d)) m.mesh.morphTargetInfluences[i] = (tilstand.keys[k] || 0) * faktor * (HEL.aktiv ? (erProlaps(k) ? HEL.s.storrelse : 0) : 1);  // under helingen vises kun prolapsen
+    let sum = 0;
+    for (const [k, i] of Object.entries(d)) {
+      const p = erProlaps(k);
+      const w = (tilstand.keys[k] || 0) * (p ? faktorP : faktor) * (HEL.aktiv ? (p ? HEL.s.storrelse : 0) : 1);  // under helingen vises kun prolapsen
+      m.mesh.morphTargetInfluences[i] = w;
+      sum += w;
+    }
+    // Prolapsmassen ligger skjult inde i kernen, når der ikke er nogen prolaps.
+    if (m.gruppe === "prolaps") m.mesh.visible = sum > 0.002;
   }
-  if (t >= 1) animStart = 0;
+  if (ms >= PROLAPS_FORSINK + PROLAPS_VARIGHED) animStart = 0;
 }
 
 function synlighed() {
   const dura = document.getElementById("visDura").checked;
   const lig = document.getElementById("visLig").checked;
   const glas = document.getElementById("glasKnogle").checked;
+  // Med buerne fjernet skjules også ledbånd og cauda equina, så prolapsen og nerverødderne ses
+  // foran i kanalen.
+  const koronal = tilstand.visning === "koronal";
   for (const m of meshes) {
+    if (m.gruppe === "nerve" && !/^Rod_/.test(m.navn)) m.mesh.visible = !koronal;
     if (m.gruppe === "dura") m.mesh.visible = dura;
-    if (m.gruppe === "ligament") m.mesh.visible = lig;
+    if (m.gruppe === "ligament") m.mesh.visible = lig && !koronal;
     if (m.gruppe === "knogle") {
       m.mesh.material.transparent = glas;
       m.mesh.material.opacity = glas ? 0.3 : 1;
@@ -496,6 +578,12 @@ window.RygVisning = {
     HEL.uni.uInflam.value = HEL.aktiv ? s.inflam : 0;
     HEL.uni.uTor.value = HEL.aktiv ? s.tor : 0;
     HEL.uni.uAr.value = HEL.aktiv ? s.ar : 0;
+    const tor = HEL.uni.uTor.value;
+    for (const m of meshes) if (m.gruppe === "prolaps") {
+      m.mesh.material.roughness = 0.3 + 0.45 * tor;
+      m.mesh.material.clearcoat = 1 - 0.85 * tor;
+      m.mesh.material.sheen = 0.5 * (1 - tor);
+    }
     if (HEL.aktiv && (!var_ || !prolaps)) findProlaps();
     animStart = 0;
     opdaterMorph();
@@ -514,6 +602,7 @@ window.RygVisning = {
   },
   roder: () => Object.fromEntries(meshes.filter((m) => /^Rod_/.test(m.navn)).map((m) => [m.navn, "#" + m.mesh.material.color.getHexString()])),
   objekter: () => meshes.map((m) => m.navn),
+  synlige: () => meshes.filter((m) => m.mesh.visible).map((m) => m.navn),
 };
 
 if (lav()) {

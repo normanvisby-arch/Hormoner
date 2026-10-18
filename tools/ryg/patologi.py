@@ -56,8 +56,9 @@ P_mm = lambda t: Vector((t[0] * mm, t[1] * mm, t[2] * mm if t[2] > 10 else t[2])
 
 def saet_niveau(niv):
     """Sætter de globale størrelser (disk, akser, facetter …), som funktionerne nedenfor bruger."""
-    global NIV, D, NUC, C, U, PB, LV, disk_t, FAC, OVER, UNDER, MAAL, FORAMEN, FLAV_Z
+    global NIV, D, NUC, BLOB, C, U, PB, LV, disk_t, FAC, OVER, UNDER, MAAL, FORAMEN, FLAV_Z
     NIV = NIVEAUER[niv]; D = NIV['disk']; NUC = NIV['nuc']; OVER = NIV['over']; UNDER = NIV['under']
+    BLOB = f'Prolaps_{niv}'
     P = np.array([list(v) for v in basis(D)])
     C = Vector(P.mean(axis=0))
     w_, V_ = np.linalg.eigh(np.cov((P - P.mean(axis=0)).T))
@@ -91,33 +92,81 @@ def prolaps_disp(zone, sx, type_):
         A = (T - c).length * (0.55 if type_ == 'protrusion' else 1.0)
         sl, su = sl * 1.2, su * 1.15
     u2 = t.cross(h).normalized(); u2 = u2 if u2.dot(U) > 0 else -u2
-    ud = []
-    for q in basis(D):
-        d = q - c; rl = d.dot(t); ru = d.dot(u2); rh = d.dot(h)
-        if type_ == 'protrusion':   # bred base
-            w = math.exp(-rl * rl / (2 * sl * sl)) * math.exp(-ru * ru / (2 * su * su))
-        else:                       # afrundet masse (super-gauss)
-            w = math.exp(-(rl / sl) ** 4) * math.exp(-(ru / su) ** 4)
-        w *= smoothstep(-9 * mm, -1 * mm, rh)
-        v = h * (A * w)
-        if type_ == 'ekstrusion':
-            # svampeform: den yderste del breder sig op og især ned bag hvirvellegemet
-            ydre = w * smoothstep(0.3, 0.9, w)
-            v += Vector((0, 0, (1 if ru > 0 else -1) * 1.5 * mm * ydre - 3.0 * mm * ydre))
-        ud.append(v)
-    # Nucleus: ved ekstrusion fortsætter kernen som en tunge gennem sprækken i annulus ud i
-    # prolapsen; ved protrusion skubbes den bagud, men bliver inden for annulus' ydre lag.
     nb = basis(NUC); cn = sum(nb, Vector()) / len(nb)
+    ud = []
+    if type_ == 'protrusion':
+        # Protrusion: annulus buler ud med bred base; den ydre ring er hel.
+        for q in basis(D):
+            d = q - c; rl = d.dot(t); ru = d.dot(u2); rh = d.dot(h)
+            w = math.exp(-rl * rl / (2 * sl * sl)) * math.exp(-ru * ru / (2 * su * su)) * smoothstep(-9 * mm, -1 * mm, rh)
+            ud.append(h * (A * w))
+    else:
+        # Ekstrusion: kun læberne omkring sprækken i annulus buler lidt; selve massen er prolapsobjektet.
+        for q in basis(D):
+            d = q - c; rl = d.dot(t); ru = d.dot(u2); rh = d.dot(h)
+            w = math.exp(-(rl * rl + ru * ru) / (2 * (3.2 * mm) ** 2)) * smoothstep(-6 * mm, -0.5 * mm, rh)
+            ud.append(h * (1.8 * mm * w))
+    # Nucleus forskydes let mod sprækken
     Rn = sum((q - cn).length for q in nb) / len(nb)
-    P = c + h * (A * 0.75) if type_ == 'ekstrusion' else c - r * 2.0 * mm
-    rn = (P - cn).normalized(); L = max(0, (P - cn).length - Rn)
+    P = c - r * 2.0 * mm
+    rn = (P - cn).normalized(); L = max(0, (P - cn).length - Rn) * (0.5 if type_ == 'ekstrusion' else 1.0)
     nud = []
     for q in nb:
         d = q - cn
-        f = smoothstep(0.2, 0.95, d.normalized().dot(rn))          # forreste del af kernen
+        f = smoothstep(0.2, 0.95, d.normalized().dot(rn))
         tvaer = d - rn * d.dot(rn)
-        nud.append(rn * (L * f) - tvaer * ((0.45 if type_ == 'ekstrusion' else 0.2) * f))
-    return {D: ud, NUC: nud}, h
+        nud.append(rn * (L * f) - tvaer * (0.2 * f))
+    return {D: ud, NUC: nud, BLOB: blob_disp(cn, c, h, r, A, type_)}, h
+
+def blob_disp(cn, c, h, r, A, type_):
+    """Prolapsmassen: en rygrad fra kernens midte gennem sprækken (c) ud til spidsen, med et
+    tværsnit, der er smalt i sprækken (ekstrusion) og bredt, lobuleret og let kaudalt forskudt ude
+    i kanalen. Grundformen er en lille kugle i kernen, så overgangen ser ud som en udpresning."""
+    bb = basis(BLOB); cb = sum(bb, Vector()) / len(bb)
+    ned = Vector((0, 0, -1))
+    if type_ == 'ekstrusion':
+        s_ = max(0.75, min(1.25, A / (7 * mm)))
+        S = [cn, c - h * 1.2 * mm, c + h * (A * 0.5) + ned * 1.5 * mm, c + h * (A * 0.88) + ned * 3.0 * mm]
+        prof = [(0, 3.0), (0.30, 2.8), (0.42, 1.6), (0.50, 2.0), (0.66, 4.0 * s_), (0.84, 3.6 * s_), (1.0, 0.0)]
+    else:
+        tip = c + h * max(0.5 * mm, A - 1.4 * mm)
+        S = [cn, c - h * 1.5 * mm, (c + tip) / 2, tip]
+        prof = [(0, 3.0), (0.40, 2.7), (0.70, 2.5), (0.90, 1.8), (1.0, 0.0)]
+    pts = catmull(S, 0.25 * mm)
+    # Tværsnittene ligger i parallelle planer vinkelret på retningen kerne → spræk (Dr); rygraden
+    # følges ved at forskyde snittene sidelæns (skævvridning). Snit i parallelle planer kan ikke
+    # krydse hinanden, så massen folder sig ikke ind i sig selv, heller ikke ved skrå prolapser.
+    Dr = (c - cn).normalized()
+    Vr = (U - Dr * U.dot(Dr)).normalized(); Lr = Vr.cross(Dr).normalized()   # højrehåndet (Dr, Lr, Vr)
+    ss, off = [], []
+    for q in pts:
+        t = (q - cn).dot(Dr)
+        if ss and t <= ss[-1] + 1e-7: continue                 # kun fremadskridende punkter
+        ss.append(t); off.append(q - cn - Dr * t)
+    def langs(u):
+        x = ss[0] + u * (ss[-1] - ss[0])
+        i = max(0, min(len(ss) - 2, next((j for j in range(1, len(ss)) if ss[j] >= x), len(ss) - 1) - 1))
+        f = (x - ss[i]) / max(1e-9, ss[i + 1] - ss[i])
+        return cn + Dr * x + off[i].lerp(off[i + 1], f)
+    def radius(u):
+        for (a, ra), (b, rb) in zip(prof, prof[1:]):
+            if a <= u <= b:
+                k = (u - a) / (b - a); k = k * k * (3 - 2 * k); return (ra + (rb - ra) * k) * mm
+        return 0
+    ud = []
+    X, Y, Z = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
+    for q in bb:
+        d = (q - cb).normalized(); a = d.dot(X); u = (a + 1) / 2
+        rho = d - X * a
+        phi = math.atan2(rho.dot(Z), rho.dot(Y))
+        p = langs(u)
+        cap = max(0.0, 1 - a * a) ** 0.15
+        masse = smoothstep(0.45, 0.62, u)
+        lob = 1 + masse * 0.32 * (stoej(cb + d * 0.004) - 0.5)       # lobuleret overflade
+        rr = radius(u) * cap * lob
+        pos = p + Lr * (math.cos(phi) * rr * (1 + 0.15 * masse)) + Vr * (math.sin(phi) * rr * (1 + 0.3 * masse))
+        ud.append(pos - q)
+    return ud
 
 def bulging_disp(A=2.2 * mm):
     ud = []
