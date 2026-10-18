@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MR-columna i 3D (prototype)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2c5f7c">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MR-ryg">
+<script type="importmap">{ "imports": { "three": "./lib/three.module.min.js" } }</script>
+</head>
+<body class="theme-ryg">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🦴</span>
+      <div>
+        <h1>MR-columna i 3D <span class="ryg-proto">prototype · L4/L5</span></h1>
+        <p class="subtitle">Indsæt MR-beskrivelsen af lænden — fundene vises på en 3D-model, du kan dreje og vise patienten</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" type="button" data-install hidden>Installér som app</button>
+      <button id="rydBtn" class="btn btn-ghost" type="button">Ryd</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <span aria-current="page">MR-columna i 3D</span>
+  <a href="../oversigt.html">Alle værktøjer</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Illustration, ikke patientens billeder:</strong> Modellen viser et typisk udseende af de beskrevne fund på en standardryg. Størrelse og form er skematiske. Beskrivelsen tolkes kun i browseren med faste regler og sendes ingen steder hen — fjern alligevel navn og CPR-nummer, før du indsætter.
+</div>
+
+<a href="#visningPanel" class="mobile-jump" id="mobileJump">Se 3D-modellen ↓</a>
+
+<main class="layout ryg-layout">
+  <section class="panel" aria-label="MR-beskrivelse og fund">
+    <h2>1. MR-beskrivelse</h2>
+    <label for="mrTekst" class="sr-only">MR-beskrivelse</label>
+    <textarea id="mrTekst" class="ryg-tekst" rows="9" autocomplete="off" spellcheck="false" placeholder="Fx: L4/L5: Venstresidig paracentral diskusprolaps (ekstrusion), der komprimerer venstre L5-rod i recessus. Let foraminal stenose bilateralt. Facetledsartrose."></textarea>
+    <div class="udfyld-actions">
+      <button id="tolkBtn" class="btn btn-primary" type="button">Vis på modellen</button>
+      <button id="eksempelBtn" class="btn btn-outline" type="button">Indsæt eksempel</button>
+    </div>
+    <p id="cprAdvarsel" class="field-hint ryg-advarsel" hidden>Teksten ser ud til at indeholde et CPR-nummer. Det bruges ikke og vises ikke, men fjern det helst fra teksten.</p>
+
+    <h2 class="ryg-h2">2. Fund <span class="field-hint">— kontrollér og ret</span></h2>
+    <div id="fundListe" class="ryg-fund" aria-live="polite"><p class="field-hint">Indsæt en beskrivelse, eller tilføj fund nedenfor.</p></div>
+    <div class="ryg-tilfoej">
+      <label for="tilfoejValg" class="sr-only">Tilføj fund</label>
+      <select id="tilfoejValg">
+        <option value="">Tilføj fund på L4/L5 …</option>
+        <option value="prolaps">Diskusprolaps</option>
+        <option value="bulging">Diskusbuling (bulging)</option>
+        <option value="spinalstenose">Central spinalstenose</option>
+        <option value="recesstenose">Recesstenose</option>
+        <option value="foraminalstenose">Foraminal stenose</option>
+        <option value="facetartrose">Facetledsartrose</option>
+        <option value="flavumhypertrofi">Flavumhypertrofi</option>
+        <option value="rod">Påvirket nerverod</option>
+      </select>
+    </div>
+    <div id="noter" class="ryg-noter"></div>
+
+    <h2 class="ryg-h2">3. Forklaring til patienten</h2>
+    <div id="forklaring" class="ryg-forklaring"><p class="field-hint">Forklaringen skrives ud fra fundene.</p></div>
+  </section>
+
+  <section class="panel ryg-visning-panel" aria-label="3D-model" id="visningPanel">
+    <div class="ryg-visninger" role="group" aria-label="Visning">
+      <button type="button" class="btn btn-small btn-outline" data-visning="3d" aria-pressed="true">3D</button>
+      <button type="button" class="btn btn-small btn-outline" data-visning="bag">Bagfra</button>
+      <button type="button" class="btn btn-small btn-outline" data-visning="venstre">Venstre side</button>
+      <button type="button" class="btn btn-small btn-outline" data-visning="hoejre">Højre side</button>
+      <button type="button" class="btn btn-small btn-outline" data-visning="aksial">Snit ovenfra</button>
+      <button type="button" class="btn btn-small btn-outline" data-visning="sagittal">Snit fra siden</button>
+    </div>
+    <div id="visning" class="ryg-visning" role="img" aria-label="3D-model af lændesøjlen L3 til korsbenet">
+      <p class="ryg-indlaeser" id="indlaeser">Indlæser 3D-model …</p>
+    </div>
+    <div class="ryg-kontrol">
+      <label class="ryg-slider">Normal <input type="range" id="fundStyrke" min="0" max="100" value="100" aria-label="Fra normal ryg til ryg med fund"> Med fund</label>
+      <label class="ryg-slider" id="snitKontrol" hidden>Snit <input type="range" id="snitPos" min="0" max="100" value="40" aria-label="Snitplanets placering"></label>
+      <div class="ryg-valg">
+        <label class="checkbox"><input type="checkbox" id="visDura" checked> Durasæk</label>
+        <label class="checkbox"><input type="checkbox" id="visLig" checked> Ledbånd</label>
+        <label class="checkbox"><input type="checkbox" id="glasKnogle"> Gennemsigtige knogler</label>
+        <label class="checkbox"><input type="checkbox" id="visNavne" checked> Navne</label>
+      </div>
+    </div>
+    <ul class="ryg-forklaring-farver">
+      <li><span class="ryg-prik ryg-prik-forandring"></span> Forandring (prolaps, fortykkelse, slid)</li>
+      <li><span class="ryg-prik ryg-prik-roed"></span> Klemt/påvirket nerverod</li>
+      <li><span class="ryg-prik ryg-prik-orange"></span> Nerverod, der typisk påvirkes af fundet</li>
+      <li><span class="ryg-prik ryg-prik-gul"></span> Normal nerverod</li>
+      <li><span class="ryg-prik ryg-prik-blaa"></span> Disk og durasæk</li>
+    </ul>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Fardon DF m.fl. Lumbar disc nomenclature: version 2.0. Recommendations of the combined task forces of NASS, ASSR og ASNR. <em>Spine J</em> 2014;14:2525–45: bulging, protrusion, ekstrusion og sekvester; zonerne central, subartikulær/paracentral, foraminal og ekstraforaminal</li>
+    <li>Schizas C m.fl. Qualitative grading of severity of lumbar spinal stenosis based on the morphology of the dural sac on MRI. <em>Spine</em> 2010;35:1919–24 (grad A–D); Lee S m.fl. A practical MRI grading system for lumbar foraminal stenosis. <em>AJR</em> 2010;194:1095–8 (grad 0–3); Schönström N m.fl. (durasækkens tværsnit: relativ stenose 75–99 mm², absolut under 75 mm²; kontrolleret via sekundære kilder) — modellens sæk måler ca. 180 mm² normalt og ca. 117/86/69 mm² ved let/moderat/svær stenose</li>
+    <li>Rodtopografi: en paracentral prolaps L4/L5 rammer typisk den traverserende L5-rod, en foraminal/ekstraforaminal prolaps den udtrædende L4-rod; dermatomer og kendemuskler efter gængse lærebøger (fx Lægehåndbogen, Netter)</li>
+    <li>3D-model: Z-Anatomy — The libre 3D atlas of anatomy (Gauthier Kervyn m.fl.), afledt af BodyParts3D © The Database Center for Life Science; via Svitylo 3D Anatomy Atlas' datapakke. Licens <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.da" target="_blank" rel="noopener">CC BY-SA 4.0</a> — modellen her er en bearbejdning under samme licens (durasæk, nerverødder og patologi er tilføjet, se tools/ryg/)</li>
+    <li>Visning: three.js (MIT-licens)</li>
+  </ul>
+  <p class="fineprint">Prototype til patientinformation — ikke til diagnostik. Modellen er en generisk voksen ryg; patologien er modelleret skematisk ud fra beskrivelsens niveau, side, zone og grad, ikke ud fra mål. Kun niveau L4/L5 vises i 3D; fund på andre niveauer listes. Ingen tekst gemmes eller sendes.</p>
+</footer>
+
+<script src="mr.js"></script>
+<script src="ryg.js"></script>
+<script type="module" src="visning.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

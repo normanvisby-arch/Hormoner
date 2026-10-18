@@ -1,0 +1,112 @@
+const { chromium } = require('playwright');
+// Kør via tests/run_all.sh. Tester MR-columna i 3D (ryg/): tolkning af MR-beskrivelser, kobling til
+// 3D-modellens shape keys og rødder, redigering af fund, visninger og app (manifest, offline).
+const ROOT = process.env.BASE_URL || 'http://localhost:8795/';
+const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
+const APP = ROOT + 'ryg/';
+(async () => {
+  const b = await chromium.launch({ executablePath: CHROMIUM, args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'] });
+  const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
+  const p = await ctx.newPage(); const errors = []; p.on('pageerror', (e) => errors.push(String(e)));
+  let fails = 0; const check = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + x : '')); if (!c) fails++; };
+  await p.goto(APP + 'index.html');
+  const tolk = (t) => p.evaluate((t) => { const r = MR.tolk(t); return { fund: r.fund, neg: r.negerede, model: MR.model(r.fund, 'L4/L5', r.negerede) }; }, t);
+  const find = (r, type) => r.fund.filter((f) => f.type === type);
+  let r, f;
+
+  // ---------------- Tolkning ----------------
+  r = await tolk('L3/L4: Normale forhold.\nL4/L5: Venstresidig paracentral diskusprolaps (ekstrusion), der komprimerer venstre L5-rod i recessus. Let foraminal stenose bilateralt. Facetledsartrose.\nL5/S1: Ingen prolaps eller rodpåvirkning. Frie foramina.');
+  f = find(r, 'prolaps');
+  check('T1 én prolaps på L4/L5 (L5/S1 er nægtet)', f.length === 1 && f[0].niveau === 'L4/L5' && r.neg.some((x) => x.type === 'prolaps' && x.niveau === 'L5/S1'), JSON.stringify(f));
+  check('T1 ekstrusion, paracentral, venstre', f[0].prolapstype === 'ekstrusion' && f[0].zone === 'paracentral' && f[0].side === 'v');
+  check('T1 venstre L5-rod komprimeret', find(r, 'rod').some((x) => x.rod === 'L5' && x.side === 'v' && x.rodgrad === 3));
+  check('T1 let foraminal stenose bilateralt', find(r, 'foraminalstenose').some((x) => x.side === 'begge' && x.grad === 1));
+  check('T1 facetledsartrose begge sider', find(r, 'facetartrose').some((x) => x.side === 'begge'));
+  check('T1 model: ekstrusion venstre + foraminal + facet', r.model.keys.ekstrusion_paracentral_v === 1 && r.model.keys.foraminalstenose_v === 0.5 && r.model.keys.foraminalstenose_h === 0.5 && r.model.keys.facetartrose_v > 0, JSON.stringify(r.model.keys));
+  check('T1 model: L5 venstre rød, L4 orange (afledt)', r.model.roder.Rod_L5_v && !r.model.roder.Rod_L5_v.afledt && r.model.roder.Rod_L4_v.afledt && r.model.roder.Rod_L4_h.afledt, JSON.stringify(r.model.roder));
+
+  r = await tolk('Ved L4-5 ses bredbaset protrusion med moderat spinalstenose og hypertrofi af ligamentum flavum samt udtalt facetledsartrose bilateralt. Ingen rodkompression.');
+  check('T2 "L4-5" læses som L4/L5', r.fund.every((x) => x.niveau === 'L4/L5'), JSON.stringify(r.fund.map((x) => x.niveau)));
+  check('T2 bredbaset protrusion = central', find(r, 'prolaps')[0]?.zone === 'central' && find(r, 'prolaps')[0]?.prolapstype === 'protrusion');
+  check('T2 moderat spinalstenose (ikke "udtalt" fra nabofundet)', find(r, 'spinalstenose')[0]?.grad === 2, JSON.stringify(find(r, 'spinalstenose')));
+  check('T2 udtalt facetledsartrose', find(r, 'facetartrose')[0]?.grad === 3);
+  check('T2 flavumhypertrofi', find(r, 'flavumhypertrofi').length === 1);
+  check('T2 rodkompression nægtet -> ingen rødder', r.neg.some((x) => x.type === 'rod') && Object.keys(r.model.roder).length === 0, JSON.stringify(r.model.roder));
+  check('T2 model: spinalstenose 0,78', Math.abs(r.model.keys.spinalstenose - 0.78) < 1e-9 && r.model.keys.protrusion_central === 1);
+
+  r = await tolk('Højresidig foraminal prolaps L4/L5 med kontakt til exiterende L4-rod. Ingen spinalstenose.');
+  check('T3 foraminal højre, L4-rod kontakt', find(r, 'prolaps')[0]?.zone === 'foraminal' && find(r, 'prolaps')[0]?.side === 'h' && find(r, 'rod').some((x) => x.rod === 'L4' && x.rodgrad === 1 && x.side === 'h'));
+  check('T3 spinalstenose nægtet', find(r, 'spinalstenose').length === 0 && r.neg.some((x) => x.type === 'spinalstenose'));
+  check('T3 model: protrusion foraminal højre + note om type', r.model.keys.protrusion_foraminal_h === 1 && r.model.noter.some((t) => t.includes('Prolapstypen er ikke angivet')));
+
+  r = await tolk('L4/L5: Svær spinalstenose (Schizas C). Recesstenose på venstre side.');
+  check('T4 Schizas C = svær', find(r, 'spinalstenose')[0]?.grad === 3);
+  check('T4 recesstenose venstre -> L5 venstre orange', find(r, 'recesstenose')[0]?.side === 'v' && r.model.keys.recesstenose_v > 0 && r.model.roder.Rod_L5_v?.afledt);
+
+  r = await tolk('Diskusprolaps L4/L5 til højre, ikke rodpåvirkning, men lettere foraminal stenose til højre. 010190-1234');
+  check('T5 "men" bryder nægtelsen', find(r, 'foraminalstenose')[0]?.side === 'h' && find(r, 'foraminalstenose')[0]?.grad === 1);
+  check('T5 CPR fjernes fra kildeuddrag', !JSON.stringify(r).includes('010190'));
+  check('T5 zone og type ikke angivet -> noter', r.model.noter.length === 2 && r.model.keys.protrusion_paracentral_h === 1);
+
+  r = await tolk('L5/S1: Paracentral diskusprolaps til venstre med påvirkning af venstre S1-rod.');
+  check('T6 fund på L5/S1 giver ingen shape keys (kun L4/L5 modelleret)', find(r, 'prolaps')[0]?.niveau === 'L5/S1' && Object.keys(r.model.keys).length === 0);
+  r = await tolk('Spondylolistese grad 1 L4/L5. Modic type 1 forandringer. Annulusfissur L4/L5.');
+  check('T7 andre fund listes', ['spondylolistese', 'modic', 'fissur'].every((a) => r.fund.some((x) => x.andet === a)));
+  r = await tolk('L4/L5: Ekstraforaminal diskusprolaps th. med deplacering af L4-roden.');
+  check('T8 ekstraforaminal, th., L4 komprimeret', find(r, 'prolaps')[0]?.zone === 'ekstraforaminal' && find(r, 'prolaps')[0]?.side === 'h' && r.model.roder.Rod_L4_h?.grad === 3, JSON.stringify(r.model));
+
+  // ---------------- Side: 3D-model og liste ----------------
+  await p.waitForFunction(() => window.RygVisning && window.RygVisning.klar, null, { timeout: 60000 });
+  const obj = await p.evaluate(() => window.RygVisning.objekter());
+  check('M1 model indlæst med knogler, diske, sæk og rødder', ['L4', 'L5', 'Disc_L4L5', 'Durasaek', 'Rod_L5_v', 'Rod_L4_h', 'Flavum'].every((n) => obj.includes(n)), obj.join(','));
+  check('M2 tom side: ingen shape keys', Object.keys(await p.evaluate(() => window.RygVisning.influenser())).length === 0);
+  await p.click('#eksempelBtn'); await p.waitForTimeout(1600);
+  let inf = await p.evaluate(() => window.RygVisning.influenser());
+  check('M3 eksempel: ekstrusion venstre vises', inf.ekstrusion_paracentral_v > 0.99 && inf.foraminalstenose_h > 0.49, JSON.stringify(inf));
+  let roder = await p.evaluate(() => window.RygVisning.roder());
+  check('M4 L5 venstre rød, L4 orange, L5 højre normal', roder.Rod_L5_v === '#d62828' && roder.Rod_L4_v === '#f08c00' && roder.Rod_L5_h === '#f0dc8c', JSON.stringify(roder));
+  const raekker = await p.locator('.ryg-fund-raekke').count();
+  check('M5 fundliste med mindst 5 rækker', raekker >= 5, String(raekker));
+  check('M6 forklaring til patienten nævner L5-roden', (await p.locator('#forklaring').innerText()).includes('L5-roden'));
+  // Ret siden på prolapsen til højre
+  const sideSel = p.locator('.ryg-fund-raekke', { hasText: 'Diskusprolaps' }).locator('select[data-felt="side"]');
+  await sideSel.selectOption('h'); await p.waitForTimeout(1500);
+  inf = await p.evaluate(() => window.RygVisning.influenser());
+  check('M7 ret side -> prolaps til højre', inf.ekstrusion_paracentral_h > 0.99 && !inf.ekstrusion_paracentral_v, JSON.stringify(inf));
+  // Skyder: normal ryg
+  await p.locator('#fundStyrke').fill('0'); await p.waitForTimeout(100);
+  check('M8 skyder på "normal" -> ingen forandring', Object.keys(await p.evaluate(() => window.RygVisning.influenser())).length === 0);
+  await p.locator('#fundStyrke').fill('100');
+  // Snitvisninger
+  await p.click('[data-visning="aksial"]'); await p.waitForTimeout(200);
+  check('M9 snit ovenfra viser snit-skyder', await p.locator('#snitKontrol').isVisible() && (await p.locator('[data-visning="aksial"]').getAttribute('aria-pressed')) === 'true');
+  await p.click('[data-visning="3d"]'); await p.waitForTimeout(200);
+  check('M10 3D skjuler snit-skyder', await p.locator('#snitKontrol').isHidden());
+  // Ryd og tilføj manuelt
+  await p.click('#rydBtn'); await p.waitForTimeout(1300);
+  check('M11 ryd -> ingen fund', Object.keys(await p.evaluate(() => window.RygVisning.influenser())).length === 0 && (await p.locator('.ryg-fund-raekke').count()) === 0);
+  await p.selectOption('#tilfoejValg', 'spinalstenose'); await p.waitForTimeout(1400);
+  inf = await p.evaluate(() => window.RygVisning.influenser());
+  check('M12 tilføj spinalstenose manuelt', inf.spinalstenose > 0.7, JSON.stringify(inf));
+  await p.fill('#mrTekst', 'Patient 010190-1234. L4/L5: let bulging.'); await p.click('#tolkBtn'); await p.waitForTimeout(300);
+  check('M13 CPR-advarsel vises', await p.locator('#cprAdvarsel').isVisible());
+  check('M14 restordre-hint findes ikke (ingen præparatvalg)', (await p.locator('.restordre-hint').count()) === 0);
+
+  // ---------------- App ----------------
+  const man = await (await p.request.get(APP + 'manifest.webmanifest')).json();
+  check('A1 manifest', man.name === 'MR-columna i 3D' && man.start_url === 'index.html' && man.scope === './' && man.display === 'standalone');
+  for (const ic of man.icons) check(`A2 ikon ${ic.src}`, (await p.request.get(APP + ic.src)).ok());
+  const reg = await p.evaluate(async () => (await navigator.serviceWorker.ready).scope);
+  check('A3 SW scope', reg === APP, reg);
+  await p.reload(); await p.waitForTimeout(400);
+  await ctx.setOffline(true);
+  const res = await p.goto(APP + 'index.html').catch(() => null);
+  check('A4 offline: siden åbner', !!res && res.ok());
+  await p.waitForFunction(() => window.RygVisning && window.RygVisning.klar, null, { timeout: 60000 }).catch(() => {});
+  check('A5 offline: 3D-model indlæses', await p.evaluate(() => !!(window.RygVisning && window.RygVisning.klar)));
+  await ctx.setOffline(false);
+  const html = await (await p.request.get(ROOT + 'apps.html')).text();
+  check('A6 prototypen er skjult på downloadsiden', !/ryg\//.test(html));
+  check('A7 JS-fejl', errors.length === 0, JSON.stringify(errors));
+  console.log('FAILS:', fails); await b.close();
+})();

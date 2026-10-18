@@ -559,6 +559,76 @@ gruppenavne. Handelsnavne er kun søgeord og siger intet om aktuelt udbud.
 - Restordre.dk, sundhed.dk og Lægemiddelstyrelsen kunne ikke tilgås direkte. Skal verificeres i
   produktresuméet før ordination.
 
+## MR-columna i 3D (`ryg/`) — prototype
+
+Lægen indsætter MR-beskrivelsen af lænden (uden persondata). Fundene tolkes i browseren og vises på
+en 3D-model af L3–S1, som lægen kan dreje og vise patienten. Prototypen modellerer kun niveau L4/L5;
+fund på andre niveauer listes og forklares, men vises ikke i 3D. Appen er skjult (ikke på
+downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
+
+- **Tolkning (`ryg/mr.js`, `MR.tolk`):** faste regler, intet sendes.
+  - Niveauer: "L4/L5", "L4-L5", "L4-5", "L45" → L4/L5; et niveau i sætningen gælder fundene i
+    den, ellers det seneste niveau (overskrifter som "L4/L5:").
+  - Fund: prolaps (protrusion/ekstrusion/sekvester; zone central, paracentral/subartikulær/recess,
+    foraminal, ekstraforaminal), bulging, central spinalstenose, recesstenose, foraminal stenose,
+    facetledsartrose, flavumhypertrofi og nerverødder (kontakt/påvirkning/kompression). Andre fund
+    (spondylolistese, Modic, diskusdegeneration, annulusfissur, synovialcyste, Schmorl, hæmangiom)
+    listes.
+  - Side (venstre/højre/bilateralt, også "sin.", "dx.", "th.", "tv.") og grad (let/moderat/svær,
+    Schizas A–D, Lee 1–3) læses i fundets eget led — afgrænset af nabofundene, så "moderat
+    spinalstenose … samt udtalt facetledsartrose" giver moderat stenose.
+  - Nægtelse ("ingen", "uden", "ikke", "frie foramina") gælder til "men"/"dog". Nægter teksten
+    rodpåvirkning på niveauet, fremhæves ingen afledte rødder.
+  - CPR-numre vises aldrig (og der advares).
+  - Lægen kan rette type, zone, side, grad og rod i listen, slå fund fra og tilføje fund.
+- **Fra fund til model (`MR.model`):** hver diagnose er en shape key i modellen.
+  - Prolaps: `protrusion_`/`ekstrusion_` + zone + side. Type ikke angivet → protrusion; zone ikke
+    angivet → paracentral; side ikke angivet → venstre (alle med note). Sekvester vises som
+    ekstrusion. Størrelse lille/middel/stor → styrke 0,75/1/1,12.
+  - Stenoser og facetledsartrose: styrke 0,5/0,78/1 for let/moderat/svær (0,78 uden grad).
+  - Rødder: navngivne rødder i teksten bliver røde. Den rod, fundet typisk rammer, bliver orange:
+    paracentral prolaps og recesstenose L4/L5 → traverserende L5; foraminal/ekstraforaminal
+    prolaps og foraminal stenose → udtrædende L4 (Fardon 2014; klassisk rodtopografi).
+- **Visning (`ryg/visning.js`, three.js r170 i `ryg/lib/`):** 3D, bagfra, fra siderne og snit.
+  Det aksiale snit ses nedefra som et MR-billede (patientens højre i billedets venstre side, fortil
+  opad), det sagittale fra den side, fundet sidder, med snittet gennem fundet. Skyder for snittets
+  placering og for "Normal ↔ Med fund", så patienten kan se forskellen. Væv, der er flyttet af
+  patologien, farves orangerødt; klemte rødder røde. Durasæk, ledbånd og navne kan slås fra, og
+  knoglerne kan gøres gennemsigtige.
+- **Patienttekst (`MR.forklaring`):** kort forklaring pr. fund i lægmandssprog med rodens
+  udbredelse (L4: forside af knæ/inderside af underben, knæstrækning; L5: yderside af underben,
+  fodryg og storetå, løft af fod/storetå; S1: yderside af fod og lilletå, tågang) og en påmindelse
+  om, at fundene også ses hos mange uden smerter.
+- **3D-modellen (`ryg/model/l3-s1.glb`, 1,6 MB):** bearbejdning af Z-Anatomy (CC BY-SA 4.0, afledt
+  af BodyParts3D) via Svitylo-atlassets datapakke på npm (`@authorod/svitylo-3d-anatomy-data`
+  1.2.0). Se `ryg/model/LICENS.txt`.
+  - Fra Z-Anatomy: L3, L4, L5, sacrum, diskene L3/L4–L5/S1, nucleus L4/L5, lig. flavum, PLL og ALL.
+    Hvirvler og diske er glattet med subdivision.
+  - Bygget på ny, fordi Z-Anatomys dura stopper ved L3, og rødderne kun er tynde streger: durasækken
+    følger den målte spinalkanal (strålesøgning; ca. 1 mm epiduralrum fortil, 2,5 mm bagtil, højst
+    17 × 14 mm, afrundet bund ved S2). Rødderne L3–S1 er rør (0,9 mm intratekalt, 1,4 mm i manchetten,
+    2,6 mm ved spinalganglion, 2 mm som spinalnerve) og følger Z-Anatomys forløb gennem foramina, som
+    er lokaliseret med strålesøgning (foramen L4/L5 ca. 17 mm fra midtlinjen). L5-roden går fra
+    sækken ved diskens overkant gennem recessen bag disken L4/L5 og ud under L5-pediklen; L4-roden
+    går ud under L4-pediklen i foramens øvre del. Cauda equina (S2–S5) og filum som tynde tråde.
+  - Patologi som shape keys (`tools/ryg/patologi.py`): disken deformeres (protrusion: bred base,
+    4,6 mm; ekstrusion: afrundet masse 7 mm med kaudal udbredning; foraminal/ekstraforaminal rettes
+    mod spinalganglion/nerven), nucleus følger med. Flavum fortykkes ind mod kanalen, facetleddene
+    får osteofytter (forskydning langs normalen med støj), og ved recesstenose vokser L5's øvre
+    ledtap medialt. Sæk, PLL og rødder skubbes derefter ud af det deformerede væv (kollision), og
+    rødderne trykkes flade, hvor de rammes. Central spinalstenose presser desuden sækken til
+    trekløverform. Sækkens tværsnit ved L4/L5 er ca. 180 mm² normalt og ca. 117, 86 og 69 mm² ved
+    let, moderat og svær stenose — svarende til Schönströms ofte anførte grænser (relativ stenose
+    75–99 mm², absolut under 75 mm²; kontrolleret via sekundære kilder). Tværsnittet er målt i
+    snit af den byggede model.
+  - Byg: `node tools/ryg/udtraek.mjs … raw.glb …` (strukturliste i filen), `python3
+    tools/ryg/byg_model.py raw.glb model.glb` (Blender som Python-modul: `pip install bpy`), derefter
+    `gltf-transform meshopt model.glb ryg/model/l3-s1.glb`. Kontrollér med snit (fx
+    matplotlib-plots af snitflader), før modellen lægges ind.
+- **Forbehold:** generisk voksen ryg; patologien er skematisk ud fra niveau, side, zone og grad — ikke
+  ud fra mål. Ikke til diagnostik.
+- **App:** egen manifest, service worker og ikon; virker offline. Test: `tests/ryg.test.js`.
+
 ## Installér som app
 
 **Downloadside til kolleger:** `https://normanvisby-arch.github.io/Hormoner/apps.html`
@@ -867,6 +937,17 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**18. oktober 2026 — Ny prototype: MR-columna i 3D (`ryg/`):**
+- Lægen indsætter MR-beskrivelsen af lænden; fund på L4/L5 (prolaps i fire zoner som protrusion
+  eller ekstrusion, bulging, central spinalstenose, recesstenose, foraminal stenose,
+  facetledsartrose, flavumhypertrofi og påvirkede rødder) vises på en 3D-model, der kan drejes og
+  snittes som MR-billeder. Patienttekst i lægmandssprog.
+- 3D-modellen er en bearbejdning af Z-Anatomy (CC BY-SA 4.0) bygget med Blender som Python-modul
+  (`tools/ryg/`); durasæk, nerverødder og patologi er tilføjet. Visning med three.js.
+- Appen er skjult (ikke på downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet
+  klinisk. Test: `tests/ryg.test.js`. Fælles `style.css` er ændret, så service workers er hævet i
+  alle apps.
 
 **6. oktober 2026 — Restordre synlig igen og restordre.dk fra alle værktøjer:**
 - Efter ønske vises Restordre igen på oversigten, downloadsiden (kort og QR-kode, nu otte apps) og i
