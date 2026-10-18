@@ -93,7 +93,8 @@ function markerForandring(m) {
       .replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, uForandring, smoothstep(0.0006, 0.0025, vForskyd) * 0.8);");
   };
 }
-const MED_FORANDRING = ["knogle", "diskus", "nucleus", "ligament"];
+// Kernen (nucleus) holder sin farve, så den kan følges ud i en ekstrusion i snittene.
+const MED_FORANDRING = ["knogle", "diskus", "ligament"];
 
 function materiale(g) {
   const m = new THREE.MeshStandardMaterial({ color: FARVER[g], roughness: g === "knogle" ? 0.72 : 0.55, metalness: 0 });

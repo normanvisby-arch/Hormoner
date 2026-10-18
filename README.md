@@ -613,7 +613,9 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
     går ud under L4-pediklen i foramens øvre del. Cauda equina (S2–S5) og filum som tynde tråde.
   - Patologi som shape keys (`tools/ryg/patologi.py`): disken deformeres (protrusion: bred base,
     4,6 mm; ekstrusion: afrundet masse 7 mm med kaudal udbredning; foraminal/ekstraforaminal rettes
-    mod spinalganglion/nerven), nucleus følger med. Flavum fortykkes ind mod kanalen, facetleddene
+    mod spinalganglion/nerven). Ved ekstrusion fortsætter nucleus som en tunge gennem annulus ud i
+    prolapsen; ved protrusion skubbes den bagud, men bliver inden for annulus. Nucleus farves ikke
+    som forandring, så den kan følges i snittene. Flavum fortykkes ind mod kanalen, facetleddene
     får osteofytter (forskydning langs normalen med støj), og ved recesstenose vokser L5's øvre
     ledtap medialt. Sæk, PLL og rødder skubbes derefter ud af det deformerede væv (kollision), og
     rødderne trykkes flade, hvor de rammes. Central spinalstenose presser desuden sækken til
@@ -941,6 +943,11 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**18. oktober 2026 — MR-columna i 3D: nucleus ved ekstrusion:**
+- Efter lægens ønske fortsætter nucleus nu som en tunge gennem annulus ud i prolapsen ved
+  ekstrusion (før stod kernen adskilt fra prolapsen), og den farves ikke længere som forandring.
+  Ved protrusion bliver kernen inden for annulus. Service worker for ryg er hævet.
 
 **18. oktober 2026 — Ny prototype: MR-columna i 3D (`ryg/`):**
 - Lægen indsætter MR-beskrivelsen af lænden; fund på L4/L5 (prolaps i fire zoner som protrusion

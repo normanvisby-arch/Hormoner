@@ -84,11 +84,18 @@ def prolaps_disp(zone, sx, type_):
             ydre = w * smoothstep(0.3, 0.9, w)
             v += Vector((0, 0, (1 if ru > 0 else -1) * 1.5 * mm * ydre - 3.0 * mm * ydre))
         ud.append(v)
-    # nucleus følger med mod sprækken (kun synligt i snit)
-    nb = basis('Nucleus_L4L5'); cn = sum(nb, Vector()) / len(nb); nud = []
+    # Nucleus: ved ekstrusion fortsætter kernen som en tunge gennem sprækken i annulus ud i
+    # prolapsen; ved protrusion skubbes den bagud, men bliver inden for annulus' ydre lag.
+    nb = basis('Nucleus_L4L5'); cn = sum(nb, Vector()) / len(nb)
+    Rn = sum((q - cn).length for q in nb) / len(nb)
+    P = c + h * (A * 0.75) if type_ == 'ekstrusion' else c - r * 2.0 * mm
+    rn = (P - cn).normalized(); L = max(0, (P - cn).length - Rn)
+    nud = []
     for q in nb:
-        f = max(0, (q - cn).normalized().dot(r)) ** 3
-        nud.append(r * f * min(max(0, (c - cn).length - 7 * mm) * 0.9, 1.5 * mm if type_ == 'protrusion' else 4.5 * mm))
+        d = q - cn
+        f = smoothstep(0.2, 0.95, d.normalized().dot(rn))          # forreste del af kernen
+        tvaer = d - rn * d.dot(rn)
+        nud.append(rn * (L * f) - tvaer * ((0.45 if type_ == 'ekstrusion' else 0.2) * f))
     return {D: ud, 'Nucleus_L4L5': nud}, h
 
 def bulging_disp(A=2.2 * mm):
