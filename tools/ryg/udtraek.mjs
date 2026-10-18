@@ -4,7 +4,8 @@
 //   node udtraek.mjs PAKKE/releases/1.2.0 raw.glb skeletal.vertebra_l3=L3 skeletal.vertebra_l4=L4 \
 //     skeletal.vertebra_l5=L5 skeletal.sacrum=Sacrum joints.intervertebral_disc_l3_l4=Disc_L3L4 \
 //     joints.intervertebral_disc_l4_l5=Disc_L4L5 joints.intervertebral_disc_l5_s1=Disc_L5S1 \
-//     joints.nucleus_pulposus_l4_l5=Nucleus_L4L5 joints.ligamenta_flava=Flavum \
+//     joints.nucleus_pulposus_l3_l4=Nucleus_L3L4 joints.nucleus_pulposus_l4_l5=Nucleus_L4L5 \
+//     joints.nucleus_pulposus_l5_s1=Nucleus_L5S1 joints.ligamenta_flava=Flavum \
 //     joints.posterior_longitudinal_ligament=PLL joints.anterior_longitudinal_ligament=ALL
 import { NodeIO, Document } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';

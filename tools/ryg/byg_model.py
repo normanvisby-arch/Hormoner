@@ -197,7 +197,7 @@ def sleeve(z, x_side, y_rel=-1.5 * mm):
 RODER = {
     # navn: (intratekalt startpunkt ved toppen (x, y rel. midtlinje), udgangshøjde for manchet, punkter efter manchetten)
     'L3': ((6.0 * mm, -2.5 * mm), 1.058, [(10.0, -31.0, 1049.0), (13.0, -29.5, 1043.5), (17.0, -28.5, 1041.0), (21.0, -29.5, 1038.0), (27.0, -33.0, 1031.0), (33.0, -38.0, 1021.0)]),
-    'L4': ((5.0 * mm, -1.0 * mm), 1.026, [(9.6, -29.5, 1018.0), (13.2, -27.8, 1011.6), (17.0, -27.3, 1010.0), (21.0, -28.0, 1007.5), (27.0, -32.0, 1000.0), (33.0, -37.0, 990.0)]),
+    'L4': ((5.0 * mm, -1.0 * mm), 1.033, [(9.3, -31.0, 1026.5), (9.6, -29.5, 1018.0), (13.2, -27.8, 1011.6), (17.0, -27.3, 1010.0), (21.0, -28.0, 1007.5), (27.0, -32.0, 1000.0), (33.0, -37.0, 990.0)]),
     'L5': ((3.8 * mm, 0.5 * mm), 1.003, [(9.5, -24.6, 996.0), (10.6, -22.8, 990.0), (13.4, -20.6, 984.4), (17.0, -20.0, 981.6), (21.0, -20.2, 978.8), (26.0, -24.0, 972.0), (30.0, -29.0, 963.0)]),
     'S1': ((3.0 * mm, 2.0 * mm), 0.972, [(8.8, -14.0, 962.5), (9.8, -8.0, 955.0), (12.5, -2.5, 948.5), (16.5, -0.5, 945.0), (19.5, -3.5, 941.0), (22.0, -8.0, 936.5)]),
 }
@@ -222,24 +222,30 @@ roer('Filum', [intratekal(0, 2.8 * mm, z) for z in (Z_TOP, 1.0, 0.95, 0.928)], [
 # ---------------------------------------------------------------- knogler og diske glattes
 for n in ('L3', 'L4', 'L5'):
     subdivider(O[n], 1)
-subdivider(O['Disc_L4L5'], 2); subdivider(O['Nucleus_L4L5'], 1)
-subdivider(O['Disc_L3L4'], 1); subdivider(O['Disc_L5S1'], 1)
+for n in ('Disc_L3L4', 'Disc_L4L5', 'Disc_L5S1'):
+    subdivider(O[n], 2)
+for n in ('Nucleus_L3L4', 'Nucleus_L4L5', 'Nucleus_L5S1'):
+    subdivider(O[n], 1)
 for o in O.values(): glat(o)
 
-# ---------------------------------------------------------------- facetled L4/L5
-t4 = bvh(['L4'])
+# ---------------------------------------------------------------- facetled L3/L4, L4/L5 og L5/S1
+# Ledfladerne findes som punkter på den nederste hvirvels øvre ledtap, der ligger tæt på den
+# øverste hvirvels nedre ledtap (bag kanalens forkant og lateralt for midtlinjen).
+FACET_DEF = {'L3L4': ('L3', 'L4', 1.016, -0.030), 'L4L5': ('L4', 'L5', 0.985, -0.026), 'L5S1': ('L5', 'Sacrum', 0.950, -0.020)}
 fac = {}
-for side, sx in (('v', 1), ('h', -1)):
-    par = []
-    for v in O['L5'].data.vertices:
-        p = v.co
-        if sx * p.x < 0.012 or p.y < -0.026 or p.z < 0.985: continue
-        loc, nor, idx, d = t4.find_nearest(p)
-        if loc is not None and d < 0.0035: par.append((p.copy(), loc.copy()))
-    c = sum(((a + b) / 2 for a, b in par), Vector()) / len(par)
-    n = sum(((b - a).normalized() for a, b in par), Vector()).normalized()   # fra L5 (SAP) mod L4 (IAP)
-    fac[side] = (c, n)
-    print('facet', side, [round(x * 1000, 1) for x in c], [round(x, 2) for x in n], len(par))
+for niv, (over, under, zmin, ymin) in FACET_DEF.items():
+    t_over = bvh([over]); fac[niv] = {}
+    for side, sx in (('v', 1), ('h', -1)):
+        par = []
+        for v in O[under].data.vertices:
+            p = v.co
+            if sx * p.x < 0.012 or p.y < ymin or p.z < zmin: continue
+            loc, nor, idx, d = t_over.find_nearest(p)
+            if loc is not None and d < 0.0035: par.append((p.copy(), loc.copy()))
+        c = sum(((a + b) / 2 for a, b in par), Vector()) / len(par)
+        n = sum(((b - a).normalized() for a, b in par), Vector()).normalized()
+        fac[niv][side] = (c, n)
+        print('facet', niv, side, [round(x * 1000, 1) for x in c], [round(x, 2) for x in n], len(par))
 
 exec(open(__file__.replace('byg_model.py', 'patologi.py')).read())
 
@@ -268,5 +274,5 @@ for n, o in O.items():
 bpy.ops.export_scene.gltf(filepath=OUT, export_format='GLB', export_yup=True, export_apply=False,
                           export_morph=True, export_morph_normal=True, export_materials='EXPORT')
 import json
-json.dump({'keys': KEYS, 'facet': {s: [list(c), list(n)] for s, (c, n) in fac.items()}}, open(OUT + '.json', 'w'))
+json.dump({'keys': KEYS, 'facet': {niv: {s: [list(c), list(n)] for s, (c, n) in d.items()} for niv, d in fac.items()}}, open(OUT + '.json', 'w'))
 print('OK', len(O), 'objekter')

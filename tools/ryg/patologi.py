@@ -39,25 +39,46 @@ def mesh_af(n, disp):
     me.from_pydata([b[i] + disp[i] for i in range(len(b))], [], [list(p.vertices) for p in O[n].data.polygons])
     return me
 
-# --- diskens koordinatsystem (L4/L5)
-D = 'Disc_L4L5'
-P = np.array([list(v) for v in basis(D)])
-C = Vector(P.mean(axis=0))
-w_, V_ = np.linalg.eigh(np.cov((P - P.mean(axis=0)).T))
-U = Vector(V_[:, 0]);  U = U if U.z > 0 else -U                   # diskens akse (op)
-PB = (Vector((0, 1, 0)) - U * U.y).normalized()                  # bagud i diskens plan
-LV = U.cross(PB).normalized(); LV = LV if LV.x > 0 else -LV       # mod patientens venstre
-disk_t = BVHTree.FromPolygons(basis(D), [list(p.vertices) for p in O[D].data.polygons])
+# --- niveauer: disk, kerne, hvirvler, rødder og målte punkter (Blender-koordinater, meter)
+NIVEAUER = {
+    'L3L4': dict(disk='Disc_L3L4', nuc='Nucleus_L3L4', over='L3', under='L4', trav='L4', exit='L3',
+                 drg=(17.0, -28.5, 1041.0), ekstra=(24.0, -31.2, 1034.5), foramen=(17.0, -27.3, 1039.1),
+                 recess=(9.3, -31.0, 1026.5), flavum=(1.010, 1.020, 1.040, 1.048), saek=(1.011, 1.023, 1.037, 1.047)),
+    'L4L5': dict(disk='Disc_L4L5', nuc='Nucleus_L4L5', over='L4', under='L5', trav='L5', exit='L4',
+                 drg=(17.0, -27.3, 1009.5), ekstra=(25.0, -31.5, 1002.5), foramen=(17.0, -28.6, 1006.8),
+                 recess=(9.8, -24.0, 994.0), flavum=(0.978, 0.988, 1.008, 1.016), saek=(0.980, 0.992, 1.006, 1.016)),
+    # Z-Anatomys lig. flavum slutter ved L5 — ved L5/S1 vises ingen flavumfortykkelse.
+    'L5S1': dict(disk='Disc_L5S1', nuc='Nucleus_L5S1', over='L5', under='Sacrum', trav='S1', exit='L5',
+                 drg=(17.0, -20.0, 981.6), ekstra=(24.0, -22.5, 974.5), foramen=(17.0, -21.8, 978.5),
+                 recess=(8.8, -14.0, 962.5), flavum=None, saek=(0.946, 0.954, 0.970, 0.978)),
+}
+P_mm = lambda t: Vector((t[0] * mm, t[1] * mm, t[2] * mm if t[2] > 10 else t[2]))
+
+def saet_niveau(niv):
+    """Sætter de globale størrelser (disk, akser, facetter …), som funktionerne nedenfor bruger."""
+    global NIV, D, NUC, C, U, PB, LV, disk_t, FAC, OVER, UNDER, MAAL, FORAMEN, FLAV_Z
+    NIV = NIVEAUER[niv]; D = NIV['disk']; NUC = NIV['nuc']; OVER = NIV['over']; UNDER = NIV['under']
+    P = np.array([list(v) for v in basis(D)])
+    C = Vector(P.mean(axis=0))
+    w_, V_ = np.linalg.eigh(np.cov((P - P.mean(axis=0)).T))
+    U = Vector(V_[:, 0]); U = U if U.z > 0 else -U                   # diskens akse (op)
+    PB = (Vector((0, 1, 0)) - U * U.y).normalized()                  # bagud i diskens plan
+    LV = U.cross(PB).normalized(); LV = LV if LV.x > 0 else -LV       # mod patientens venstre
+    disk_t = BVHTree.FromPolygons(basis(D), [list(p.vertices) for p in O[D].data.polygons])
+    FAC = fac[niv]
+    MAAL = {'foraminal': P_mm(NIV['drg']), 'ekstraforaminal': P_mm(NIV['ekstra'])}
+    f = P_mm(NIV['foramen']); FORAMEN = {'v': f, 'h': Vector((-f.x, f.y, f.z))}
+    FLAV_Z = NIV['flavum']
+    print('niveau', niv, 'disk centrum', [round(x * 1000, 1) for x in C], 'akse', [round(x, 2) for x in U])
+
 def kant(retning):
     """Punkt på diskens overflade i en retning fra centrum (sidste udgang)."""
     h = hits(disk_t, C, retning, 0.08)
     return C + retning.normalized() * h[-1] if h else C
-print('disk centrum', [round(x * 1000, 1) for x in C], 'akse', [round(x, 2) for x in U])
 
 ZONER = {'central': 0, 'paracentral': 20, 'foraminal': 52, 'ekstraforaminal': 74}
 OPAD = {'central': 0.0, 'paracentral': 0.05, 'foraminal': 0.35, 'ekstraforaminal': 0.15}
 
-MAAL = {'foraminal': Vector((17.0 * mm, -27.3 * mm, 1.0095)), 'ekstraforaminal': Vector((25.0 * mm, -31.5 * mm, 1.0025))}
 def prolaps_disp(zone, sx, type_):
     phi = math.radians(ZONER[zone]) * sx
     r = (PB * math.cos(phi) + LV * math.sin(phi)).normalized()
@@ -86,7 +107,7 @@ def prolaps_disp(zone, sx, type_):
         ud.append(v)
     # Nucleus: ved ekstrusion fortsætter kernen som en tunge gennem sprækken i annulus ud i
     # prolapsen; ved protrusion skubbes den bagud, men bliver inden for annulus' ydre lag.
-    nb = basis('Nucleus_L4L5'); cn = sum(nb, Vector()) / len(nb)
+    nb = basis(NUC); cn = sum(nb, Vector()) / len(nb)
     Rn = sum((q - cn).length for q in nb) / len(nb)
     P = c + h * (A * 0.75) if type_ == 'ekstrusion' else c - r * 2.0 * mm
     rn = (P - cn).normalized(); L = max(0, (P - cn).length - Rn)
@@ -96,7 +117,7 @@ def prolaps_disp(zone, sx, type_):
         f = smoothstep(0.2, 0.95, d.normalized().dot(rn))          # forreste del af kernen
         tvaer = d - rn * d.dot(rn)
         nud.append(rn * (L * f) - tvaer * ((0.45 if type_ == 'ekstrusion' else 0.2) * f))
-    return {D: ud, 'Nucleus_L4L5': nud}, h
+    return {D: ud, NUC: nud}, h
 
 def bulging_disp(A=2.2 * mm):
     ud = []
@@ -110,29 +131,30 @@ def bulging_disp(A=2.2 * mm):
     return {D: ud}
 
 def flavum_disp(A, side=0):
-    """Fortykkelse af lig. flavum L4/L5 ind mod kanalen (side 0 = begge, ±1 = én side)."""
+    """Fortykkelse af lig. flavum på niveauet ind mod kanalen (side 0 = begge, ±1 = én side)."""
+    if not FLAV_Z: return {}
+    z0, z1, z2, z3 = FLAV_Z
     ud = []; o = O['Flavum']
     for v, q in zip(o.data.vertices, basis('Flavum')):
         mod = Vector((0, midt(q.z), q.z)) - q; mod.z = 0
         if mod.length < 1e-6: ud.append(Vector()); continue
         mod.normalize()
-        w = smoothstep(0.978, 0.988, q.z) * (1 - smoothstep(1.008, 1.016, q.z))
+        w = smoothstep(z0, z1, q.z) * (1 - smoothstep(z2, z3, q.z))
         if v.normal.dot(mod) < 0.2: w = 0                            # kun forfladen
         if side: w *= smoothstep(0, 6 * mm, side * q.x)
         ud.append(mod * A * w)
     return {'Flavum': ud}
 
-FAC = fac
 def facet_disp(side, A, medialt=0.0):
-    """Osteofytter/hypertrofi omkring facetleddet L4/L5 på én side (side 'v' eller 'h')."""
+    """Osteofytter/hypertrofi omkring facetleddet på niveauet, én side (side 'v' eller 'h')."""
     c, n = FAC[side]; sx = 1 if side == 'v' else -1; ud = {}
-    for k in ('L4', 'L5'):
+    for k in (OVER, UNDER):
         o = O[k]; arr = []
         for v, q in zip(o.data.vertices, basis(k)):
             dist = (q - c).length
             w = 1 - smoothstep(4 * mm, 12 * mm, dist)
             v_ = v.normal * (A * w * (0.6 + 0.8 * stoej(q)))
-            if medialt and k == 'L5':
+            if medialt and k == UNDER:
                 # SAP vokser medialt og fortil ind i recessen
                 w2 = (1 - smoothstep(4 * mm, 13 * mm, dist)) * smoothstep(-3 * mm, 3 * mm, sx * (c.x - q.x))
                 v_ += Vector((-sx, -1.0, 0.1)).normalized() * medialt * w2
@@ -140,14 +162,13 @@ def facet_disp(side, A, medialt=0.0):
         ud[k] = arr
     return ud
 
-FORAMEN = {'v': Vector((17 * mm, -28.6 * mm, 1.0068)), 'h': Vector((-17 * mm, -28.6 * mm, 1.0068))}
 def sap_foramen_disp(side, A):
-    """L5's øvre ledtap vokser op og fortil ind i foramen L4/L5."""
-    c, _ = FAC[side]; f = FORAMEN[side]; arr = []
-    for q in basis('L5'):
-        w = (1 - smoothstep(4 * mm, 13 * mm, (q - f).length)) * smoothstep(0.988, 0.998, q.z)
+    """Den nederste hvirvels øvre ledtap vokser op og fortil ind i foramen."""
+    f = FORAMEN[side]; arr = []
+    for q in basis(UNDER):
+        w = (1 - smoothstep(4 * mm, 13 * mm, (q - f).length)) * smoothstep(f.z - 0.019, f.z - 0.009, q.z)
         arr.append((f - q).normalized() * A * w if (f - q).length > 1e-6 else Vector())
-    return {'L5': arr}
+    return {UNDER: arr}
 
 # --- kollision: sæk og rødder skubbes ud af de deformerede kilder
 SAEK = 'Durasaek'
@@ -272,36 +293,45 @@ def plus(*ds):
             ud[n] = [a + b for a, b in zip(ud[n], arr)] if n in ud else list(arr)
     return ud
 
-# Prolaps: protrusion og ekstrusion i fire zoner, venstre/højre
-for zone in ZONER:
-    for side, sx in ((('', 1),) if zone == 'central' else (('_v', 1), ('_h', -1))):
-        for typ in ('protrusion', 'ekstrusion'):
-            kilder, h = prolaps_disp(zone, sx, typ)
-            key(f'{typ}_{zone}{side}', kilder, rodretning=lambda p, h=h: h)
-key('bulging', bulging_disp())
-key('flavumhypertrofi', flavum_disp(2.8 * mm))
-for side in ('v', 'h'):
-    key(f'facetartrose_{side}', facet_disp(side, 2.0 * mm))
-    sx = 1 if side == 'v' else -1
-    # recesstenose: SAP og flavum fylder recessen; L5-roden klemmes, hvor den passerer disken
-    key(f'recesstenose_{side}', plus(facet_disp(side, 1.0 * mm, medialt=5.0 * mm), flavum_disp(2.4 * mm, sx)),
-        rodretning=lambda p, sx=sx: Vector((-sx * 0.5, -1, 0)).normalized(),
-        klem=[(f'Rod_L5_{side}', Vector((sx * 9.8 * mm, -24.0 * mm, 0.994)), 7 * mm, 0.55, Vector((sx, 0.3, 0)).normalized())])
-    kilder, h = prolaps_disp('foraminal', sx, 'protrusion')
-    fb = {D: [v * 1.5 for v in kilder[D]]}
-    key(f'foraminalstenose_{side}', plus(fb, sap_foramen_disp(side, 4.0 * mm), facet_disp(side, 0.8 * mm)),
-        rodretning=lambda p, h=h: (h + U * 0.6).normalized(),
-        klem=[(f'Rod_L4_{side}', Vector((sx * 17 * mm, -27.3 * mm, 1.0098)), 6 * mm, 0.5, U)])
+def byg_niveau(niv):
+    saet_niveau(niv)
+    k_ = lambda navn: f'{niv}_{navn}'
+    # Prolaps: protrusion og ekstrusion i fire zoner, venstre/højre
+    for zone in ZONER:
+        for side, sx in ((('', 1),) if zone == 'central' else (('_v', 1), ('_h', -1))):
+            for typ in ('protrusion', 'ekstrusion'):
+                kilder, h = prolaps_disp(zone, sx, typ)
+                key(k_(f'{typ}_{zone}{side}'), kilder, rodretning=lambda p, h=h: h)
+    key(k_('bulging'), bulging_disp())
+    if FLAV_Z: key(k_('flavumhypertrofi'), flavum_disp(2.8 * mm))
+    for side in ('v', 'h'):
+        sx = 1 if side == 'v' else -1
+        key(k_(f'facetartrose_{side}'), facet_disp(side, 2.0 * mm))
+        # recesstenose: øvre ledtap og flavum fylder recessen; den traverserende rod klemmes ved disken
+        rp = P_mm(NIV['recess']); rp.x *= sx
+        key(k_(f'recesstenose_{side}'), plus(facet_disp(side, 1.0 * mm, medialt=5.0 * mm), flavum_disp(2.4 * mm, sx)),
+            rodretning=lambda p, sx=sx: Vector((-sx * 0.5, -1, 0)).normalized(),
+            klem=[(f"Rod_{NIV['trav']}_{side}", rp, 7 * mm, 0.55, Vector((sx, 0.3, 0)).normalized())])
+        # foraminal stenose: disk og øvre ledtap indsnævrer foramen; den udtrædende rods ganglion klemmes
+        kilder, h = prolaps_disp('foraminal', sx, 'protrusion')
+        fb = {D: [v * 1.5 for v in kilder[D]]}
+        gp = P_mm(NIV['drg']); gp.x *= sx; gp.z += 0.3 * mm
+        key(k_(f'foraminalstenose_{side}'), plus(fb, sap_foramen_disp(side, 4.0 * mm), facet_disp(side, 0.8 * mm)),
+            rodretning=lambda p, h=h: (h + U * 0.6).normalized(),
+            klem=[(f"Rod_{NIV['exit']}_{side}", gp, 6 * mm, 0.5, U)])
+    # central spinalstenose: bulging, flavum og facetter + sækken presses til trekløverform
+    z0, z1, z2, z3 = NIV['saek']
+    saek_st = []
+    for q in basis(SAEK):
+        c_ = Vector((0, midt(q.z), q.z)); rel = q - c_; rel.z = 0
+        if rel.length < 1e-6: saek_st.append(Vector()); continue
+        a = math.atan2(rel.x, -rel.y)                  # 0 fortil, ±pi bagtil
+        bag = 0.5 - 0.5 * math.cos(a)                  # 1 bagtil
+        posterolat = math.exp(-((abs(a) - 2.3) / 0.6) ** 2)
+        f = (0.22 + 0.26 * bag + 0.18 * posterolat) * smoothstep(z0, z1, q.z) * (1 - smoothstep(z2, z3, q.z))
+        saek_st.append(-rel * f)
+    key(k_('spinalstenose'), plus(bulging_disp(2.4 * mm), flavum_disp(4.2 * mm), facet_disp('v', 1.4 * mm, medialt=2.5 * mm), facet_disp('h', 1.4 * mm, medialt=2.5 * mm)),
+        saek_ekstra=saek_st)
 
-# central spinalstenose: bulging, flavum og facetter + sækken presses til trekløverform
-saek_st = []
-for q in basis(SAEK):
-    c_ = Vector((0, midt(q.z), q.z)); rel = q - c_; rel.z = 0
-    if rel.length < 1e-6: saek_st.append(Vector()); continue
-    a = math.atan2(rel.x, -rel.y)                  # 0 fortil, ±pi bagtil
-    bag = 0.5 - 0.5 * math.cos(a)                  # 1 bagtil
-    posterolat = math.exp(-((abs(a) - 2.3) / 0.6) ** 2)
-    f = (0.22 + 0.26 * bag + 0.18 * posterolat) * smoothstep(0.980, 0.992, q.z) * (1 - smoothstep(1.006, 1.016, q.z))
-    saek_st.append(-rel * f)
-key('spinalstenose', plus(bulging_disp(2.4 * mm), flavum_disp(4.2 * mm), facet_disp('v', 1.4 * mm, medialt=2.5 * mm), facet_disp('h', 1.4 * mm, medialt=2.5 * mm)),
-    saek_ekstra=saek_st)
+for niv in NIVEAUER:
+    byg_niveau(niv)

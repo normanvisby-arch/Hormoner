@@ -54,8 +54,8 @@ eller "usikker" end et falsk præcist tal.
   `tests/restordre.test.js`.
 - `ryg/` (MR-columna i 3D, prototype — skjult som Notat-indgang): `index.html`, `mr.js` (tolkning af
   MR-beskrivelsen, `MR.tolk`/`MR.model`/`MR.forklaring`), `ryg.js` (fundliste), `visning.js` (three.js
-  i `lib/`), modellen `model/l3-s1.glb` (Z-Anatomy, CC BY-SA 4.0) med patologien som shape keys. Kun
-  L4/L5 er modelleret. Modellen bygges med `tools/ryg/` (Blender som Python-modul, se README); nye
+  i `lib/`), modellen `model/l3-s1.glb` (Z-Anatomy, CC BY-SA 4.0) med patologien som shape keys for
+  L3/L4, L4/L5 og L5/S1 (nøgler som `L4L5_ekstrusion_paracentral_v`). Modellen bygges med `tools/ryg/` (Blender som Python-modul, se README); nye
   diagnoser = ny shape key i `tools/ryg/patologi.py` + navn i `MR.model`. Test: `tests/ryg.test.js`.
 - `apps.html` (downloadside "Hent klinikværktøjerne"): alle apps med "Åbn og installér" (→ `…#installer`),
   delbart link og QR-koder i `qr/` (lav dem med `python3 tools/mkqr.py`; listen `KODER` skal svare til

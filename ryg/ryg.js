@@ -6,14 +6,14 @@
   "use strict";
 
   const $ = (id) => document.getElementById(id);
-  const EKSEMPEL = "MR af columna lumbalis.\nL3/L4: Normale forhold.\nL4/L5: Diskusdegeneration med let reduceret diskushøjde. Venstresidig paracentral diskusprolaps (ekstrusion), der komprimerer venstre L5-rod i recessus. Let foraminal stenose bilateralt. Facetledsartrose.\nL5/S1: Ingen prolaps eller rodpåvirkning. Frie foramina.";
+  const EKSEMPEL = "MR af columna lumbalis.\nL3/L4: Let diskusbuling. Ingen stenose.\nL4/L5: Diskusdegeneration med let reduceret diskushøjde. Venstresidig paracentral diskusprolaps (ekstrusion), der komprimerer venstre L5-rod i recessus. Let foraminal stenose bilateralt. Facetledsartrose.\nL5/S1: Moderat foraminal stenose til højre. Ingen rodpåvirkning.";
   const NAVN = {
     prolaps: "Diskusprolaps", bulging: "Diskusbuling (bulging)", spinalstenose: "Central spinalstenose", recesstenose: "Recesstenose",
     foraminalstenose: "Foraminal stenose", facetartrose: "Facetledsartrose", flavumhypertrofi: "Flavumhypertrofi", rod: "Nerverod",
   };
   const MED_SIDE = ["prolaps", "recesstenose", "foraminalstenose", "facetartrose", "rod"];
   const MED_GRAD = ["spinalstenose", "recesstenose", "foraminalstenose", "facetartrose", "prolaps"];
-  const VIST = "L4/L5";
+  const VIST = MR.NIVEAUER;            // L3/L4, L4/L5 og L5/S1 er modelleret
   let fund = [];
   let negerede = [];
   let n = 0;
@@ -44,8 +44,12 @@
       return;
     }
     el.innerHTML = fund.map((f) => {
-      const vises = f.niveau === VIST && f.type !== "andet";
+      const vises = VIST.includes(f.niveau) && f.type !== "andet";
       const kontrol = [];
+      if (f.type !== "andet") {
+        const niv = [...VIST, ...(f.niveau && !VIST.includes(f.niveau) ? [f.niveau] : [])];
+        kontrol.push(vaelg("niveau", f, [["", "niveau?"], ...niv.map((x) => [x, x])]));
+      }
       if (f.type === "prolaps") {
         kontrol.push(vaelg("prolapstype", f, [["", "type?"], ["protrusion", "protrusion"], ["ekstrusion", "ekstrusion"], ["sekvester", "sekvester"]]));
         kontrol.push(vaelg("zone", f, [["", "zone?"], ["central", "central"], ["paracentral", "paracentral"], ["foraminal", "foraminal"], ["ekstraforaminal", "ekstraforaminal"]]));
@@ -59,7 +63,7 @@
       return `<div class="ryg-fund-raekke${f.vis && vises ? "" : " ryg-fund-skjult"}">
         <label class="checkbox"><input type="checkbox" data-vis="${f.id}"${f.vis ? " checked" : ""}${vises ? "" : " disabled"}> <strong>${esc(etiket(f))}</strong></label>
         <span class="tag ${vises ? "tag-ok" : "tag-alt"}">${esc(f.niveau || "niveau?")}</span>
-        ${vises ? "" : `<span class="field-hint">${f.type === "andet" ? "vises ikke i modellen" : "kun L4/L5 vises i prototypen"}</span>`}
+        ${vises ? "" : `<span class="field-hint">${f.type === "andet" ? "vises ikke i modellen" : "kun L3/L4–L5/S1 vises i modellen"}</span>`}
         <span class="ryg-fund-valg">${kontrol.join("")}</span>
         ${f.kilde ? `<div class="field-hint ryg-kilde">Fra teksten: “${esc(f.kilde)}”</div>` : ""}
         <button type="button" class="btn btn-small btn-outline ryg-fjern" data-fjern="${f.id}" aria-label="Fjern fund">Fjern</button>
@@ -74,18 +78,21 @@
   function opdater() {
     tegnListe();
     const valgte = aktive();
-    const res = MR.model(valgte, VIST, negerede);
-    // Snit gennem det vigtigste fund: side og afstand fra midtlinjen
-    const p = valgte.find((f) => f.niveau === VIST && ["prolaps", "recesstenose", "foraminalstenose"].includes(f.type));
+    const res = MR.model(valgte, negerede);
+    // Fokus og snit på det vigtigste fund: niveau, side og afstand fra midtlinjen
+    const p = valgte.find((f) => VIST.includes(f.niveau) && ["prolaps", "recesstenose", "foraminalstenose"].includes(f.type));
+    const fokus = (p || valgte.find((f) => VIST.includes(f.niveau) && f.type !== "andet") || {}).niveau || "L4/L5";
     const side = p && p.side === "h" ? -1 : 1;
     const x = !p ? 0 : p.type === "prolaps" ? { central: 0, paracentral: 0.007, foraminal: 0.015, ekstraforaminal: 0.015 }[p.zone || "paracentral"] : p.type === "recesstenose" ? 0.009 : 0.015;
     const snit = 0.5 + (side * x) / 0.03;
-    if (window.RygVisning) window.RygVisning.saet(res, { snitSide: side, snit });
-    else window.__rygVenter = [res, { snitSide: side, snit }];
+    if (window.RygVisning) window.RygVisning.saet(res, { snitSide: side, snit, niveau: fokus });
+    else window.__rygVenter = [res, { snitSide: side, snit, niveau: fokus }];
     // Noter til lægen
     const noter = [...res.noter];
-    const andre = valgte.filter((f) => f.niveau && f.niveau !== VIST && f.type !== "andet");
-    if (andre.length) noter.push(`Fund på ${[...new Set(andre.map((f) => f.niveau))].join(", ")} vises kun i listen og forklaringen — 3D-modellen viser L4/L5.`);
+    const andre = valgte.filter((f) => f.niveau && !VIST.includes(f.niveau) && f.type !== "andet");
+    if (andre.length) noter.push(`Fund på ${[...new Set(andre.map((f) => f.niveau))].join(", ")} vises kun i listen og forklaringen — 3D-modellen viser L3/L4 til L5/S1.`);
+    const niveauer = [...new Set(valgte.filter((f) => VIST.includes(f.niveau) && f.type !== "andet").map((f) => f.niveau))];
+    if (niveauer.length > 1) noter.push(`Fund på flere niveauer (${niveauer.join(", ")}) — kameraet og snittene er sat på ${fokus}. Drej modellen for at se de andre.`);
     if (valgte.some((f) => !f.niveau)) noter.push("Et eller flere fund mangler niveau — de vises ikke i modellen.");
     $("noter").innerHTML = noter.map((t) => `<p class="udfyld-fra">${esc(t)}</p>`).join("");
     // Forklaring til patienten
@@ -96,7 +103,7 @@
   }
 
   function nytFund(type) {
-    const f = { id: "m" + ++n, type, niveau: VIST, vis: true, side: null, grad: null, kilde: "" };
+    const f = { id: "m" + ++n, type, niveau: (window.RygVisning && window.RygVisning.niveau) || "L4/L5", vis: true, side: null, grad: null, kilde: "" };
     if (type === "prolaps") Object.assign(f, { zone: "paracentral", side: "v", prolapstype: "protrusion" });
     if (type === "facetartrose" || type === "flavumhypertrofi") f.side = "begge";
     if (type === "rod") Object.assign(f, { rod: "L5", side: "v", rodgrad: 3 });

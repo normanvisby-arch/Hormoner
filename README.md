@@ -562,8 +562,8 @@ gruppenavne. Handelsnavne er kun søgeord og siger intet om aktuelt udbud.
 ## MR-columna i 3D (`ryg/`) — prototype
 
 Lægen indsætter MR-beskrivelsen af lænden (uden persondata). Fundene tolkes i browseren og vises på
-en 3D-model af L3–S1, som lægen kan dreje og vise patienten. Prototypen modellerer kun niveau L4/L5;
-fund på andre niveauer listes og forklares, men vises ikke i 3D. Appen er skjult (ikke på
+en 3D-model af L3–S1, som lægen kan dreje og vise patienten. Prototypen modellerer niveauerne L3/L4,
+L4/L5 og L5/S1; fund på andre niveauer listes og forklares, men vises ikke i 3D. Appen er skjult (ikke på
 downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
 
 - **Tolkning (`ryg/mr.js`, `MR.tolk`):** faste regler, intet sendes.
@@ -582,13 +582,17 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
   - CPR-numre vises aldrig (og der advares).
   - Lægen kan rette type, zone, side, grad og rod i listen, slå fund fra og tilføje fund.
 - **Fra fund til model (`MR.model`):** hver diagnose er en shape key i modellen.
+  - Nøglerne har niveauet foran, fx `L4L5_ekstrusion_paracentral_v`. Kameraet og snittene sættes
+    på det vigtigste fund (første prolaps/recess-/foraminalstenose); niveauet kan rettes i listen.
   - Prolaps: `protrusion_`/`ekstrusion_` + zone + side. Type ikke angivet → protrusion; zone ikke
     angivet → paracentral; side ikke angivet → venstre (alle med note). Sekvester vises som
     ekstrusion. Størrelse lille/middel/stor → styrke 0,75/1/1,12.
   - Stenoser og facetledsartrose: styrke 0,5/0,78/1 for let/moderat/svær (0,78 uden grad).
   - Rødder: navngivne rødder i teksten bliver røde. Den rod, fundet typisk rammer, bliver orange:
-    paracentral prolaps og recesstenose L4/L5 → traverserende L5; foraminal/ekstraforaminal
-    prolaps og foraminal stenose → udtrædende L4 (Fardon 2014; klassisk rodtopografi).
+    paracentral prolaps og recesstenose → den traverserende rod (L3/L4 → L4, L4/L5 → L5, L5/S1 →
+    S1); foraminal/ekstraforaminal prolaps og foraminal stenose → den udtrædende rod (L3, L4, L5)
+    (Fardon 2014; klassisk rodtopografi). Flavumhypertrofi ved L5/S1 kan ikke vises (Z-Anatomys
+    lig. flavum slutter ved L5) og giver en note.
 - **Visning (`ryg/visning.js`, three.js r170 i `ryg/lib/`):** 3D, bagfra, fra siderne og snit.
   Det aksiale snit ses nedefra som et MR-billede (patientens højre i billedets venstre side, fortil
   opad), det sagittale fra den side, fundet sidder, med snittet gennem fundet. Skyder for snittets
@@ -599,10 +603,10 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
   udbredelse (L4: forside af knæ/inderside af underben, knæstrækning; L5: yderside af underben,
   fodryg og storetå, løft af fod/storetå; S1: yderside af fod og lilletå, tågang) og en påmindelse
   om, at fundene også ses hos mange uden smerter.
-- **3D-modellen (`ryg/model/l3-s1.glb`, 1,6 MB):** bearbejdning af Z-Anatomy (CC BY-SA 4.0, afledt
+- **3D-modellen (`ryg/model/l3-s1.glb`, 3,5 MB):** bearbejdning af Z-Anatomy (CC BY-SA 4.0, afledt
   af BodyParts3D) via Svitylo-atlassets datapakke på npm (`@authorod/svitylo-3d-anatomy-data`
   1.2.0). Se `ryg/model/LICENS.txt`.
-  - Fra Z-Anatomy: L3, L4, L5, sacrum, diskene L3/L4–L5/S1, nucleus L4/L5, lig. flavum, PLL og ALL.
+  - Fra Z-Anatomy: L3, L4, L5, sacrum, diskene og nucleus L3/L4–L5/S1, lig. flavum, PLL og ALL.
     Hvirvler og diske er glattet med subdivision.
   - Bygget på ny, fordi Z-Anatomys dura stopper ved L3, og rødderne kun er tynde streger: durasækken
     følger den målte spinalkanal (strålesøgning; ca. 1 mm epiduralrum fortil, 2,5 mm bagtil, højst
@@ -610,17 +614,20 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
     2,6 mm ved spinalganglion, 2 mm som spinalnerve) og følger Z-Anatomys forløb gennem foramina, som
     er lokaliseret med strålesøgning (foramen L4/L5 ca. 17 mm fra midtlinjen). L5-roden går fra
     sækken ved diskens overkant gennem recessen bag disken L4/L5 og ud under L5-pediklen; L4-roden
-    går ud under L4-pediklen i foramens øvre del. Cauda equina (S2–S5) og filum som tynde tråde.
-  - Patologi som shape keys (`tools/ryg/patologi.py`): disken deformeres (protrusion: bred base,
+    går fra sækken ved disken L3/L4 gennem recessen bag den og ud under L4-pediklen i foramens
+    øvre del; S1-roden passerer bag disken L5/S1. Cauda equina (S2–S5) og filum som tynde tråde.
+  - Patologi som shape keys (`tools/ryg/patologi.py`), de samme 22–23 diagnoser på hvert niveau
+    med niveauets egne disk-akser, facetled (fundet som nærmeste punkter mellem ledtappene),
+    foramina og rødder: disken deformeres (protrusion: bred base,
     4,6 mm; ekstrusion: afrundet masse 7 mm med kaudal udbredning; foraminal/ekstraforaminal rettes
     mod spinalganglion/nerven). Ved ekstrusion fortsætter nucleus som en tunge gennem annulus ud i
     prolapsen; ved protrusion skubbes den bagud, men bliver inden for annulus. Nucleus farves ikke
     som forandring, så den kan følges i snittene. Flavum fortykkes ind mod kanalen, facetleddene
-    får osteofytter (forskydning langs normalen med støj), og ved recesstenose vokser L5's øvre
-    ledtap medialt. Sæk, PLL og rødder skubbes derefter ud af det deformerede væv (kollision), og
+    får osteofytter (forskydning langs normalen med støj), og ved recesstenose vokser den nederste
+    hvirvels øvre ledtap medialt. Sæk, PLL og rødder skubbes derefter ud af det deformerede væv (kollision), og
     rødderne trykkes flade, hvor de rammes. Central spinalstenose presser desuden sækken til
-    trekløverform. Sækkens tværsnit ved L4/L5 er ca. 180 mm² normalt og ca. 117, 86 og 69 mm² ved
-    let, moderat og svær stenose — svarende til Schönströms ofte anførte grænser (relativ stenose
+    trekløverform. Sækkens tværsnit er normalt ca. 160/180/190 mm² (L3/L4, L4/L5, L5/S1) og
+    ca. 105–122, 81–91 og 64–70 mm² ved let, moderat og svær stenose — svarende til Schönströms ofte anførte grænser (relativ stenose
     75–99 mm², absolut under 75 mm²; kontrolleret via sekundære kilder). Tværsnittet er målt i
     snit af den byggede model.
   - Byg: `node tools/ryg/udtraek.mjs … raw.glb …` (strukturliste i filen), `python3
@@ -943,6 +950,14 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**18. oktober 2026 — MR-columna i 3D: L3/L4 og L5/S1:**
+- Modellen viser nu alle tre niveauer: prolaps (fire zoner, protrusion/ekstrusion), bulging,
+  spinal-, recess- og foraminal stenose, facetledsartrose og flavumhypertrofi (ikke L5/S1) med
+  niveauets egne rødder (L3/L4: L4 og L3; L5/S1: S1 og L5). L4-roden går nu bag disken L3/L4.
+- Stenosegraderne holder Schönströms grænser på alle niveauer (målt i modellen).
+- Fund kan flyttes til et andet niveau i listen; kamera og snit følger det vigtigste fund.
+- Modellen er 3,5 MB (før 1,7). Test: `tests/ryg.test.js` (T6–T6f, M3, M12b–d).
 
 **18. oktober 2026 — MR-columna i 3D: nucleus ved ekstrusion:**
 - Efter lægens ønske fortsætter nucleus nu som en tunge gennem annulus ud i prolapsen ved

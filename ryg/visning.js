@@ -6,7 +6,12 @@ import { OrbitControls } from "./lib/OrbitControls.js";
 import { MeshoptDecoder } from "./lib/meshopt_decoder.module.js";
 
 const boks = document.getElementById("visning");
-const MAAL = new THREE.Vector3(0, 0.999, 0.03);       // kanalen ved L4/L5 (glTF: +Y op, +Z fortil, +X venstre)
+// Kameraets mål pr. niveau: lige foran spinalkanalen ved disken (glTF: +Y op, +Z fortil, +X venstre).
+const MAAL_NIV = { "L3/L4": new THREE.Vector3(0, 1.031, 0.034), "L4/L5": new THREE.Vector3(0, 0.999, 0.03), "L5/S1": new THREE.Vector3(0, 0.964, 0.019) };
+// Aksialt snit: højden (y) går fra 0,94 til 1,055; standard ved diskens bageste del på niveauet.
+const AKSIAL_NIV = { "L3/L4": 1.030, "L4/L5": 0.997, "L5/S1": 0.965 };
+const aksialTilSnit = (y) => (y - 0.94) / 0.115;
+let MAAL = MAAL_NIV["L4/L5"];
 const FARVER = {
   knogle: 0xe9dfc9, diskus: 0x93b4d6, nucleus: 0x4f86cf, ligament: 0xe0c062, dura: 0x86a8ee, nerve: 0xf0dc8c,
   rodRoed: 0xd62828, rodOrange: 0xf08c00,
@@ -24,7 +29,7 @@ const VISNINGER = {
   sagittal: { retning: [1, 0.05, 0], afstand: 0.2, snit: "sagittal" },
 };
 
-const tilstand = { keys: {}, roder: {}, styrke: 1, visning: "3d", snitSide: 1, snit: { aksial: 0.4, sagittal: 0.5 }, klar: false };
+const tilstand = { keys: {}, roder: {}, styrke: 1, visning: "3d", snitSide: 1, niveau: "L4/L5", snit: { aksial: aksialTilSnit(AKSIAL_NIV["L4/L5"]), sagittal: 0.5 }, klar: false };
 let renderer, scene, camera, controls, model;
 const meshes = [];              // { mesh, gruppe, kappe }
 const etiketter = [];
@@ -146,19 +151,26 @@ async function indlaes() {
 }
 
 function lavEtiketter() {
+  // [tekst, punkt, rod (fremhæves), skjul i aksialt snit, niveau (vises kun, når det er i fokus)]
   const def = [
-    ["L4", [0.0, 1.019, 0.052], null, true], ["L5", [0.0, 0.979, 0.047], null, true], ["Disk L4/L5", [-0.022, 0.999, 0.05]],
+    ["L3", [0.0, 1.05, 0.055], null, true], ["L4", [0.0, 1.019, 0.052], null, true], ["L5", [0.0, 0.979, 0.047], null, true],
+    ["Korsben", [0.0, 0.945, 0.03], null, true],
+    ["Disk L3/L4", [-0.022, 1.032, 0.055], null, false, "L3/L4"], ["Disk L4/L5", [-0.022, 0.999, 0.05], null, false, "L4/L5"], ["Disk L5/S1", [-0.022, 0.963, 0.04], null, false, "L5/S1"],
     ["Durasæk", [0, 1.045, 0.025]],
+    ["L3-rod", [0.027, 1.031, 0.033], "Rod_L3_v"], ["L3-rod", [-0.027, 1.031, 0.033], "Rod_L3_h"],
     ["L4-rod", [0.03, 1.002, 0.033], "Rod_L4_v"], ["L4-rod", [-0.03, 1.002, 0.033], "Rod_L4_h"],
     ["L5-rod", [0.028, 0.973, 0.025], "Rod_L5_v"], ["L5-rod", [-0.028, 0.973, 0.025], "Rod_L5_h"],
-    ["Facetled", [0.026, 1.002, 0.012]], ["Facetled", [-0.026, 1.002, 0.012]],
+    ["S1-rod", [0.0195, 0.941, 0.0035], "Rod_S1_v"], ["S1-rod", [-0.0195, 0.941, 0.0035], "Rod_S1_h"],
+    ["Facetled", [0.018, 1.030, 0.018], null, false, "L3/L4"], ["Facetled", [-0.018, 1.030, 0.018], null, false, "L3/L4"],
+    ["Facetled", [0.0226, 1.0018, 0.0159], null, false, "L4/L5"], ["Facetled", [-0.0226, 1.0018, 0.0159], null, false, "L4/L5"],
+    ["Facetled", [0.0227, 0.9759, 0.0112], null, false, "L5/S1"], ["Facetled", [-0.0227, 0.9759, 0.0112], null, false, "L5/S1"],
   ];
-  for (const [tekst, p, rod, ikkeISnit] of def) {
+  for (const [tekst, p, rod, ikkeISnit, niv] of def) {
     const el = document.createElement("span");
     el.className = "ryg-label";
     el.textContent = tekst;
     boks.appendChild(el);
-    etiketter.push({ el, p: new THREE.Vector3(...p), rod, ikkeISnit });
+    etiketter.push({ el, p: new THREE.Vector3(...p), rod, ikkeISnit, niv });
   }
 }
 
@@ -172,7 +184,7 @@ function opdaterEtiketter() {
     v.copy(e.p).project(camera);
     // Skjul etiketter på den bortvendte side og i snitvisning den bortskårne del
     const tilKamera = e.p.clone().sub(camera.position).normalize();
-    const synlig = vis && v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05 && (!e.rod || fremhaevet || tilstand.visning === "3d") && !bortskaaret(e.p) && tilKamera.dot(kamRet) > 0 && !(e.ikkeISnit && VISNINGER[tilstand.visning].snit === "aksial");
+    const synlig = vis && v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05 && (!e.rod || fremhaevet) && (!e.niv || e.niv === tilstand.niveau) && !bortskaaret(e.p) && tilKamera.dot(kamRet) > 0 && !(e.ikkeISnit && VISNINGER[tilstand.visning].snit === "aksial");
     e.el.hidden = !synlig;
     if (!synlig) continue;
     e.el.style.transform = `translate(${((v.x + 1) / 2) * w}px, ${((1 - v.y) / 2) * h}px) translate(-50%, -50%)`;
@@ -185,7 +197,7 @@ function snitPlan() {
   const v = VISNINGER[tilstand.visning];
   if (!v.snit) return null;
   if (v.snit === "aksial") {
-    const y = 0.986 + tilstand.snit.aksial * 0.028;            // L5-overflade til L4-underflade; delen over snittet vises
+    const y = 0.94 + tilstand.snit.aksial * 0.115;              // delen over snittet vises
     return new THREE.Plane(new THREE.Vector3(0, 1, 0), -y);
   }
   const x = (tilstand.snit.sagittal - 0.5) * 0.03;                // -15 til +15 mm
@@ -287,11 +299,19 @@ window.RygVisning = {
     tilstand.roder = res.roder || {};
     if (opts.snitSide) tilstand.snitSide = opts.snitSide;
     if (opts.snit != null) tilstand.snit.sagittal = opts.snit;
+    if (opts.niveau && MAAL_NIV[opts.niveau] && opts.niveau !== tilstand.niveau) {
+      // Nyt niveau i fokus: kameraet og det aksiale snit flyttes dertil.
+      tilstand.niveau = opts.niveau;
+      MAAL = MAAL_NIV[opts.niveau];
+      tilstand.snit.aksial = aksialTilSnit(AKSIAL_NIV[opts.niveau]);
+      if (tilstand.klar) saetVisning(tilstand.visning, false);
+    }
     if (tilstand.klar && VISNINGER[tilstand.visning].snit) saetVisning(tilstand.visning, true);
     anvend(nyt);
   },
   visning: (n) => saetVisning(n, false),
   get klar() { return tilstand.klar; },
+  get niveau() { return tilstand.niveau; },
   influenser() {
     const ud = {};
     for (const m of meshes) {

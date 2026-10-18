@@ -222,25 +222,33 @@ const MR = (function () {
   }
 
   // ---------------------------------------------------------------- fra fund til 3D-model
-  // Kun L4/L5 er modelleret i prototypen. Returnerer shape key-styrker og rødder, der fremhæves.
+  // Modellerede niveauer: L3/L4, L4/L5 og L5/S1. Returnerer shape key-styrker (navngivet
+  // "L4L5_ekstrusion_paracentral_v" osv.) og de rødder, der fremhæves.
   const STYRKE = { 1: 0.5, 2: 0.78, 3: 1.0 };
-  const RODER_VED = { // L4/L5: traverserende rod L5, udtrædende rod L4
-    central: null, paracentral: "L5", foraminal: "L4", ekstraforaminal: "L4",
+  const NIVEAUER = ["L3/L4", "L4/L5", "L5/S1"];
+  // Traverserende rod (paracentral prolaps, recesstenose) og udtrædende rod (foraminal/ekstraforaminal).
+  const RODER = { "L3/L4": { trav: "L4", exit: "L3" }, "L4/L5": { trav: "L5", exit: "L4" }, "L5/S1": { trav: "S1", exit: "L5" } };
+  const rodVed = (niveau, zone) => {
+    const r = RODER[niveau];
+    if (!r) return null;
+    return { central: null, paracentral: r.trav, foraminal: r.exit, ekstraforaminal: r.exit }[zone || "paracentral"];
   };
-  function model(fund, niveau = "L4/L5", negerede = []) {
+  function model(fund, negerede = []) {
     const keys = {}, roder = {}, noter = [];
-    const ingenRod = negerede.some((f) => f.type === "rod" && (!f.niveau || f.niveau === niveau) && !f.rod);
     const sider = (s) => (s === "begge" ? ["v", "h"] : s ? [s] : []);
     const add = (k, v) => { keys[k] = Math.min(1.15, Math.max(keys[k] || 0, v)); };
-    const markerRod = (rod, s, g, afledt) => {
+    const markerRod = (rod, s, g, afledt, niveau) => {
       const k = `Rod_${rod}_${s}`;
-      if (afledt && ingenRod) return;
+      // Nægter teksten rodpåvirkning på niveauet, fremhæves ingen afledte rødder dér.
+      if (afledt && negerede.some((f) => f.type === "rod" && (!f.niveau || f.niveau === niveau) && !f.rod)) return;
       const gl = roder[k];
       if (!gl || (g || 0) > (gl.grad || 0) || (gl.afledt && !afledt)) roder[k] = { grad: g, afledt: !!afledt };
     };
     for (const f of fund) {
-      if (f.niveau !== niveau) continue;
+      if (!NIVEAUER.includes(f.niveau)) continue;
+      const pre = f.niveau.replace("/", "") + "_";
       const st = STYRKE[f.grad] || 0.78;
+      const r = RODER[f.niveau];
       if (f.type === "prolaps") {
         const typ = f.prolapstype === "ekstrusion" || f.prolapstype === "sekvester" ? "ekstrusion" : "protrusion";
         const z = f.zone || "paracentral";
@@ -251,44 +259,47 @@ const MR = (function () {
         if (f.prolapstype === "sekvester") noter.push("Sekvester er vist som ekstrusion (det løse fragment er ikke modelleret).");
         const storrelse = f.grad === 1 ? 0.75 : f.grad === 3 ? 1.12 : 1.0;
         for (const s of ss) {
-          add(`${typ}_${z}${s ? "_" + s : ""}`, storrelse);
-          const r = RODER_VED[z];
-          if (r) markerRod(r, s, null, true);
-          if (z === "central" && typ === "ekstrusion") { markerRod("L5", "v", null, true); markerRod("L5", "h", null, true); }
+          add(`${pre}${typ}_${z}${s ? "_" + s : ""}`, storrelse);
+          const rod = rodVed(f.niveau, z);
+          if (rod) markerRod(rod, s, null, true, f.niveau);
+          if (z === "central" && typ === "ekstrusion") { markerRod(r.trav, "v", null, true, f.niveau); markerRod(r.trav, "h", null, true, f.niveau); }
         }
-      } else if (f.type === "bulging") add("bulging", f.grad === 1 ? 0.7 : 1.0);
-      else if (f.type === "spinalstenose") add("spinalstenose", st);
-      else if (f.type === "flavumhypertrofi") add("flavumhypertrofi", 1.0);
-      else if (f.type === "recesstenose") {
+      } else if (f.type === "bulging") add(pre + "bulging", f.grad === 1 ? 0.7 : 1.0);
+      else if (f.type === "spinalstenose") add(pre + "spinalstenose", st);
+      else if (f.type === "flavumhypertrofi") {
+        if (f.niveau === "L5/S1") noter.push("Flavumhypertrofi ved L5/S1 kan ikke vises (modellens ledbånd slutter ved L5).");
+        else add(pre + "flavumhypertrofi", 1.0);
+      } else if (f.type === "recesstenose") {
         const ss = sider(f.side).length ? sider(f.side) : ["v", "h"];
-        for (const s of ss) { add(`recesstenose_${s}`, st); markerRod("L5", s, null, true); }
+        for (const s of ss) { add(`${pre}recesstenose_${s}`, st); markerRod(r.trav, s, null, true, f.niveau); }
       } else if (f.type === "foraminalstenose") {
         const ss = sider(f.side).length ? sider(f.side) : ["v", "h"];
-        for (const s of ss) { add(`foraminalstenose_${s}`, st); markerRod("L4", s, null, true); }
+        for (const s of ss) { add(`${pre}foraminalstenose_${s}`, st); markerRod(r.exit, s, null, true, f.niveau); }
       } else if (f.type === "facetartrose") {
-        for (const s of sider(f.side || "begge")) add(`facetartrose_${s}`, STYRKE[f.grad] || 0.8);
+        for (const s of sider(f.side || "begge")) add(`${pre}facetartrose_${s}`, STYRKE[f.grad] || 0.8);
       }
     }
-    // Navngivne rødder (fx "venstre L5-rod komprimeres")
+    // Navngivne rødder (fx "venstre L5-rod komprimeres"); uden navn udledes roden af niveau og zone.
     for (const f of fund) {
       if (f.type !== "rod") continue;
       let rod = f.rod;
-      if (!rod && f.niveau === niveau) {
-        if (f.rodtype && /travers/.test(f.rodtype)) rod = "L5";
-        else if (f.rodtype && /exit|udtræd|afgå/.test(f.rodtype)) rod = "L4";
+      const r = RODER[f.niveau];
+      if (!rod && r) {
+        if (f.rodtype && /travers/.test(f.rodtype)) rod = r.trav;
+        else if (f.rodtype && /exit|udtræd|afgå/.test(f.rodtype)) rod = r.exit;
         else {
-          const p = fund.find((g) => g.type === "prolaps" && g.niveau === niveau && RODER_VED[g.zone || "paracentral"]);
-          if (p) rod = RODER_VED[p.zone || "paracentral"];
+          const p = fund.find((g) => g.type === "prolaps" && g.niveau === f.niveau && rodVed(g.niveau, g.zone));
+          if (p) rod = rodVed(p.niveau, p.zone);
         }
       }
-      if (!rod || !["L4", "L5"].includes(rod)) continue;
-      if (f.niveau && f.niveau !== niveau) continue;
+      if (!rod || !["L3", "L4", "L5", "S1"].includes(rod)) continue;
+      if (f.niveau && !NIVEAUER.includes(f.niveau)) continue;
       let ss = sider(f.side);
       if (!ss.length) {
-        const p = fund.find((g) => g.niveau === niveau && g.side && g.side !== "begge" && ["prolaps", "recesstenose", "foraminalstenose"].includes(g.type));
+        const p = fund.find((g) => g.niveau === f.niveau && g.side && g.side !== "begge" && ["prolaps", "recesstenose", "foraminalstenose"].includes(g.type));
         ss = p ? [p.side] : ["v"];
       }
-      for (const s of ss) markerRod(rod, s, f.rodgrad || 2, false);
+      for (const s of ss) markerRod(rod, s, f.rodgrad || 2, false, f.niveau);
     }
     return { keys, roder, noter: [...new Set(noter)] };
   }
@@ -297,6 +308,7 @@ const MR = (function () {
   const NIV_TEKST = { "L1/L2": "1. og 2.", "L2/L3": "2. og 3.", "L3/L4": "3. og 4.", "L4/L5": "4. og 5.", "L5/S1": "5. lændehvirvel og korsbenet" };
   const sideOrd = (s) => (s === "v" ? "venstre" : s === "h" ? "højre" : s === "begge" ? "begge sider" : "");
   const ROD_INFO = {
+    L3: "L3-roden giver følelse på forsiden af låret ned mod knæet og styrer bl.a. knæstrækning og hoftebøjning",
     L4: "L4-roden giver følelse på forsiden af knæet og indersiden af underbenet og styrer bl.a. knæstrækningen",
     L5: "L5-roden giver følelse på ydersiden af underbenet, fodryggen og storetåen og styrer bl.a. løft af fod og storetå",
     S1: "S1-roden giver følelse på ydersiden af foden og lilletåen og styrer bl.a. at stå på tæer",
@@ -312,14 +324,14 @@ const MR = (function () {
           ? "Noget af den bløde kerne i disken er presset ud gennem diskens ydre ring"
           : f.prolapstype === "protrusion" ? "Disken buler ud, men den ydre ring er hel" : "Disken buler ud (diskusprolaps)";
         let t = `${hvad} — ${niv ? niv + ", " : ""}${hvor}.`;
-        const r = f.niveau === "L4/L5" ? RODER_VED[f.zone || "paracentral"] : f.niveau === "L5/S1" ? ({ paracentral: "S1", foraminal: "L5", ekstraforaminal: "L5" })[f.zone || "paracentral"] : null;
+        const r = rodVed(f.niveau, f.zone);
         if (r) t += ` Her ligger ${r}-roden, som kan blive trykket og give smerter, der stråler ned i benet. ${ROD_INFO[r] || ""}.`;
         else if (f.zone === "central") t += " En stor central prolaps kan trykke på flere nerverødder i nervekanalen.";
         linjer.push({ f, t });
       } else if (f.type === "bulging") linjer.push({ f, t: `Disken ${niv} buler jævnt ud hele vejen rundt. Det er et almindeligt tegn på slid og ses også hos mange uden smerter.` });
       else if (f.type === "spinalstenose") linjer.push({ f, t: `Nervekanalen ${niv} er ${["", "lidt ", "moderat ", "meget "][f.grad || 0]}trang. Det skyldes typisk slid: disken buler, ledbåndet bag kanalen er fortykket, og de små led er forstørrede. Trange forhold kan give smerter, tyngde eller snurren i benene ved gang, som lindres ved at sætte sig eller gå foroverbøjet.` });
-      else if (f.type === "recesstenose") linjer.push({ f, t: `Hjørnet af nervekanalen${sd} ${niv} er trangt (recesstenose). Her løber nerveroden ned mod sit udgangshul og kan blive klemt.` });
-      else if (f.type === "foraminalstenose") linjer.push({ f, t: `Hullet${sd}, hvor nerveroden forlader rygsøjlen ${niv}, er ${["", "lidt ", "moderat ", "meget "][f.grad || 0]}indsnævret (foraminal stenose). ${f.niveau === "L4/L5" ? "Det er L4-roden, der går ud her. " + ROD_INFO.L4 + "." : ""}` });
+      else if (f.type === "recesstenose") linjer.push({ f, t: `Hjørnet af nervekanalen${sd} ${niv} er trangt (recesstenose). Her løber ${RODER[f.niveau] ? RODER[f.niveau].trav + "-roden" : "nerveroden"} ned mod sit udgangshul og kan blive klemt.` });
+      else if (f.type === "foraminalstenose") linjer.push({ f, t: `Hullet${sd}, hvor nerveroden forlader rygsøjlen ${niv}, er ${["", "lidt ", "moderat ", "meget "][f.grad || 0]}indsnævret (foraminal stenose). ${RODER[f.niveau] ? `Det er ${RODER[f.niveau].exit}-roden, der går ud her. ` + ROD_INFO[RODER[f.niveau].exit] + "." : ""}` });
       else if (f.type === "facetartrose") linjer.push({ f, t: `De små led bag på rygsøjlen (facetleddene)${sd} ${niv} er slidte og forstørrede. Det kan give lokale lændesmerter og bidrage til trange forhold for nerverne.` });
       else if (f.type === "flavumhypertrofi") linjer.push({ f, t: `Det gule ledbånd bag nervekanalen ${niv} er fortykket og tager plads fra nerverne.` });
       else if (f.type === "rod" && f.rod) linjer.push({ f, t: `${f.side && f.side !== "begge" ? sideOrd(f.side)[0].toUpperCase() + sideOrd(f.side).slice(1) + " " : ""}${f.rod}-rod: ${["", "fundet ligger op ad roden", "roden er påvirket", "roden er klemt"][f.rodgrad || 2]}. ${ROD_INFO[f.rod] || ""}.` });
@@ -328,7 +340,7 @@ const MR = (function () {
     return linjer;
   }
 
-  const api = { tolk, model, forklaring, fjernCpr, normNiveau };
+  const api = { tolk, model, forklaring, fjernCpr, normNiveau, NIVEAUER, RODER };
   return api;
 })();
 if (typeof module !== "undefined") module.exports = MR;
