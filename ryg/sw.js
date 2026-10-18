@@ -3,13 +3,14 @@
  * internet. Netværket prøves først, så opdateringer slår igennem ved næste
  * åbning med forbindelse. Hæv VERSION, når filer tilføjes eller ændres.
  */
-const VERSION = "v3";
+const VERSION = "v4";
 const CACHE = `ryg-${VERSION}`;
 const FILES = [
   "./",
   "index.html",
   "mr.js",
   "ryg.js",
+  "heling.js",
   "visning.js",
   "model/l3-s1.glb",
   "lib/three.module.min.js",

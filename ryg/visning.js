@@ -87,15 +87,26 @@ function gruppe(navn) {
 // Væv, der er flyttet af en shape key (prolaps, fortykket ledbånd, osteofytter), farves varmt,
 // så forandringen ses tydeligt; farven følger skyderen "Normal ↔ Med fund".
 const FORANDRING = new THREE.Color(0xe0603a);
-function markerForandring(m) {
+// Helingsforløbet (heling.js): fælles uniforms for diskens materialer — inflammation (pulserende
+// rød), udtørring (grålig) og arvæv (lys) farver den udskudte del af disken.
+const HEL = { aktiv: false, s: {}, uni: { uInflam: { value: 0 }, uTor: { value: 0 }, uAr: { value: 0 }, uTid: { value: 0 } } };
+const NUL_UNI = { uInflam: { value: 0 }, uTor: { value: 0 }, uAr: { value: 0 }, uTid: { value: 0 } };
+const erProlaps = (k) => /_(protrusion|ekstrusion)_/.test(k);
+function markerForandring(m, heling) {
+  const u = heling ? HEL.uni : NUL_UNI;
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uForandring = { value: FORANDRING };
+    Object.assign(sh.uniforms, u);
     sh.vertexShader = sh.vertexShader
       .replace("#include <common>", "#include <common>\nvarying float vForskyd;")
       .replace("#include <morphtarget_vertex>", "#include <morphtarget_vertex>\nvForskyd = length(transformed - position);");
     sh.fragmentShader = sh.fragmentShader
-      .replace("#include <common>", "#include <common>\nvarying float vForskyd;\nuniform vec3 uForandring;")
-      .replace("#include <color_fragment>", "#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, uForandring, smoothstep(0.0006, 0.0025, vForskyd) * 0.8);");
+      .replace("#include <common>", "#include <common>\nvarying float vForskyd;\nuniform vec3 uForandring;\nuniform float uInflam, uTor, uAr, uTid;")
+      .replace("#include <color_fragment>", `#include <color_fragment>
+        vec3 fF = mix(uForandring, vec3(0.86, 0.10, 0.08), uInflam * (0.7 + 0.3 * sin(uTid * 4.0)));
+        fF = mix(fF, vec3(0.70, 0.68, 0.60), uTor * 0.75);
+        fF = mix(fF, vec3(0.95, 0.93, 0.86), uAr);
+        diffuseColor.rgb = mix(diffuseColor.rgb, fF, smoothstep(0.0004, 0.002, vForskyd) * 0.85);`);
   };
 }
 // Kernen (nucleus) holder sin farve, så den kan følges ud i en ekstrusion i snittene.
@@ -103,7 +114,7 @@ const MED_FORANDRING = ["knogle", "diskus", "ligament"];
 
 function materiale(g) {
   const m = new THREE.MeshStandardMaterial({ color: FARVER[g], roughness: g === "knogle" ? 0.72 : 0.55, metalness: 0 });
-  if (MED_FORANDRING.includes(g)) markerForandring(m);
+  if (MED_FORANDRING.includes(g)) markerForandring(m, g === "diskus");
   if (g === "dura") { m.transparent = true; m.opacity = 0.38; m.depthWrite = false; }
   if (g === "nerve") { m.emissive = new THREE.Color(0x000000); }
   return m;
@@ -133,7 +144,7 @@ async function indlaes() {
     o.renderOrder = g === "dura" ? 2 : 0;
     // "Kappe": bagsiden tegnes ensfarvet, så snitflader ser fyldte ud.
     const km = new THREE.MeshBasicMaterial({ color: KAPPE[g] ?? FARVER[g], side: THREE.BackSide, toneMapped: false });
-    if (MED_FORANDRING.includes(g)) markerForandring(km);
+    if (MED_FORANDRING.includes(g)) markerForandring(km, g === "diskus");
     const kappe = new THREE.Mesh(o.geometry, km);
     kappe.morphTargetInfluences = o.morphTargetInfluences;
     kappe.morphTargetDictionary = o.morphTargetDictionary;
@@ -165,6 +176,19 @@ function lavEtiketter() {
     ["Facetled", [0.0226, 1.0018, 0.0159], null, false, "L4/L5"], ["Facetled", [-0.0226, 1.0018, 0.0159], null, false, "L4/L5"],
     ["Facetled", [0.0227, 0.9759, 0.0112], null, false, "L5/S1"], ["Facetled", [-0.0227, 0.9759, 0.0112], null, false, "L5/S1"],
   ];
+  const dyn = [
+    ["Inflammation", helingsEtiket("inflam", 0.4, [0.004, 0.006])],
+    ["Makrofager", helingsEtiket("makro", 0.3, [0.011, -0.004])],
+    ["Tilbagetrækning", helingsEtiket("retr", 0.3, [0.013, 0.004])],
+    ["Arvæv lukker sprækken", helingsEtiket("ar", 0.3, [0.003, -0.006])],
+  ];
+  for (const [tekst, f] of dyn) {
+    const el = document.createElement("span");
+    el.className = "ryg-label ryg-label-heling";
+    el.textContent = tekst;
+    boks.appendChild(el);
+    etiketter.push({ el, p: new THREE.Vector3(), dyn: f });
+  }
   for (const [tekst, p, rod, ikkeISnit, niv] of def) {
     const el = document.createElement("span");
     el.className = "ryg-label";
@@ -180,6 +204,15 @@ function opdaterEtiketter() {
   const v = new THREE.Vector3();
   const kamRet = new THREE.Vector3(); camera.getWorldDirection(kamRet);
   for (const e of etiketter) {
+    if (e.dyn) {
+      // Helingsetiketter vises altid under forløbet (også når "Navne" er slået fra).
+      const p = e.dyn();
+      e.el.hidden = !p;
+      if (!p) continue;
+      v.copy(p).project(camera);
+      e.el.style.transform = `translate(${((v.x + 1) / 2) * w}px, ${((1 - v.y) / 2) * h}px) translate(-50%, -50%)`;
+      continue;
+    }
     const fremhaevet = e.rod && tilstand.roder[e.rod];
     v.copy(e.p).project(camera);
     // Skjul etiketter på den bortvendte side og i snitvisning den bortskårne del
@@ -229,6 +262,7 @@ function saetVisning(navn, straks) {
     m.mesh.material.needsUpdate = true;
     m.kappe.material.needsUpdate = true;
   }
+  klip();
   document.getElementById("snitKontrol").hidden = !pl;
   if (pl) document.getElementById("snitPos").value = Math.round(tilstand.snit[v.snit] * 100);
   document.querySelectorAll("[data-visning]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.visning === navn)));
@@ -239,14 +273,110 @@ function anvend(animer) {
   if (!tilstand.klar) return;
   if (animer) { animStart = performance.now(); animFra = 0; }
   opdaterMorph();
+  farvRoder();
+  if (HEL.aktiv) findProlaps();
+  synlighed();
+}
+
+function farvRoder() {
+  const normal = new THREE.Color(FARVER.nerve);
   for (const m of meshes) {
     if (m.gruppe !== "nerve" || !/^Rod_/.test(m.navn)) continue;
     const r = tilstand.roder[m.navn];
-    const farve = !r ? FARVER.nerve : r.afledt ? FARVER.rodOrange : FARVER.rodRoed;
-    m.mesh.material.color.setHex(farve);
-    m.mesh.material.emissive.setHex(r ? (r.afledt ? 0x3a2000 : 0x400000) : 0x000000);
+    const fuld = new THREE.Color(!r ? FARVER.nerve : r.afledt ? FARVER.rodOrange : FARVER.rodRoed);
+    // Under helingen falmer roden mod normal i takt med den typiske smerte.
+    const grad = HEL.aktiv ? Math.min(1, HEL.s.smerte * 1.3) : 1;
+    m.mesh.material.color.copy(normal).lerp(fuld, grad);
+    m.mesh.material.emissive.setHex(r ? (r.afledt ? 0x3a2000 : 0x400000) : 0x000000).multiplyScalar(grad);
   }
-  synlighed();
+}
+
+// ---------------------------------------------------------------- helingsforløbet: makrofager, pil og etiketter
+const MAKRO_N = 70;
+const hjaelp = new THREE.Object3D(), tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
+let prolaps = null;               // { kand: [{m, v, k, d}], top: index, inst, pil }
+function findProlaps() {
+  model.updateMatrixWorld(true);
+  const kand = [];
+  for (const m of meshes) {
+    if (m.gruppe !== "diskus") continue;
+    const d = m.mesh.morphTargetDictionary;
+    if (!d) continue;
+    const lin = new THREE.Matrix3().setFromMatrix4(m.mesh.matrixWorld);
+    for (const [k, i] of Object.entries(d)) {
+      if (!erProlaps(k) || !(tilstand.keys[k] > 0)) continue;
+      const delta = m.mesh.geometry.morphAttributes.position[i];
+      for (let v = 0; v < delta.count; v++) {
+        tmp.set(delta.getX(v), delta.getY(v), delta.getZ(v));
+        const l = tmp.clone().applyMatrix3(lin).length();
+        if (l > 0.0018) kand.push({ m: m.mesh, v, k, i, l, d: tmp.clone() });
+      }
+    }
+  }
+  if (!prolaps) {
+    const inst = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(0.00085, 1), new THREE.MeshStandardMaterial({ color: 0xa07ad8, roughness: 0.4, emissive: 0x2a1450 }), MAKRO_N);
+    inst.frustumCulled = false; inst.count = 0; scene.add(inst);
+    const pil = new THREE.ArrowHelper(new THREE.Vector3(0, 0, -1), new THREE.Vector3(), 0.006, 0x1f7ae0, 0.0025, 0.002);
+    pil.visible = false; scene.add(pil);
+    for (const mt of [pil.line.material, pil.cone.material]) { mt.transparent = true; mt.depthTest = false; }
+    pil.renderOrder = 10;
+    prolaps = { inst, pil, kand: [], top: -1, valg: [], fase: [] };
+    for (let i = 0; i < MAKRO_N; i++) prolaps.fase.push({ frø: Math.random(), fart: 0.25 + Math.random() * 0.35, jit: Math.random() * 6.28 });
+    klip();
+  }
+  prolaps.kand = kand;
+  prolaps.top = kand.reduce((b, c, i) => (b < 0 || c.l > kand[b].l ? i : b), -1);
+  prolaps.valg = Array.from({ length: MAKRO_N }, () => Math.floor(Math.random() * Math.max(1, kand.length)));
+}
+function prolapsPunkt(c, ud) {
+  // Aktuel position (lokal base + forskydning × styrke) og udadgående retning i verdenskoordinater
+  const pos = c.m.geometry.attributes.position, w = c.m.morphTargetInfluences[c.i];
+  ud.p = tmp.set(pos.getX(c.v), pos.getY(c.v), pos.getZ(c.v)).addScaledVector(c.d, w).applyMatrix4(c.m.matrixWorld).clone();
+  ud.n = tmp2.copy(c.d).transformDirection(c.m.matrixWorld).clone();
+  return ud;
+}
+function tegnHeling(tid) {
+  if (!prolaps) return;
+  HEL.uni.uTid.value = tid / 1000;
+  const vis = HEL.aktiv && prolaps.kand.length;
+  const n = vis ? Math.round(HEL.s.makro * MAKRO_N) : 0;
+  prolaps.inst.count = n;
+  const q = {};
+  for (let i = 0; i < n; i++) {
+    const c = prolaps.kand[prolaps.valg[i] % prolaps.kand.length], f = prolaps.fase[i];
+    prolapsPunkt(c, q);
+    // Makrofagerne vandrer ind mod prolapsen og "spiser" sig ind i overfladen.
+    const fs = ((tid / 1000) * f.fart + f.frø) % 1;
+    const e = fs * fs * (3 - 2 * fs);
+    const afst = 0.0005 + 0.009 * (1 - e);
+    hjaelp.position.copy(q.p).addScaledVector(q.n, afst);
+    hjaelp.position.x += Math.sin(tid / 700 + f.jit) * 0.0006;
+    hjaelp.position.y += Math.cos(tid / 900 + f.jit) * 0.0006;
+    hjaelp.scale.setScalar(fs > 0.85 ? 1 - (fs - 0.85) * 4 : 1);
+    hjaelp.updateMatrix();
+    prolaps.inst.setMatrixAt(i, hjaelp.matrix);
+  }
+  prolaps.inst.instanceMatrix.needsUpdate = true;
+  const pil = prolaps.pil;
+  pil.visible = !!vis && HEL.s.retr > 0.05 && prolaps.top >= 0;
+  if (pil.visible) {
+    prolapsPunkt(prolaps.kand[prolaps.top], q);
+    pil.position.copy(q.p).addScaledVector(q.n, 0.0075);
+    pil.setDirection(q.n.clone().negate());
+    pil.line.material.opacity = pil.cone.material.opacity = Math.min(1, HEL.s.retr * 1.5);
+  }
+}
+function helingsEtiket(navn, nok, forskyd) {
+  return () => {
+    if (!HEL.aktiv || !prolaps || prolaps.top < 0 || !(HEL.s[navn] > nok)) return null;
+    const q = prolapsPunkt(prolaps.kand[prolaps.top], {});
+    return q.p.addScaledVector(q.n, forskyd[0]).add(new THREE.Vector3(0, forskyd[1], 0));
+  };
+}
+function klip() {
+  const pl = snitPlan();
+  if (!prolaps) return;
+  for (const mt of [prolaps.inst.material]) { mt.clippingPlanes = pl ? [pl] : []; mt.needsUpdate = true; }
 }
 
 function opdaterMorph() {
@@ -256,7 +386,7 @@ function opdaterMorph() {
   for (const m of meshes) {
     const d = m.mesh.morphTargetDictionary;
     if (!d) continue;
-    for (const [k, i] of Object.entries(d)) m.mesh.morphTargetInfluences[i] = (tilstand.keys[k] || 0) * faktor;
+    for (const [k, i] of Object.entries(d)) m.mesh.morphTargetInfluences[i] = (tilstand.keys[k] || 0) * faktor * (HEL.aktiv ? (erProlaps(k) ? HEL.s.storrelse : 0) : 1);  // under helingen vises kun prolapsen
   }
   if (t >= 1) animStart = 0;
 }
@@ -286,6 +416,7 @@ function tegn(now) {
     if (t >= 1) flyt.til = null;
   }
   if (animStart) opdaterMorph();
+  tegnHeling(now);
   controls.update();
   renderer.render(scene, camera);
   opdaterEtiketter();
@@ -310,6 +441,20 @@ window.RygVisning = {
     anvend(nyt);
   },
   visning: (n) => saetVisning(n, false),
+  get visningNavn() { return tilstand.visning; },
+  heling(s) {
+    const var_ = HEL.aktiv;
+    HEL.aktiv = !!s.aktiv && tilstand.klar;
+    HEL.s = s;
+    HEL.uni.uInflam.value = HEL.aktiv ? s.inflam : 0;
+    HEL.uni.uTor.value = HEL.aktiv ? s.tor : 0;
+    HEL.uni.uAr.value = HEL.aktiv ? s.ar : 0;
+    if (HEL.aktiv && (!var_ || !prolaps)) findProlaps();
+    animStart = 0;
+    opdaterMorph();
+    farvRoder();
+  },
+  get helingAktiv() { return HEL.aktiv; },
   get klar() { return tilstand.klar; },
   get niveau() { return tilstand.niveau; },
   influenser() {

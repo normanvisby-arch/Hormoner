@@ -95,7 +95,7 @@
         <label class="checkbox"><input type="checkbox" id="visDura" checked> Durasæk</label>
         <label class="checkbox"><input type="checkbox" id="visLig" checked> Ledbånd</label>
         <label class="checkbox"><input type="checkbox" id="glasKnogle"> Gennemsigtige knogler</label>
-        <label class="checkbox"><input type="checkbox" id="visNavne" checked> Navne</label>
+        <label class="checkbox"><input type="checkbox" id="visNavne"> Navne</label>
       </div>
     </div>
     <ul class="ryg-forklaring-farver">
@@ -105,16 +105,60 @@
       <li><span class="ryg-prik ryg-prik-gul"></span> Normal nerverod</li>
       <li><span class="ryg-prik ryg-prik-blaa"></span> Disk og durasæk</li>
     </ul>
+    <section class="ryg-hel" id="helPanel" aria-label="Helingsforløbet">
+      <div class="ryg-hel-top">
+        <h3>Helingsforløbet <span class="field-hint" id="helType"></span></h3>
+        <div class="ryg-hel-knapper">
+          <button id="helStart" class="btn btn-small btn-primary" type="button" disabled>▶ Afspil helingen</button>
+          <button id="helStop" class="btn btn-small btn-outline" type="button" hidden>Tilbage til fundet</button>
+        </div>
+      </div>
+      <p id="helIngen" class="field-hint">Helingsforløbet kan vises, når der er en diskusprolaps blandt fundene.</p>
+      <div id="helIndhold" hidden>
+        <label class="ryg-slider ryg-hel-tid">Tid <input type="range" id="helTid" min="0" max="26" step="0.25" value="0" aria-label="Uger efter debut"> <output id="helTidTekst" for="helTid">Uge 0</output></label>
+        <ol class="ryg-faser" id="helFaser">
+          <li data-fase="1" data-uge="1"><button type="button"><strong>1. Den akutte fase</strong><span>Uge 1–4</span></button></li>
+          <li data-fase="2" data-uge="6"><button type="button"><strong>2. Nedbrydningsfasen</strong><span>Uge 4–12</span></button></li>
+          <li data-fase="3" data-uge="16"><button type="button"><strong>3. Stabiliseringsfasen</strong><span>Måned 3–6+</span></button></li>
+        </ol>
+        <p class="ryg-fasetekst" id="helFaseTekst"></p>
+      </div>
+    </section>
+
   </section>
 </main>
+
+<section class="ryg-hel-detaljer" id="helDetaljer" aria-label="Sådan heler en diskusprolaps" hidden>
+  <h2>Sådan heler en diskusprolaps</h2>
+  <p class="field-hint">Kortene og grafen følger tidslinjen under 3D-modellen. Under helingsforløbet viser modellen kun prolapsen.</p>
+  <div class="ryg-mekanismer">
+    <div class="ryg-mek ryg-mek-inflam"><div class="ryg-mek-top"><strong>Immunrespons og inflammation</strong><span class="ryg-mek-tal">0 %</span></div><div class="ryg-maaler" data-maal="inflam"></div><p>Kroppen opfatter den udpressede kerne som fremmed. Der opstår en lokal betændelsesreaktion, og hvide blodlegemer (makrofager) sendes til området.</p></div>
+    <div class="ryg-mek ryg-mek-makro"><div class="ryg-mek-top"><strong>Makrofager nedbryder</strong><span class="ryg-mek-tal">0 %</span></div><div class="ryg-maaler" data-maal="makro"></div><p>Makrofagerne "spiser" og nedbryder det væv, der trykker på nerven (de lilla prikker i modellen).</p></div>
+    <div class="ryg-mek ryg-mek-tor"><div class="ryg-mek-top"><strong>Udtørring (dehydrering)</strong><span class="ryg-mek-tal">0 %</span></div><div class="ryg-maaler" data-maal="tor"></div><p>Kernen består mest af vand. Udenfor sine normale rammer mister den væsketilførslen, tørrer ind og skrumper, så trykket på nerven letter.</p></div>
+    <div class="ryg-mek ryg-mek-retr"><div class="ryg-mek-top"><strong>Tilbagetrækning (retraktion)</strong><span class="ryg-mek-tal">0 %</span></div><div class="ryg-maaler" data-maal="retr"></div><p>I nogle tilfælde glider materialet helt eller delvist tilbage på plads ved bevægelse og trykændringer i rygsøjlen (den blå pil).</p></div>
+    <div class="ryg-mek ryg-mek-ar"><div class="ryg-mek-top"><strong>Arvæv i diskens ydre ring</strong><span class="ryg-mek-tal">0 %</span></div><div class="ryg-maaler" data-maal="ar"></div><p>Sprækken i annulus fibrosus heler med arvæv og lukker sig, og segmentet bliver mere stabilt.</p></div>
+    <div class="ryg-mek ryg-mek-status"><div class="ryg-mek-top"><strong>Prolapsens størrelse</strong><span class="ryg-mek-tal">100 %</span></div><div class="ryg-maaler" data-maal="storrelse"></div><div class="ryg-mek-top"><strong>Typisk smerte</strong><span class="ryg-mek-tal">100 %</span></div><div class="ryg-maaler" data-maal="smerte"></div></div>
+  </div>
+  <figure class="ryg-graf">
+    <figcaption>Typisk forløb over et halvt år <span class="field-hint">— klik i grafen for at gå til et tidspunkt</span></figcaption>
+    <ul class="ryg-g-legende"><li><i class="ryg-g-nogle s1"></i>Prolapsens størrelse</li><li><i class="ryg-g-nogle s2"></i>Inflammation</li><li><i class="ryg-g-nogle s3 stiplet"></i>Typisk smerte</li></ul>
+    <div id="helGraf" class="ryg-g"></div>
+  </figure>
+  <div class="ryg-evidens">
+    <p id="helAndel"></p>
+    <p>Smerterne aftager hos de fleste over uger til måneder, og de følger ikke nøje, hvor meget prolapsen skrumper. Tiderne er gennemsnit — forløbet varierer meget fra person til person.</p>
+    <p class="ryg-advarsel-boks"><strong>Kontakt straks læge</strong> ved besvær med at lade vandet eller holde på afføringen, følelsesløshed i skridtet eller tiltagende lammelse i benet.</p>
+  </div>
+</section>
 
 <footer class="sources">
   <h2>Kilder &amp; grundlag</h2>
   <ul>
     <li>Fardon DF m.fl. Lumbar disc nomenclature: version 2.0. Recommendations of the combined task forces of NASS, ASSR og ASNR. <em>Spine J</em> 2014;14:2525–45: bulging, protrusion, ekstrusion og sekvester; zonerne central, subartikulær/paracentral, foraminal og ekstraforaminal</li>
-    <li>Schizas C m.fl. Qualitative grading of severity of lumbar spinal stenosis based on the morphology of the dural sac on MRI. <em>Spine</em> 2010;35:1919–24 (grad A–D); Lee S m.fl. A practical MRI grading system for lumbar foraminal stenosis. <em>AJR</em> 2010;194:1095–8 (grad 0–3); Schönström N m.fl. (durasækkens tværsnit: relativ stenose 75–99 mm², absolut under 75 mm²; kontrolleret via sekundære kilder) — modellens sæk måler ca. 180 mm² normalt og ca. 117/86/69 mm² ved let/moderat/svær stenose</li>
+    <li>Schizas C m.fl. Qualitative grading of severity of lumbar spinal stenosis based on the morphology of the dural sac on MRI. <em>Spine</em> 2010;35:1919–24 (grad A–D); Lee S m.fl. A practical MRI grading system for lumbar foraminal stenosis. <em>AJR</em> 2010;194:1095–8 (grad 0–3); Schönström N m.fl. (durasækkens tværsnit: relativ stenose 75–99 mm², absolut under 75 mm²; kontrolleret via sekundære kilder) — modellens sæk måler ca. 160–190 mm² normalt og ca. 105–122, 81–91 og 64–70 mm² ved let, moderat og svær stenose (L3/L4–L5/S1)</li>
     <li>Rodtopografi: en paracentral prolaps rammer typisk den traverserende rod (L3/L4 → L4, L4/L5 → L5, L5/S1 → S1), en foraminal/ekstraforaminal prolaps den udtrædende (L3, L4 og L5); dermatomer og kendemuskler efter gængse lærebøger (fx Lægehåndbogen, Netter)</li>
     <li>3D-model: Z-Anatomy — The libre 3D atlas of anatomy (Gauthier Kervyn m.fl.), afledt af BodyParts3D © The Database Center for Life Science; via Svitylo 3D Anatomy Atlas' datapakke. Licens <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.da" target="_blank" rel="noopener">CC BY-SA 4.0</a> — modellen her er en bearbejdning under samme licens (durasæk, nerverødder og patologi er tilføjet, se tools/ryg/)</li>
+    <li>Helingsforløbet: Chiu CC m.fl. The probability of spontaneous regression of lumbar herniated disc: a systematic review. <em>Clin Rehabil</em> 2015;29:184–95 (tilbagedannelse hos 96 % af sekvestre, 70 % af ekstrusioner, 41 % af protrusioner, 13 % af bulging); oversigt over mekanismerne (makrofaginfiltration, inflammation, neovaskularisering og nedbrydning af matrix: "Characteristics and mechanisms of resorption in lumbar disc herniation", 2022); seriel MR med tydelig tilbagedannelse fra ca. 2 måneder og fortsat over et år; smerte med halveringstid ca. 6–7 uger (pilotdata, Académie nationale de médecine); Benson RT m.fl. <em>J Bone Joint Surg Br</em> 2010 (ringe sammenhæng mellem klinisk bedring og hvor meget prolapsen svinder); Peul WC m.fl. <em>NEJM</em> 2007 (tidlig operation gav hurtigere lindring af bensmerter, men ingen forskel i funktion efter et år). Tidskurverne i animationen er skematiske. Kontrolleret via sekundære kilder.</li>
     <li>Visning: three.js (MIT-licens)</li>
   </ul>
   <p class="fineprint">Prototype til patientinformation — ikke til diagnostik. Modellen er en generisk voksen ryg; patologien er modelleret skematisk ud fra beskrivelsens niveau, side, zone og grad, ikke ud fra mål. Niveauerne L3/L4, L4/L5 og L5/S1 vises i 3D; fund på andre niveauer listes. Ingen tekst gemmes eller sendes.</p>
@@ -122,6 +166,7 @@
 
 <script src="mr.js"></script>
 <script src="ryg.js"></script>
+<script src="heling.js"></script>
 <script type="module" src="visning.js"></script>
 <script src="../pwa.js"></script>
 </body>

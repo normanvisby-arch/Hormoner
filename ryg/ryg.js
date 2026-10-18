@@ -87,6 +87,10 @@
     const snit = 0.5 + (side * x) / 0.03;
     if (window.RygVisning) window.RygVisning.saet(res, { snitSide: side, snit, niveau: fokus });
     else window.__rygVenter = [res, { snitSide: side, snit, niveau: fokus }];
+    // Helingsforløbet (heling.js) følger den første prolaps på et modelleret niveau
+    const pr = valgte.find((f) => VIST.includes(f.niveau) && f.type === "prolaps") || null;
+    window.__rygProlaps = pr;
+    window.dispatchEvent(new CustomEvent("ryg-fund", { detail: { prolaps: pr } }));
     // Noter til lægen
     const noter = [...res.noter];
     const andre = valgte.filter((f) => f.niveau && !VIST.includes(f.niveau) && f.type !== "andet");

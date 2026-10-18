@@ -53,7 +53,7 @@ eller "usikker" end et falsk præcist tal.
   `app.js`, cystitis = `infektion/urinveje.js`, DPP-4 = `nyre/dosis.js`). Test:
   `tests/restordre.test.js`.
 - `ryg/` (MR-columna i 3D, prototype — skjult som Notat-indgang): `index.html`, `mr.js` (tolkning af
-  MR-beskrivelsen, `MR.tolk`/`MR.model`/`MR.forklaring`), `ryg.js` (fundliste), `visning.js` (three.js
+  MR-beskrivelsen, `MR.tolk`/`MR.model`/`MR.forklaring`), `ryg.js` (fundliste), `heling.js` (helingsforløbet: kurver, faser, graf), `visning.js` (three.js
   i `lib/`), modellen `model/l3-s1.glb` (Z-Anatomy, CC BY-SA 4.0) med patologien som shape keys for
   L3/L4, L4/L5 og L5/S1 (nøgler som `L4L5_ekstrusion_paracentral_v`). Modellen bygges med `tools/ryg/` (Blender som Python-modul, se README); nye
   diagnoser = ny shape key i `tools/ryg/patologi.py` + navn i `MR.model`. Test: `tests/ryg.test.js`.

@@ -599,6 +599,21 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
   placering og for "Normal ↔ Med fund", så patienten kan se forskellen. Væv, der er flyttet af
   patologien, farves orangerødt; klemte rødder røde. Durasæk, ledbånd og navne kan slås fra, og
   knoglerne kan gøres gennemsigtige.
+- **Helingsforløbet (`ryg/heling.js`):** pædagogisk animation af en diskusprolaps' heling over 26 uger
+  (afspil, træk i tidslinjen eller klik i grafen). Modellen viser kun prolapsen, som skrumper mod en
+  typisk restgrad (sekvester 15 %, ekstrusion 30 %, protrusion 65 % af debutstørrelsen). De tre
+  biologiske mekanismer vises i 3D og som målere: inflammation (pulserende rød prolaps, uge 0–12),
+  makrofager (lilla partikler, der vandrer ind og nedbryder prolapsen, uge 1–15), udtørring
+  (prolapsen bliver grålig, uge 3–12) og tilbagetrækning (blå pil, uge 3–14, "kan ske"); i
+  stabiliseringsfasen lukker arvæv sprækken i annulus (lys farve, uge 10–24). Den klemte rod falmer
+  mod normal i takt med en typisk smertekurve (halveringstid ca. 6,5 uger fra uge 1). Faserne følger
+  lægens skema: akut fase uge 1–4, nedbrydningsfase uge 4–12, stabiliseringsfase måned 3–6+.
+  Kurverne er skematiske; tallene bag: tilbagedannelse hos 96 % af sekvestre, 70 % af ekstrusioner,
+  41 % af protrusioner (Chiu 2015), tydelig tilbagedannelse på MR fra ca. 2 måneder, smertens
+  halveringstid ca. 6–7 uger (pilotdata), og smerten følger ikke nøje prolapsens størrelse (Benson
+  2010). Siden viser røde flag (blære/tarm, ridebukseanæstesi, tiltagende lammelse). Grafen bruger
+  tre farver fra den validerede palet (farveblindhedstjek bestået i lys og mørk), stiplet smertekurve,
+  direkte etiketter og tooltip.
 - **Patienttekst (`MR.forklaring`):** kort forklaring pr. fund i lægmandssprog med rodens
   udbredelse (L4: forside af knæ/inderside af underben, knæstrækning; L5: yderside af underben,
   fodryg og storetå, løft af fod/storetå; S1: yderside af fod og lilletå, tågang) og en påmindelse
@@ -950,6 +965,13 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**18. oktober 2026 — MR-columna i 3D: helingsforløb og navne fra:**
+- Navne i 3D-modellen er nu slået fra som standard.
+- Nyt pædagogisk helingsforløb for diskusprolaps over 26 uger med de tre biologiske mekanismer
+  (inflammation/makrofager, udtørring, tilbagetrækning), arvæv i stabiliseringsfasen, faseskema,
+  målere og graf over prolapsens størrelse, inflammation og typisk smerte (se afsnittet ovenfor for
+  kilder). Test: `tests/ryg.test.js` (H0–H9).
 
 **18. oktober 2026 — MR-columna i 3D: L3/L4 og L5/S1:**
 - Modellen viser nu alle tre niveauer: prolaps (fire zoner, protrusion/ekstrusion), bulging,

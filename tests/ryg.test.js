@@ -89,6 +89,24 @@ const ARTIFACT = !!process.env.BASE;
   const raekker = await p.locator('.ryg-fund-raekke').count();
   check('M5 fundliste med mindst 5 rækker', raekker >= 5, String(raekker));
   check('M6 forklaring til patienten nævner L5-roden', (await p.locator('#forklaring').innerText()).includes('L5-roden'));
+  // ---------------- Helingsforløbet ----------------
+  check('H0 navne er slået fra som standard', !(await p.locator('#visNavne').isChecked()));
+  check('H1 helingspanel klar ved prolaps', await p.locator('#helStart').isEnabled() && await p.locator('#helDetaljer').isVisible() && (await p.locator('#helType').innerText()).includes('ekstrusion'));
+  await p.locator('#helTid').fill('7'); await p.waitForTimeout(400);
+  inf = await p.evaluate(() => window.RygVisning.influenser());
+  let hel = await p.evaluate(() => ({ aktiv: window.RygVisning.helingAktiv, visning: window.RygVisning.visningNavn, fase: document.querySelector('#helFaser li.aktiv')?.dataset.fase, tekst: document.getElementById('helFaseTekst').innerText }));
+  check('H2 uge 7: fase 2, prolapsen skrumper, andre fund skjult', hel.aktiv && hel.fase === '2' && hel.tekst.includes('Nedbrydningsfasen') && inf.L4L5_ekstrusion_paracentral_v > 0.3 && inf.L4L5_ekstrusion_paracentral_v < 0.95 && !inf.L5S1_foraminalstenose_h, JSON.stringify({ hel, inf }));
+  check('H3 helingen skifter til snit fra siden', hel.visning === 'sagittal');
+  const maal = await p.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-maal]')].map((b) => [b.dataset.maal, parseFloat(getComputedStyle(b).getPropertyValue('--v'))])));
+  check('H4 uge 7: makrofager og udtørring aktive, smerte faldende', maal.makro > 0.8 && maal.tor > 0.3 && maal.smerte < 0.6 && maal.smerte > 0.45, JSON.stringify(maal));
+  await p.locator('#helTid').fill('26'); await p.waitForTimeout(400);
+  inf = await p.evaluate(() => window.RygVisning.influenser());
+  check('H5 uge 26: ekstrusion skrumpet til ca. 30 %, fase 3', Math.abs(inf.L4L5_ekstrusion_paracentral_v - 0.3) < 0.03 && (await p.evaluate(() => document.querySelector('#helFaser li.aktiv')?.dataset.fase)) === '3', JSON.stringify(inf));
+  check('H6 graf med tre kurver og markør', (await p.locator('#helGraf polyline').count()) === 3 && (await p.locator('#helMarkoer').count()) === 1);
+  await p.click('#helStop'); await p.waitForTimeout(300);
+  inf = await p.evaluate(() => window.RygVisning.influenser());
+  check('H7 tilbage til fundet: fuld prolaps og øvrige fund igen', !(await p.evaluate(() => window.RygVisning.helingAktiv)) && inf.L4L5_ekstrusion_paracentral_v > 0.99 && inf.L5S1_foraminalstenose_h > 0.7, JSON.stringify(inf));
+  check('H8 kurver: protrusion skrumper mindre end ekstrusion', await p.evaluate(() => window.Heling.kurver(26, 'protrusion').storrelse > window.Heling.kurver(26, 'ekstrusion').storrelse));
   // Ret siden på prolapsen til højre
   const sideSel = p.locator('.ryg-fund-raekke', { hasText: 'Diskusprolaps' }).locator('select[data-felt="side"]');
   await sideSel.selectOption('h'); await p.waitForTimeout(1500);
@@ -105,6 +123,7 @@ const ARTIFACT = !!process.env.BASE;
   check('M10 3D skjuler snit-skyder', await p.locator('#snitKontrol').isHidden());
   // Ryd og tilføj manuelt
   await p.click('#rydBtn'); await p.waitForTimeout(1300);
+  check('H9 ingen prolaps -> helingen kan ikke startes', await p.locator('#helStart').isDisabled() && await p.locator('#helIngen').isVisible());
   check('M11 ryd -> ingen fund', Object.keys(await p.evaluate(() => window.RygVisning.influenser())).length === 0 && (await p.locator('.ryg-fund-raekke').count()) === 0);
   await p.selectOption('#tilfoejValg', 'spinalstenose'); await p.waitForTimeout(1400);
   inf = await p.evaluate(() => window.RygVisning.influenser());
