@@ -628,6 +628,10 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
 - **Forbehold:** generisk voksen ryg; patologien er skematisk ud fra niveau, side, zone og grad — ikke
   ud fra mål. Ikke til diagnostik.
 - **App:** egen manifest, service worker og ikon; virker offline. Test: `tests/ryg.test.js`.
+- **claude.ai-version:** bygges med `tools/ryg/byg_artifact.py` (ikke `build_artifact.py`): tema-CSS fra
+  et publiceret værktøjs-artifact, three.js fra jsDelivr og modellen indlejret som gzip/base64 uden
+  meshopt (meshopt-dekoderen kræver WebAssembly). Test: `BASE=…/fil.html JSDELIVR_LOKAL=<npm-pakken
+  three@0.170.0> node tests/ryg.test.js`.
 
 ## Installér som app
 
@@ -946,7 +950,7 @@ en server. Konsekvenser af det valg:
 - 3D-modellen er en bearbejdning af Z-Anatomy (CC BY-SA 4.0) bygget med Blender som Python-modul
   (`tools/ryg/`); durasæk, nerverødder og patologi er tilføjet. Visning med three.js.
 - Appen er skjult (ikke på downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet
-  klinisk. Test: `tests/ryg.test.js`. Fælles `style.css` er ændret, så service workers er hævet i
+  klinisk. claude.ai-version til afprøvning: https://claude.ai/artifact/TMz2DoRzK6UAvffJJqTMKd. Test: `tests/ryg.test.js`. Fælles `style.css` er ændret, så service workers er hævet i
   alle apps.
 
 **6. oktober 2026 — Restordre synlig igen og restordre.dk fra alle værktøjer:**

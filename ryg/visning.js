@@ -103,10 +103,20 @@ function materiale(g) {
   return m;
 }
 
-async function indlaes() {
-  const loader = new GLTFLoader();
+// Appen henter model/l3-s1.glb (meshopt-komprimeret). claude.ai-versionen har modellen indlejret
+// som gzip/base64 i window.RYG_MODEL_GZ (uden meshopt, som kræver WebAssembly).
+async function hentModel(loader) {
+  if (window.RYG_MODEL_GZ) {
+    const bin = Uint8Array.from(atob(window.RYG_MODEL_GZ), (c) => c.charCodeAt(0));
+    const buf = await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream("gzip"))).arrayBuffer();
+    return loader.parseAsync(buf, "");
+  }
   loader.setMeshoptDecoder(MeshoptDecoder);
-  const gltf = await loader.loadAsync("model/l3-s1.glb");
+  return loader.loadAsync("model/l3-s1.glb");
+}
+
+async function indlaes() {
+  const gltf = await hentModel(new GLTFLoader());
   model = gltf.scene;
   const alle = [];
   model.traverse((o) => { if (o.isMesh) alle.push(o); });

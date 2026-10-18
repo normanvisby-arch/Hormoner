@@ -1,15 +1,28 @@
 const { chromium } = require('playwright');
 // Kør via tests/run_all.sh. Tester MR-columna i 3D (ryg/): tolkning af MR-beskrivelser, kobling til
 // 3D-modellens shape keys og rødder, redigering af fund, visninger og app (manifest, offline).
+// BASE kan pege på den byggede claude.ai-version (tools/ryg/byg_artifact.py); så springes app-delen over.
+// Den henter three.js fra jsDelivr — er nettet lukket, kan JSDELIVR_LOKAL pege på en lokal kopi af
+// npm-pakken three@0.170.0, som så bruges i stedet.
+const fs = require('fs');
+const path = require('path');
 const ROOT = process.env.BASE_URL || 'http://localhost:8795/';
 const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
 const APP = ROOT + 'ryg/';
+const SIDE = process.env.BASE || APP + 'index.html';
+const ARTIFACT = !!process.env.BASE;
 (async () => {
   const b = await chromium.launch({ executablePath: CHROMIUM, args: ['--enable-unsafe-swiftshader', '--use-angle=swiftshader'] });
   const ctx = await b.newContext({ viewport: { width: 1280, height: 900 } });
   const p = await ctx.newPage(); const errors = []; p.on('pageerror', (e) => errors.push(String(e)));
   let fails = 0; const check = (n, c, x = '') => { console.log((c ? 'PASS ' : 'FAIL ') + n + (x ? '  ' + x : '')); if (!c) fails++; };
-  await p.goto(APP + 'index.html');
+  if (process.env.JSDELIVR_LOKAL) {
+    await ctx.route('https://cdn.jsdelivr.net/npm/three@0.170.0/**', (r) => {
+      const fil = path.join(process.env.JSDELIVR_LOKAL, new URL(r.request().url()).pathname.replace('/npm/three@0.170.0/', ''));
+      r.fulfill({ status: 200, contentType: 'text/javascript', body: fs.readFileSync(fil) });
+    });
+  }
+  await p.goto(SIDE);
   const tolk = (t) => p.evaluate((t) => { const r = MR.tolk(t); return { fund: r.fund, neg: r.negerede, model: MR.model(r.fund, 'L4/L5', r.negerede) }; }, t);
   const find = (r, type) => r.fund.filter((f) => f.type === type);
   let r, f;
@@ -93,6 +106,11 @@ const APP = ROOT + 'ryg/';
   check('M14 restordre-hint findes ikke (ingen præparatvalg)', (await p.locator('.restordre-hint').count()) === 0);
 
   // ---------------- App ----------------
+  if (ARTIFACT) {
+    check('A0 artifact: ingen manifest eller installér-knap', (await p.locator('link[rel="manifest"]').count()) === 0 && (await p.locator('[data-install]').count()) === 0);
+    check('A7 JS-fejl', errors.length === 0, JSON.stringify(errors));
+    console.log('FAILS:', fails); await b.close(); return;
+  }
   const man = await (await p.request.get(APP + 'manifest.webmanifest')).json();
   check('A1 manifest', man.name === 'MR-columna i 3D' && man.start_url === 'index.html' && man.scope === './' && man.display === 'standalone');
   for (const ic of man.icons) check(`A2 ikon ${ic.src}`, (await p.request.get(APP + ic.src)).ok());
