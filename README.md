@@ -966,6 +966,13 @@ en server. Konsekvenser af det valg:
 
 ## Ændringslog
 
+**18. oktober 2026 — MR-columna i 3D: rolige navne:**
+- Navne og helingstekster skjules, mens modellen drejes, zoomes eller skifter visning, og vises,
+  når den står stille (modellen stopper nu, så snart man slipper — ingen efterglidning).
+- Rettet: "Korsben" (og andre punkter midt i billedet) sprang mellem venstre og højre kant; siden
+  skifter nu først, når punktet er et stykke over midten.
+- Test: `tests/ryg.test.js` (H11). Service workers hævet (style.css).
+
 **18. oktober 2026 — MR-columna i 3D: tekst uden for modellen:**
 - Navne og helingstekster står nu som billedtekster i venstre/højre kant af 3D-feltet med en tynd
   streg ind til strukturen, stablet uden overlap — de dækker ikke længere modellen.

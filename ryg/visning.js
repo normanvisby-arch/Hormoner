@@ -53,7 +53,10 @@ function lav() {
   camera = new THREE.PerspectiveCamera(32, 1, 0.005, 5);
   controls = new OrbitControls(camera, renderer.domElement);
   controls.target.copy(MAAL);
-  controls.enableDamping = true;
+  // Uden dæmpning står modellen stille, så snart brugeren slipper — så kan teksterne vises med det samme.
+  controls.enableDamping = false;
+  controls.addEventListener("start", () => { kamSidst.styrer = true; });
+  controls.addEventListener("end", () => { kamSidst.styrer = false; kamSidst.t = performance.now(); });
   controls.minDistance = 0.06;
   controls.maxDistance = 0.6;
   scene.add(new THREE.HemisphereLight(0xffffff, 0xa4a9b2, 1.1));
@@ -201,7 +204,18 @@ function lavEtiketter() {
 // Etiketter står som billedtekster i venstre og højre kant af 3D-feltet med en tynd streg ind til
 // strukturen, så de ikke dækker modellen. De stables uden overlap i den side, punktet ligger nærmest.
 let ledere = null;
+// Mens kameraet bevæger sig (drejning, zoom, skift af visning), skjules teksterne; de kommer
+// igen, når modellen har stået stille et øjeblik.
+const kamSidst = { p: new THREE.Vector3(), q: new THREE.Quaternion(), t: 0, styrer: false };
+function kameraBevaeger(nu) {
+  if (camera.position.distanceToSquared(kamSidst.p) > 1e-12 || 1 - Math.abs(camera.quaternion.dot(kamSidst.q)) > 1e-10) kamSidst.t = nu;
+  kamSidst.p.copy(camera.position); kamSidst.q.copy(camera.quaternion);
+  return kamSidst.styrer || !!flyt.til || nu - kamSidst.t < 250;
+}
 function opdaterEtiketter() {
+  const roterer = kameraBevaeger(performance.now());
+  boks.classList.toggle("ryg-roterer", roterer);
+  if (roterer) return;
   const vis = document.getElementById("visNavne")?.checked !== false;
   const w = boks.clientWidth, h = boks.clientHeight;
   const v = new THREE.Vector3();
@@ -229,8 +243,14 @@ function opdaterEtiketter() {
   }
   for (const s of synlige) { s.bw = s.e.el.offsetWidth; s.bh = s.e.el.offsetHeight; }
   const M = 8, GAP = 4;
+  // Siden følger punktets placering, men skifter først, når punktet er et stykke over midten
+  // (ellers springer fx "Korsben", der ligger midt i billedet, frem og tilbage).
+  for (const s of synlige) {
+    const z = Math.min(40, w * 0.08);
+    if (s.e.venstre === undefined || (s.e.venstre && s.ax > w / 2 + z) || (!s.e.venstre && s.ax < w / 2 - z)) s.e.venstre = s.ax < w / 2;
+  }
   for (const venstre of [true, false]) {
-    const grp = synlige.filter((s) => (s.ax < w / 2) === venstre).sort((a, b) => a.ay - b.ay);
+    const grp = synlige.filter((s) => s.e.venstre === venstre).sort((a, b) => a.ay - b.ay);
     let y = M;
     for (const s of grp) { s.y = Math.max(s.ay - s.bh / 2, y); y = s.y + s.bh + GAP; }
     // Løber stakken ud i bunden, skubbes den op igen.

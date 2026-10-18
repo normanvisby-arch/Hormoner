@@ -23,6 +23,7 @@ const ARTIFACT = !!process.env.BASE;
     });
   }
   await p.goto(SIDE);
+  check('H0 navne er slået fra som standard', !(await p.locator('#visNavne').isChecked()));
   const tolk = (t) => p.evaluate((t) => { const r = MR.tolk(t); return { fund: r.fund, neg: r.negerede, model: MR.model(r.fund, r.negerede) }; }, t);
   const find = (r, type) => r.fund.filter((f) => f.type === type);
   let r, f;
@@ -89,16 +90,27 @@ const ARTIFACT = !!process.env.BASE;
   const raekker = await p.locator('.ryg-fund-raekke').count();
   check('M5 fundliste med mindst 5 rækker', raekker >= 5, String(raekker));
   check('M6 forklaring til patienten nævner L5-roden', (await p.locator('#forklaring').innerText()).includes('L5-roden'));
+  // Navne skjules, mens modellen drejes, og vises igen, når den står stille
+  await p.check('#visNavne'); await p.waitForTimeout(500);
+  const lærred = await (await p.$('#visning canvas')).boundingBox();
+  await p.mouse.move(lærred.x + lærred.width / 2, lærred.y + lærred.height / 2); await p.mouse.down();
+  await p.mouse.move(lærred.x + lærred.width / 2 + 60, lærred.y + lærred.height / 2, { steps: 6 });
+  const underDrej = await p.evaluate(() => document.getElementById('visning').classList.contains('ryg-roterer'));
+  await p.mouse.up(); await p.waitForTimeout(1500);
+  const efter = await p.evaluate(() => ({ klasse: document.getElementById('visning').classList.contains('ryg-roterer'), navne: document.querySelectorAll('.ryg-label:not([hidden])').length }));
+  check('H11 navne skjult under drejning, vist igen bagefter', underDrej && !efter.klasse && efter.navne > 0, JSON.stringify({ underDrej, efter }));
+  await p.uncheck('#visNavne');
   // ---------------- Helingsforløbet ----------------
-  check('H0 navne er slået fra som standard', !(await p.locator('#visNavne').isChecked()));
+  
   check('H1 helingspanel klar ved prolaps', await p.locator('#helStart').isEnabled() && await p.locator('#helDetaljer').isVisible() && (await p.locator('#helType').innerText()).includes('ekstrusion'));
-  await p.locator('#helTid').fill('7'); await p.waitForTimeout(400);
+  await p.locator('#helTid').fill('7'); await p.waitForTimeout(1400);
   inf = await p.evaluate(() => window.RygVisning.influenser());
   let hel = await p.evaluate(() => ({ aktiv: window.RygVisning.helingAktiv, visning: window.RygVisning.visningNavn, fase: document.querySelector('#helFaser li.aktiv')?.dataset.fase, tekst: document.getElementById('helFaseTekst').innerText }));
   check('H2 uge 7: fase 2, prolapsen skrumper, andre fund skjult', hel.aktiv && hel.fase === '2' && hel.tekst.includes('Nedbrydningsfasen') && inf.L4L5_ekstrusion_paracentral_v > 0.3 && inf.L4L5_ekstrusion_paracentral_v < 0.95 && !inf.L5S1_foraminalstenose_h, JSON.stringify({ hel, inf }));
   check('H3 helingen skifter til snit fra siden', hel.visning === 'sagittal');
   const maal = await p.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-maal]')].map((b) => [b.dataset.maal, parseFloat(getComputedStyle(b).getPropertyValue('--v'))])));
   check('H4 uge 7: makrofager og udtørring aktive, smerte faldende', maal.makro > 0.8 && maal.tor > 0.3 && maal.smerte < 0.6 && maal.smerte > 0.45, JSON.stringify(maal));
+  await p.waitForFunction(() => document.querySelectorAll('.ryg-label-heling:not([hidden])').length > 0, null, { timeout: 4000 }).catch(() => {});
   const kant = await p.evaluate(() => { const b = document.getElementById('visning').getBoundingClientRect(); return [...document.querySelectorAll('.ryg-label-heling:not([hidden])')].map((e) => { const r = e.getBoundingClientRect(); return Math.min(r.left - b.left, b.right - r.right); }); });
   check('H10 helingstekster står i kanten af 3D-feltet (med streg ind)', kant.length > 0 && kant.every((d) => d <= 10) && (await p.locator('.ryg-ledere line').count()) >= kant.length, JSON.stringify(kant));
   await p.locator('#helTid').fill('26'); await p.waitForTimeout(400);

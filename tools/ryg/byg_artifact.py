@@ -145,8 +145,10 @@ CSS = """
 .ryg-ledere .l-h { stroke: #6f3fc2; }
 .ryg-ledere circle.l-h { fill: #6f3fc2; }
 .ryg-label { z-index: 1; }
+.ryg-label, .ryg-ledere { transition: opacity 0.2s; }
+.ryg-roterer .ryg-label, .ryg-roterer .ryg-ledere { opacity: 0; transition: none; }
 .ryg-label-heling { background: #6f3fc2; color: #fff; border-color: #4b2a85; }
-@media (prefers-reduced-motion: reduce) { .ryg-mek { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .ryg-mek, .ryg-label, .ryg-ledere { transition: none; } }
 </style>
 """
 
