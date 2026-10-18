@@ -105,21 +105,95 @@ const FORANDRING = new THREE.Color(0xe0603a);
 const HEL = { aktiv: false, s: {}, uni: { uInflam: { value: 0 }, uTor: { value: 0 }, uAr: { value: 0 }, uTid: { value: 0 } } };
 const NUL_UNI = { uInflam: { value: 0 }, uTor: { value: 0 }, uAr: { value: 0 }, uTid: { value: 0 } };
 const erProlaps = (k) => /_(protrusion|ekstrusion)_/.test(k);
-function markerForandring(m, heling) {
+// Fælles GLSL: værdistøj og cellestøj (Worley) til de procedurale teksturer.
+const STOEJ_GLSL = `
+  float hS(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
+  vec3 hS3(vec3 p) { return fract(sin(vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)))) * 43758.5453); }
+  float stoej(vec3 p) {
+    vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(mix(hS(i), hS(i + vec3(1, 0, 0)), f.x), mix(hS(i + vec3(0, 1, 0)), hS(i + vec3(1, 1, 0)), f.x), f.y),
+               mix(mix(hS(i + vec3(0, 0, 1)), hS(i + vec3(1, 0, 1)), f.x), mix(hS(i + vec3(0, 1, 1)), hS(i + vec3(1, 1, 1)), f.x), f.y), f.z);
+  }
+  vec2 worley(vec3 p) {
+    vec3 i = floor(p), f = fract(p); float d1 = 8.0, d2 = 8.0;
+    for (int x = -1; x <= 1; x++) for (int y = -1; y <= 1; y++) for (int z = -1; z <= 1; z++) {
+      vec3 g = vec3(float(x), float(y), float(z)); vec3 r = g + hS3(i + g) - f; float d = dot(r, r);
+      if (d < d1) { d2 = d1; d1 = d; } else if (d < d2) d2 = d;
+    }
+    return sqrt(vec2(d1, d2));
+  }`;
+const lin = (hex) => { const c = new THREE.Color(hex); return `vec3(${c.r.toFixed(4)}, ${c.g.toFixed(4)}, ${c.b.toFixed(4)})`; };
+
+// Snitflader: kappen er bagsiden af den lukkede flade, så fragmentet ligger på bagvæggen. Punktet
+// på selve snitfladen (sP) findes ved at forlænge synslinjen fra kameraet til snitplanet, og
+// teksturen beregnes dér. Afstanden fra snitfladen til bagvæggen (sL) er lille nær snittets kant
+// og bruges til knoglens kortikale skal.
+const SNIT = { uPlan: { value: new THREE.Vector4(0, 1, 0, 0) } };
+const HEL_GLSL = `
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.88, 0.16, 0.12), uInflam * (0.6 + 0.25 * sin(uTid * 4.0)));
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.76, 0.71, 0.55), uTor * 0.85);`;
+const SNIT_GLSL = {
+  // Spongiøs knogle: tynde, overvejende lodrette knoglebjælker om rødlige marvrum, og en tæt
+  // kortikal skal langs kanten.
+  knogle: `
+    vec2 w = worley(sP * vec3(1250.0, 760.0, 1250.0));
+    float trab = 1.0 - smoothstep(0.06, 0.26, w.y - w.x);
+    vec3 marv = mix(${lin(0xc98466)}, ${lin(0xb3634a)}, stoej(sP * 900.0));
+    vec3 c = mix(marv, ${lin(0xf0e4cb)}, trab);
+    c *= 0.93 + 0.1 * stoej(sP * 3000.0);
+    diffuseColor.rgb = mix(c, ${lin(0xf3ebd8)}, 1.0 - smoothstep(0.0007, 0.0016, sL));`,
+  // Annulus fibrosus: koncentriske lameller, der følger diskens omrids (afstandsfelt i uDiskTex,
+  // 0 i yderkanten og 1 ved kernen), med fine fibre og en blødere overgangszone mod kernen.
+  diskus: `
+    float t = texture2D(uDiskTex, vec2(dot(sP - uDiskO, uDiskU), dot(sP - uDiskO, uDiskV))).r;
+    float lam = 0.5 + 0.5 * cos((t + 0.02 * (stoej(sP * 400.0) - 0.5)) * 6.2832 * 10.0);
+    vec3 c = mix(${lin(0xc6d9ee)}, ${lin(0x8eafd8)}, smoothstep(0.3, 0.7, lam) * (1.0 - smoothstep(0.72, 0.95, t)));
+    c = mix(c, ${lin(0x86a9da)}, smoothstep(0.78, 1.0, t));
+    c *= 0.93 + 0.1 * stoej(sP * vec3(2600.0, 650.0, 2600.0));
+    diffuseColor.rgb = c;`,
+  // Nucleus pulposus: geléagtig, let marmoreret med lyse fibrøse strenge.
+  nucleus: `
+    float g = stoej(sP * 1400.0) * 0.6 + stoej(sP * 3800.0) * 0.4;
+    vec3 c = ${lin(0x5b8fd9)} * (0.88 + 0.2 * g);
+    c = mix(c, ${lin(0xc9dcf7)}, smoothstep(0.64, 0.76, stoej(sP * vec3(700.0, 2200.0, 700.0))) * 0.18);
+    diffuseColor.rgb = c;`,
+};
+
+// Fælles shadertilpasning: forandringsfarve (væv flyttet af en shape key), helingsfarver,
+// AO (vertexfarve bagt i Blender) og tekstur på snitflader.
+function tilpasShader(m, { forandring = false, heling = false, ao = false, snit = null, disk = null } = {}) {
   const u = heling ? HEL.uni : NUL_UNI;
+  if (ao) m.vertexColors = true;
+  // three.js genbruger et kompileret program ud fra onBeforeCompile's kildetekst, som er ens for
+  // alle varianter — nøglen skelner dem.
+  m.customProgramCacheKey = () => JSON.stringify([forandring, heling, ao, snit, !!disk]);
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uForandring = { value: FORANDRING };
-    Object.assign(sh.uniforms, u);
-    sh.vertexShader = sh.vertexShader
-      .replace("#include <common>", "#include <common>\nvarying float vForskyd;")
-      .replace("#include <morphtarget_vertex>", "#include <morphtarget_vertex>\nvForskyd = length(transformed - position);");
-    sh.fragmentShader = sh.fragmentShader
-      .replace("#include <common>", "#include <common>\nvarying float vForskyd;\nuniform vec3 uForandring;\nuniform float uInflam, uTor, uAr, uTid;")
-      .replace("#include <color_fragment>", `#include <color_fragment>
+    Object.assign(sh.uniforms, u, SNIT);
+    if (disk) Object.assign(sh.uniforms, { uDiskTex: { value: disk.tex }, uDiskO: { value: disk.o }, uDiskU: { value: disk.u }, uDiskV: { value: disk.v } });
+    let vert = "", frag = ao ? "#if defined(USE_COLOR) || defined(USE_COLOR_ALPHA)\n diffuseColor.rgb *= mix(vec3(1.0), vColor.rgb, 0.6);\n#endif\n" : "#include <color_fragment>\n";
+    if (forandring) vert += "vForskyd = length(transformed - position);\n";
+    if (snit) {
+      vert += "vVerden = (modelMatrix * vec4(transformed, 1.0)).xyz;\n";
+      frag += `{
+        vec3 sD = normalize(vVerden - cameraPosition); float sN = dot(uPlan.xyz, sD);
+        vec3 sP = abs(sN) > 1e-4 ? cameraPosition + sD * (-(dot(uPlan.xyz, cameraPosition) + uPlan.w) / sN) : vVerden;
+        float sL = distance(vVerden, sP);
+        ${SNIT_GLSL[snit === "prolaps" ? "nucleus" : snit]}
+        ${snit === "prolaps" ? HEL_GLSL : ""}
+      }\n`;
+    }
+    if (forandring) frag += `
         vec3 fF = mix(uForandring, vec3(0.86, 0.10, 0.08), uInflam * (0.7 + 0.3 * sin(uTid * 4.0)));
         fF = mix(fF, vec3(0.70, 0.68, 0.60), uTor * 0.75);
         fF = mix(fF, vec3(0.95, 0.93, 0.86), uAr);
-        diffuseColor.rgb = mix(diffuseColor.rgb, fF, smoothstep(0.0004, 0.002, vForskyd) * 0.85);`);
+        diffuseColor.rgb = mix(diffuseColor.rgb, fF, smoothstep(0.0004, 0.002, vForskyd) * 0.85);`;
+    sh.vertexShader = sh.vertexShader
+      .replace("#include <common>", "#include <common>\nvarying float vForskyd;\nvarying vec3 vVerden;")
+      .replace("#include <morphtarget_vertex>", "#include <morphtarget_vertex>\n" + vert);
+    sh.fragmentShader = sh.fragmentShader
+      .replace("#include <common>", `#include <common>\nvarying float vForskyd;\nvarying vec3 vVerden;\nuniform vec3 uForandring;\nuniform float uInflam, uTor, uAr, uTid;\nuniform vec4 uPlan;\n${disk ? "uniform sampler2D uDiskTex; uniform vec3 uDiskO, uDiskU, uDiskV;" : ""}\n${snit ? STOEJ_GLSL : ""}`)
+      .replace("#include <color_fragment>", frag);
   };
 }
 // Kernen (nucleus) holder sin farve, så den kan følges ud i en ekstrusion i snittene.
@@ -142,12 +216,7 @@ function prolapsMateriale() {
       .replace("#include <common>", `#include <common>
         varying vec3 vHvile;
         uniform float uInflam, uTor, uAr, uTid;
-        float hS(vec3 p) { return fract(sin(dot(p, vec3(12.9898, 78.233, 37.719))) * 43758.5453); }
-        float stoej(vec3 p) {
-          vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
-          return mix(mix(mix(hS(i), hS(i + vec3(1, 0, 0)), f.x), mix(hS(i + vec3(0, 1, 0)), hS(i + vec3(1, 1, 0)), f.x), f.y),
-                     mix(mix(hS(i + vec3(0, 0, 1)), hS(i + vec3(1, 0, 1)), f.x), mix(hS(i + vec3(0, 1, 1)), hS(i + vec3(1, 1, 1)), f.x), f.y), f.z);
-        }`)
+        ${STOEJ_GLSL}`)
       .replace("#include <color_fragment>", `#include <color_fragment>
         // Fibrøse striber i kernevævet (ses mest, når det er udtørret) og en lys, gennemskinnelig kerne.
         float st = stoej(vHvile * vec3(1.0, 3.0, 1.0)) * 0.6 + stoej(vHvile * 3.1) * 0.4;
@@ -166,10 +235,75 @@ function materiale(g) {
   if (g === "prolaps") return prolapsMateriale();
   if (g === "nucleus") return new THREE.MeshPhysicalMaterial({ color: FARVER.nucleus, roughness: 0.35, clearcoat: 0.8, clearcoatRoughness: 0.15, envMap: miljoe, envMapIntensity: 0.4 });
   const m = new THREE.MeshStandardMaterial({ color: FARVER[g], roughness: g === "knogle" ? 0.72 : 0.55, metalness: 0 });
-  if (MED_FORANDRING.includes(g)) markerForandring(m, g === "diskus");
+  if (MED_FORANDRING.includes(g)) tilpasShader(m, { forandring: true, heling: g === "diskus", ao: g === "knogle" });
   if (g === "dura") { m.transparent = true; m.opacity = 0.38; m.depthWrite = false; }
   if (g === "nerve") { m.emissive = new THREE.Color(0x000000); }
   return m;
+}
+
+// Afstandsfelt til annulus' lameller: disken og dens kerne projiceres ned i diskens eget plan
+// (normalen er den korteste hovedakse), rastreres til 128 × 128 felter, og for hvert felt i disken
+// gemmes t = afstand til yderkanten / (afstand til yderkanten + afstand til kernen).
+function diskFelt(disk, alle) {
+  const N = 128;
+  const kerne = alle.find((o) => o.name === disk.name.replace("Disc_", "Nucleus_"));
+  const punkter = (o) => {
+    o.updateMatrixWorld(true);
+    const pos = o.geometry.attributes.position, v = new THREE.Vector3(), ud = [];
+    for (let i = 0; i < pos.count; i++) ud.push(v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld).clone());
+    return ud;
+  };
+  const P = punkter(disk);
+  const c = P.reduce((a, p) => a.add(p), new THREE.Vector3()).multiplyScalar(1 / P.length);
+  const C = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+  for (const p of P) { const d = [p.x - c.x, p.y - c.y, p.z - c.z]; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) C[i * 3 + j] += d[i] * d[j]; }
+  // Mindste egenvektor = største egenvektor af (spor · I − C), fundet med potensmetoden.
+  const tr = C[0] + C[4] + C[8];
+  let n = new THREE.Vector3(0, 1, 0);
+  for (let k = 0; k < 60; k++) {
+    n = new THREE.Vector3(tr * n.x - (C[0] * n.x + C[1] * n.y + C[2] * n.z), tr * n.y - (C[3] * n.x + C[4] * n.y + C[5] * n.z), tr * n.z - (C[6] * n.x + C[7] * n.y + C[8] * n.z)).normalize();
+  }
+  const ua = new THREE.Vector3(1, 0, 0).addScaledVector(n, -n.x).normalize(), va = new THREE.Vector3().crossVectors(n, ua);
+  let min = [1e9, 1e9], max = [-1e9, -1e9];
+  for (const p of P) { const a = p.clone().sub(c); const x = a.dot(ua), y = a.dot(va); min = [Math.min(min[0], x), Math.min(min[1], y)]; max = [Math.max(max[0], x), Math.max(max[1], y)]; }
+  const str = Math.max(max[0] - min[0], max[1] - min[1]) + 0.004;
+  const o = c.clone().addScaledVector(ua, min[0] - 0.002).addScaledVector(va, min[1] - 0.002);
+  const tilPx = (p) => { const a = p.clone().sub(o); return [(a.dot(ua) / str) * N, (a.dot(va) / str) * N]; };
+  const maske = (obj, pts) => {
+    const m = new Uint8Array(N * N); if (!obj) return m;
+    const idx = obj.geometry.index, px = pts.map(tilPx);
+    const tri = idx ? (i) => idx.getX(i) : (i) => i, nT = (idx ? idx.count : px.length) / 3;
+    for (let t = 0; t < nT; t++) {
+      const [a, b, d] = [px[tri(3 * t)], px[tri(3 * t + 1)], px[tri(3 * t + 2)]];
+      const area = (b[0] - a[0]) * (d[1] - a[1]) - (d[0] - a[0]) * (b[1] - a[1]);
+      if (Math.abs(area) < 1e-9) continue;
+      for (let y = Math.max(0, Math.floor(Math.min(a[1], b[1], d[1]))); y <= Math.min(N - 1, Math.ceil(Math.max(a[1], b[1], d[1]))); y++)
+        for (let x = Math.max(0, Math.floor(Math.min(a[0], b[0], d[0]))); x <= Math.min(N - 1, Math.ceil(Math.max(a[0], b[0], d[0]))); x++) {
+          const qx = x + 0.5, qy = y + 0.5;
+          const w1 = ((b[0] - qx) * (d[1] - qy) - (d[0] - qx) * (b[1] - qy)) / area, w2 = ((d[0] - qx) * (a[1] - qy) - (a[0] - qx) * (d[1] - qy)) / area;
+          if (w1 >= 0 && w2 >= 0 && w1 + w2 <= 1) m[y * N + x] = 1;
+        }
+    }
+    return m;
+  };
+  const mD = maske(disk, P), mK = maske(kerne, kerne ? punkter(kerne) : []);
+  // Chamfer-afstand (3-4) i to gennemløb: afstand til nærmeste felt, hvor kilde(i) er sand.
+  const afstand = (kilde) => {
+    const d = new Float32Array(N * N).map((_, i) => (kilde(i) ? 0 : 1e9));
+    const s = (i, j, w) => { if (d[j] + w < d[i]) d[i] = d[j] + w; };
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { const i = y * N + x; if (x) s(i, i - 1, 3); if (y) { s(i, i - N, 3); if (x) s(i, i - N - 1, 4); if (x < N - 1) s(i, i - N + 1, 4); } }
+    for (let y = N - 1; y >= 0; y--) for (let x = N - 1; x >= 0; x--) { const i = y * N + x; if (x < N - 1) s(i, i + 1, 3); if (y < N - 1) { s(i, i + N, 3); if (x < N - 1) s(i, i + N + 1, 4); if (x) s(i, i + N - 1, 4); } }
+    return d;
+  };
+  const dUd = afstand((i) => !mD[i]), dK = afstand((i) => mK[i]);
+  const data = new Uint8Array(N * N * 4);
+  for (let i = 0; i < N * N; i++) {
+    const t = mK[i] ? 1 : mD[i] ? dUd[i] / (dUd[i] + dK[i] + 1e-6) : 0;
+    data.set([Math.round(t * 255), mD[i] * 255, 0, 255], i * 4);
+  }
+  const tex = new THREE.DataTexture(data, N, N, THREE.RGBAFormat);
+  tex.magFilter = tex.minFilter = THREE.LinearFilter; tex.needsUpdate = true;
+  return { tex, o, u: ua.clone().multiplyScalar(1 / str), v: va.clone().multiplyScalar(1 / str) };
 }
 
 // Appen henter model/l3-s1.glb (meshopt-komprimeret). claude.ai-versionen har modellen indlejret
@@ -196,7 +330,8 @@ async function indlaes() {
     o.renderOrder = g === "dura" ? 2 : 0;
     // "Kappe": bagsiden tegnes ensfarvet, så snitflader ser fyldte ud.
     const km = new THREE.MeshBasicMaterial({ color: KAPPE[g] ?? FARVER[g], side: THREE.BackSide, toneMapped: false });
-    if (MED_FORANDRING.includes(g)) markerForandring(km, g === "diskus");
+    const snit = SNIT_GLSL[g] || g === "prolaps" ? g : null;
+    if (MED_FORANDRING.includes(g) || snit) tilpasShader(km, { forandring: MED_FORANDRING.includes(g), heling: g === "diskus" || g === "prolaps", snit, disk: g === "diskus" ? diskFelt(o, alle) : null });
     const kappe = new THREE.Mesh(o.geometry, km);
     kappe.morphTargetInfluences = o.morphTargetInfluences;
     kappe.morphTargetDictionary = o.morphTargetDictionary;
@@ -358,6 +493,7 @@ function saetVisning(navn, straks) {
   if (straks) { camera.position.copy(pos); controls.target.copy(MAAL); }
   else { flyt.fra = camera.position.clone(); flyt.til = pos; flyt.t0 = performance.now(); controls.target.copy(MAAL); }
   const pl = snitPlan();
+  if (pl) SNIT.uPlan.value.set(pl.normal.x, pl.normal.y, pl.normal.z, pl.constant);
   for (const m of meshes) {
     m.mesh.material.clippingPlanes = pl ? [pl] : [];
     m.kappe.material.clippingPlanes = pl ? [pl] : [];

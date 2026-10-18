@@ -228,6 +228,34 @@ for n in ('Nucleus_L3L4', 'Nucleus_L4L5', 'Nucleus_L5S1'):
     subdivider(O[n], 1)
 for o in O.values(): glat(o)
 
+# ---------------------------------------------------------------- diskene lægges ind til endepladerne
+# I Z-Anatomy stikker diskenes over- og underflade nogle steder ind i hvirvellegemerne og står andre
+# steder lidt fra. Det ses i snittene (knoglens endeplade dækker disken). Diskens flader, der vender
+# mod en endeplade inden for 2,5 mm, flyttes ud til knoglefladen (0,05 mm uden for den); kernens
+# punkter inde i knoglen trækkes 0,4 mm ind i disken. Bagefter udjævnes de flyttede punkter.
+def endeplader():
+    for niv, ben in {'L3L4': ('L3', 'L4'), 'L4L5': ('L4', 'L5'), 'L5S1': ('L5', 'Sacrum')}.items():
+        t = bvh(list(ben))
+        for navn, kun_inde, margin in ((f'Disc_{niv}', False, 0.05 * mm), (f'Nucleus_{niv}', True, -0.4 * mm)):
+            me = O[navn].data; ny = {}
+            for v in me.vertices:
+                loc, nor, idx, d = t.find_nearest(v.co)
+                if loc is None or d > 2.5 * mm: continue
+                inde = (v.co - loc).dot(nor) < 0
+                if (kun_inde and not inde) or (not kun_inde and v.normal.dot(-nor) < 0.5): continue
+                ny[v.index] = loc + nor * margin
+            nab = {i: [] for i in ny}
+            for e in me.edges:
+                a, b = e.vertices
+                if a in nab: nab[a].append(b)
+                if b in nab: nab[b].append(a)
+            for i, p in ny.items(): me.vertices[i].co = p
+            for _ in range(2):
+                pos = {i: sum((me.vertices[j].co for j in nab[i]), me.vertices[i].co.copy()) / (1 + len(nab[i])) for i in ny}
+                for i, p in pos.items(): me.vertices[i].co = p
+            print('endeplade', navn, len(ny), 'punkter')
+endeplader()
+
 # ---------------------------------------------------------------- facetled L3/L4, L4/L5 og L5/S1
 # Ledfladerne findes som punkter på den nederste hvirvels øvre ledtap, der ligger tæt på den
 # øverste hvirvels nedre ledtap (bag kanalens forkant og lateralt for midtlinjen).
@@ -281,8 +309,37 @@ def gruppe(n):
 for n, o in O.items():
     o.data.materials.clear(); o.data.materials.append(mat(gruppe(n)))
 
+# ---------------------------------------------------------------- ambient occlusion på knoglerne
+# Bages med Cycles som vertexfarve (AO, 1 = frit, 0 = helt skygget) i hvileformen, med de andre
+# knogler og diskene som skyggegivere (ledbånd, sæk og nerver tæller ikke med). Vertexfarver kræver
+# ingen UV-udfoldning; knoglerne er tætte nok til, at skyggerne bliver bløde. Viseren blander AO'en
+# ind i knoglernes farve.
+def bag_ao(navne, afstand=6 * mm, samples=128, glat_trin=2):
+    sc = bpy.context.scene; sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = samples
+    if not sc.world: sc.world = bpy.data.worlds.new('Verden')
+    sc.world.light_settings.distance = afstand
+    sc.render.bake.target = 'VERTEX_COLORS'
+    skygge = {n for n in O if gruppe(n) in ('knogle', 'diskus')}
+    for n, o in O.items(): o.hide_render = n not in skygge
+    for n in navne:
+        o = O[n]
+        ca = o.data.color_attributes.new('AO', 'BYTE_COLOR', 'POINT')
+        o.data.color_attributes.active_color = ca
+        bpy.ops.object.select_all(action='DESELECT'); o.select_set(True); bpy.context.view_layer.objects.active = o
+        bpy.ops.object.bake(type='AO')
+        # Udjævn støjen: gennemsnit med nabopunkterne nogle gange.
+        nab = [[] for _ in o.data.vertices]
+        for e in o.data.edges: a, b = e.vertices; nab[a].append(b); nab[b].append(a)
+        v = [ca.data[i].color[0] for i in range(len(ca.data))]
+        for _ in range(glat_trin):
+            v = [(v[i] + sum(v[j] for j in nab[i])) / (1 + len(nab[i])) for i in range(len(v))]
+        for i, x in enumerate(v): ca.data[i].color = (x, x, x, 1)
+    for o in O.values(): o.hide_render = False
+bag_ao([n for n in O if gruppe(n) == 'knogle'])
+
 bpy.ops.export_scene.gltf(filepath=OUT, export_format='GLB', export_yup=True, export_apply=False,
-                          export_morph=True, export_morph_normal=True, export_materials='EXPORT')
+                          export_morph=True, export_morph_normal=True, export_materials='EXPORT',
+                          export_vertex_color='ACTIVE')
 import json
 json.dump({'keys': KEYS, 'facet': {niv: {s: [list(c), list(n)] for s, (c, n) in d.items()} for niv, d in fac.items()}}, open(OUT + '.json', 'w'))
 print('OK', len(O), 'objekter')

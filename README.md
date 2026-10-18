@@ -602,7 +602,13 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
   placering og for "Normal ↔ Med fund", så patienten kan se forskellen. Væv, der er flyttet af
   patologien, farves orangerødt; klemte rødder røde. Prolapsmassen er blank og geléagtig (kernevæv,
   med blød refleksion fra et indbygget "rum"); når et fund vises, kommer de øvrige forandringer
-  først, og prolapsen presses derefter ud gennem sprækken med en blød opbremsning (ca. 2,6 s). Navne står som billedtekster i kanten med streg ind til strukturen (slået fra som standard). Durasæk og ledbånd kan slås fra, og
+  først, og prolapsen presses derefter ud gennem sprækken med en blød opbremsning (ca. 2,6 s).
+  Snitflader har procedurale teksturer, beregnet i shaderen på det punkt, hvor synslinjen rammer
+  snitplanet (ingen billedfiler): annulus fibrosus med koncentriske lameller, der følger diskens
+  omrids (afstandsfelt beregnet ved indlæsning ud fra disken og kernen projiceret i diskens plan),
+  spongiøs knogle med overvejende lodrette knoglebjælker om rødlige marvrum og en kortikal skal
+  langs kanten, og en marmoreret, geléagtig kerne. Knoglerne har bagt ambient occlusion (bløde
+  skygger i fordybninger og led). Navne står som billedtekster i kanten med streg ind til strukturen (slået fra som standard). Durasæk og ledbånd kan slås fra, og
   knoglerne kan gøres gennemsigtige.
 - **Helingsforløbet (`ryg/heling.js`):** pædagogisk animation af en diskusprolaps' heling over 26 uger
   (afspil, træk i tidslinjen eller klik i grafen). Modellen viser kun prolapsen, som skrumper mod en
@@ -623,11 +629,15 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
   udbredelse (L4: forside af knæ/inderside af underben, knæstrækning; L5: yderside af underben,
   fodryg og storetå, løft af fod/storetå; S1: yderside af fod og lilletå, tågang) og en påmindelse
   om, at fundene også ses hos mange uden smerter.
-- **3D-modellen (`ryg/model/l3-s1.glb`, 3,6 MB):** bearbejdning af Z-Anatomy (CC BY-SA 4.0, afledt
+- **3D-modellen (`ryg/model/l3-s1.glb`, 3,7 MB):** bearbejdning af Z-Anatomy (CC BY-SA 4.0, afledt
   af BodyParts3D) via Svitylo-atlassets datapakke på npm (`@authorod/svitylo-3d-anatomy-data`
   1.2.0). Se `ryg/model/LICENS.txt`.
   - Fra Z-Anatomy: L3, L4, L5, sacrum, diskene og nucleus L3/L4–L5/S1, lig. flavum, PLL og ALL.
-    Hvirvler og diske er glattet med subdivision.
+    Hvirvler og diske er glattet med subdivision. Diskenes over- og underflade er lagt ind til
+    endepladerne (i Z-Anatomy stak de nogle steder ind i knoglen og stod andre steder fra), og
+    kernens punkter inde i knoglen er trukket ind i disken.
+  - Ambient occlusion på knoglerne er bagt i Blender (Cycles, 6 mm, 128 samples, knogler og diske
+    som skyggegivere) som vertexfarve og udjævnet; ingen UV-udfoldning.
   - Bygget på ny, fordi Z-Anatomys dura stopper ved L3, og rødderne kun er tynde streger: durasækken
     følger den målte spinalkanal (strålesøgning; ca. 1 mm epiduralrum fortil, 2,5 mm bagtil, højst
     17 × 14 mm, afrundet bund ved S2). Rødderne L3–S1 er rør (0,9 mm intratekalt, 1,4 mm i manchetten,
@@ -975,6 +985,14 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**18. oktober 2026 — MR-columna i 3D: teksturer:**
+- Snitflader har nu teksturer: lameller i annulus fibrosus, spongiøs knogle med marvrum og kortikal
+  skal og en marmoreret kerne. Teksturerne er procedurale (beregnes i grafikkortet), så modellen ikke
+  bliver større.
+- Knoglerne har bagte bløde skygger (ambient occlusion), som giver mere dybde i 3D.
+- Rettet: diskene stak nogle steder ind i endepladerne, så knoglen dækkede disken i snittet ovenfra.
+- Service worker hævet (ryg).
 
 **18. oktober 2026 — MR-columna i 3D: mere naturtro prolaps:**
 - Prolapsen er nu en særskilt, blank og geléagtig masse af kernevæv, der presses ud gennem en
