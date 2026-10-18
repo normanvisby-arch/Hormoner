@@ -99,6 +99,8 @@ const ARTIFACT = !!process.env.BASE;
   check('H3 helingen skifter til snit fra siden', hel.visning === 'sagittal');
   const maal = await p.evaluate(() => Object.fromEntries([...document.querySelectorAll('[data-maal]')].map((b) => [b.dataset.maal, parseFloat(getComputedStyle(b).getPropertyValue('--v'))])));
   check('H4 uge 7: makrofager og udtørring aktive, smerte faldende', maal.makro > 0.8 && maal.tor > 0.3 && maal.smerte < 0.6 && maal.smerte > 0.45, JSON.stringify(maal));
+  const kant = await p.evaluate(() => { const b = document.getElementById('visning').getBoundingClientRect(); return [...document.querySelectorAll('.ryg-label-heling:not([hidden])')].map((e) => { const r = e.getBoundingClientRect(); return Math.min(r.left - b.left, b.right - r.right); }); });
+  check('H10 helingstekster står i kanten af 3D-feltet (med streg ind)', kant.length > 0 && kant.every((d) => d <= 10) && (await p.locator('.ryg-ledere line').count()) >= kant.length, JSON.stringify(kant));
   await p.locator('#helTid').fill('26'); await p.waitForTimeout(400);
   inf = await p.evaluate(() => window.RygVisning.influenser());
   check('H5 uge 26: ekstrusion skrumpet til ca. 30 %, fase 3', Math.abs(inf.L4L5_ekstrusion_paracentral_v - 0.3) < 0.03 && (await p.evaluate(() => document.querySelector('#helFaser li.aktiv')?.dataset.fase)) === '3', JSON.stringify(inf));

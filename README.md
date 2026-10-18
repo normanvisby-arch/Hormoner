@@ -597,7 +597,7 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
   Det aksiale snit ses nedefra som et MR-billede (patientens højre i billedets venstre side, fortil
   opad), det sagittale fra den side, fundet sidder, med snittet gennem fundet. Skyder for snittets
   placering og for "Normal ↔ Med fund", så patienten kan se forskellen. Væv, der er flyttet af
-  patologien, farves orangerødt; klemte rødder røde. Durasæk, ledbånd og navne kan slås fra, og
+  patologien, farves orangerødt; klemte rødder røde. Navne står som billedtekster i kanten med streg ind til strukturen (slået fra som standard). Durasæk og ledbånd kan slås fra, og
   knoglerne kan gøres gennemsigtige.
 - **Helingsforløbet (`ryg/heling.js`):** pædagogisk animation af en diskusprolaps' heling over 26 uger
   (afspil, træk i tidslinjen eller klik i grafen). Modellen viser kun prolapsen, som skrumper mod en
@@ -965,6 +965,12 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**18. oktober 2026 — MR-columna i 3D: tekst uden for modellen:**
+- Navne og helingstekster står nu som billedtekster i venstre/højre kant af 3D-feltet med en tynd
+  streg ind til strukturen, stablet uden overlap — de dækker ikke længere modellen.
+- Rettet: på mobil skiftede siden ikke til én kolonne, så 3D-feltet var meget smalt.
+- Test: `tests/ryg.test.js` (H10). Service workers hævet (style.css).
 
 **18. oktober 2026 — MR-columna i 3D: helingsforløb og navne fra:**
 - Navne i 3D-modellen er nu slået fra som standard.

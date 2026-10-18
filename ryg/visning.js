@@ -198,32 +198,59 @@ function lavEtiketter() {
   }
 }
 
+// Etiketter står som billedtekster i venstre og højre kant af 3D-feltet med en tynd streg ind til
+// strukturen, så de ikke dækker modellen. De stables uden overlap i den side, punktet ligger nærmest.
+let ledere = null;
 function opdaterEtiketter() {
   const vis = document.getElementById("visNavne")?.checked !== false;
   const w = boks.clientWidth, h = boks.clientHeight;
   const v = new THREE.Vector3();
   const kamRet = new THREE.Vector3(); camera.getWorldDirection(kamRet);
+  const synlige = [];
   for (const e of etiketter) {
+    let p = null, kl = "n";
     if (e.dyn) {
       // Helingsetiketter vises altid under forløbet (også når "Navne" er slået fra).
-      const p = e.dyn();
-      e.el.hidden = !p;
-      if (!p) continue;
-      v.copy(p).project(camera);
-      e.el.style.transform = `translate(${((v.x + 1) / 2) * w}px, ${((1 - v.y) / 2) * h}px) translate(-50%, -50%)`;
-      continue;
+      p = e.dyn(); kl = "h";
+    } else {
+      const fremhaevet = e.rod && tilstand.roder[e.rod];
+      v.copy(e.p).project(camera);
+      const tilKamera = e.p.clone().sub(camera.position).normalize();
+      const synlig = vis && v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05 && (!e.rod || fremhaevet) && (!e.niv || e.niv === tilstand.niveau) && !bortskaaret(e.p) && tilKamera.dot(kamRet) > 0 && !(e.ikkeISnit && VISNINGER[tilstand.visning].snit === "aksial");
+      if (synlig) p = e.p;
+      e.el.classList.toggle("ryg-label-roed", !!fremhaevet && !fremhaevet.afledt);
+      e.el.classList.toggle("ryg-label-orange", !!fremhaevet && fremhaevet.afledt);
+      if (fremhaevet) kl = fremhaevet.afledt ? "o" : "r";
     }
-    const fremhaevet = e.rod && tilstand.roder[e.rod];
-    v.copy(e.p).project(camera);
-    // Skjul etiketter på den bortvendte side og i snitvisning den bortskårne del
-    const tilKamera = e.p.clone().sub(camera.position).normalize();
-    const synlig = vis && v.z < 1 && Math.abs(v.x) < 1.05 && Math.abs(v.y) < 1.05 && (!e.rod || fremhaevet) && (!e.niv || e.niv === tilstand.niveau) && !bortskaaret(e.p) && tilKamera.dot(kamRet) > 0 && !(e.ikkeISnit && VISNINGER[tilstand.visning].snit === "aksial");
-    e.el.hidden = !synlig;
-    if (!synlig) continue;
-    e.el.style.transform = `translate(${((v.x + 1) / 2) * w}px, ${((1 - v.y) / 2) * h}px) translate(-50%, -50%)`;
-    e.el.classList.toggle("ryg-label-roed", !!fremhaevet && !fremhaevet.afledt);
-    e.el.classList.toggle("ryg-label-orange", !!fremhaevet && fremhaevet.afledt);
+    e.el.hidden = !p;
+    if (!p) continue;
+    v.copy(p).project(camera);
+    synlige.push({ e, kl, ax: ((v.x + 1) / 2) * w, ay: ((1 - v.y) / 2) * h });
   }
+  for (const s of synlige) { s.bw = s.e.el.offsetWidth; s.bh = s.e.el.offsetHeight; }
+  const M = 8, GAP = 4;
+  for (const venstre of [true, false]) {
+    const grp = synlige.filter((s) => (s.ax < w / 2) === venstre).sort((a, b) => a.ay - b.ay);
+    let y = M;
+    for (const s of grp) { s.y = Math.max(s.ay - s.bh / 2, y); y = s.y + s.bh + GAP; }
+    // Løber stakken ud i bunden, skubbes den op igen.
+    let grense = h - M;
+    for (let i = grp.length - 1; i >= 0; i--) { const s = grp[i]; s.y = Math.max(M, Math.min(s.y, grense - s.bh)); grense = s.y - GAP; }
+    for (const s of grp) { s.x = venstre ? M : w - M - s.bw; s.venstre = venstre; }
+  }
+  let svg = "";
+  for (const s of synlige) {
+    s.e.el.style.transform = `translate(${s.x}px, ${s.y}px)`;
+    const lx = s.venstre ? s.x + s.bw : s.x, ly = s.y + s.bh / 2;
+    svg += `<line class="l-${s.kl}" x1="${lx.toFixed(1)}" y1="${ly.toFixed(1)}" x2="${s.ax.toFixed(1)}" y2="${s.ay.toFixed(1)}"></line><circle class="l-${s.kl}" cx="${s.ax.toFixed(1)}" cy="${s.ay.toFixed(1)}" r="2.5"></circle>`;
+  }
+  if (!ledere) {
+    ledere = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    ledere.setAttribute("class", "ryg-ledere");
+    ledere.setAttribute("aria-hidden", "true");
+    boks.appendChild(ledere);
+  }
+  ledere.innerHTML = svg;
 }
 
 function snitPlan() {

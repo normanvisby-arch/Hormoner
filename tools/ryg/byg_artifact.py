@@ -79,7 +79,7 @@ CSS = """
   .ryg-prik-gul { background: #f0dc8c; border: 1px solid #c9b25a; }
   .ryg-prik-blaa { background: #86a8ee; }
   .btn-outline[data-visning] { padding: 0.3rem 0.65rem; }
-  @media (max-width: 880px) { .ryg-visning-panel { position: static; } .ryg-visning { height: 62vh; } }
+  @media (max-width: 880px) { .ryg-visning-panel { position: static; max-height: none; } .ryg-visning { height: 62vh; } }
 .ryg-hel-detaljer { max-width: 1160px; margin: 0 auto 1.2rem; padding-inline: 1.1rem; display: flex; flex-direction: column; gap: 0.8rem; }
 .ryg-hel-detaljer h2 { margin: 0; font-size: 1.05rem; color: var(--primary-dark); }
 .ryg-hel-detaljer > .field-hint { margin: 0; }
@@ -135,6 +135,16 @@ CSS = """
 .ryg-evidens { font-size: 0.84rem; color: var(--text-muted); display: flex; flex-direction: column; gap: 0.4rem; }
 .ryg-evidens p { margin: 0; }
 .ryg-advarsel-boks { color: var(--red-text) !important; background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 6px; padding: 0.4rem 0.6rem; }
+.ryg-ledere { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.ryg-ledere line { stroke: var(--label-fg); stroke-width: 1.2; opacity: 0.75; }
+.ryg-ledere circle { fill: var(--label-fg); stroke: var(--label-bg); stroke-width: 1; }
+.ryg-ledere .l-r { stroke: #d62828; }
+.ryg-ledere circle.l-r { fill: #d62828; }
+.ryg-ledere .l-o { stroke: #d17a00; }
+.ryg-ledere circle.l-o { fill: #f08c00; }
+.ryg-ledere .l-h { stroke: #6f3fc2; }
+.ryg-ledere circle.l-h { fill: #6f3fc2; }
+.ryg-label { z-index: 1; }
 .ryg-label-heling { background: #6f3fc2; color: #fff; border-color: #4b2a85; }
 @media (prefers-reduced-motion: reduce) { .ryg-mek { transition: none; } }
 </style>

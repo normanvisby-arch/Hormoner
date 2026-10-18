@@ -972,9 +972,20 @@ textarea.ekg-maskine { width: 100%; box-sizing: border-box; font: inherit; font-
 .ryg-evidens { font-size: 0.84rem; color: var(--color-muted); display: flex; flex-direction: column; gap: 0.4rem; }
 .ryg-evidens p { margin: 0; }
 .ryg-advarsel-boks { color: var(--color-red-text) !important; background: var(--color-red-bg); border: 1px solid var(--color-red-border); border-radius: 6px; padding: 0.4rem 0.6rem; }
+.ryg-ledere { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.ryg-ledere line { stroke: #1f2933; stroke-width: 1.2; opacity: 0.75; }
+.ryg-ledere circle { fill: #1f2933; stroke: #fff; stroke-width: 1; }
+.ryg-ledere .l-r { stroke: #d62828; }
+.ryg-ledere circle.l-r { fill: #d62828; }
+.ryg-ledere .l-o { stroke: #d17a00; }
+.ryg-ledere circle.l-o { fill: #f08c00; }
+.ryg-ledere .l-h { stroke: #6f3fc2; }
+.ryg-ledere circle.l-h { fill: #6f3fc2; }
+.ryg-label { z-index: 1; }
 .ryg-label-heling { background: #6f3fc2; color: #fff; border-color: #4b2a85; }
 @media (prefers-reduced-motion: reduce) { .ryg-mek { transition: none; } }
 @media (max-width: 900px) {
-  .ryg-visning-panel { position: static; }
+  .ryg-layout { grid-template-columns: minmax(0, 1fr); }
+  .ryg-visning-panel { position: static; max-height: none; }
   .ryg-visning { height: 62vh; }
 }
