@@ -606,7 +606,7 @@ downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
   Snitflader har procedurale teksturer, beregnet i shaderen på det punkt, hvor synslinjen rammer
   snitplanet (ingen billedfiler): annulus fibrosus med koncentriske lameller, der følger diskens
   omrids (afstandsfelt beregnet ved indlæsning ud fra disken og kernen projiceret i diskens plan),
-  spongiøs knogle med overvejende lodrette knoglebjælker om rødlige marvrum og en kortikal skal
+  spongiøs knogle med overvejende lodrette knoglebjælker om dæmpet sandfarvede marvrum og en kortikal skal
   langs kanten, og en marmoreret, geléagtig kerne. Knoglerne har bagt ambient occlusion (bløde
   skygger i fordybninger og led). Navne står som billedtekster i kanten med streg ind til strukturen (slået fra som standard). Durasæk og ledbånd kan slås fra, og
   knoglerne kan gøres gennemsigtige.
@@ -985,6 +985,10 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**19. oktober 2026 — MR-columna i 3D: roligere knoglesnit:**
+- Marvrummene i knoglesnittene er nu dæmpet sandfarvede i stedet for rødlige og med lavere kontrast,
+  så de ikke stjæler opmærksomheden fra prolapsen og den klemte rod. Service worker hævet (ryg).
 
 **18. oktober 2026 — MR-columna i 3D: teksturer:**
 - Snitflader har nu teksturer: lameller i annulus fibrosus, spongiøs knogle med marvrum og kortikal

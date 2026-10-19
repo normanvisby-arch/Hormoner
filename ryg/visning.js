@@ -133,14 +133,16 @@ const HEL_GLSL = `
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.88, 0.16, 0.12), uInflam * (0.6 + 0.25 * sin(uTid * 4.0)));
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.76, 0.71, 0.55), uTor * 0.85);`;
 const SNIT_GLSL = {
-  // Spongiøs knogle: tynde, overvejende lodrette knoglebjælker om rødlige marvrum, og en tæt
+  // Spongiøs knogle: tynde, overvejende lodrette knoglebjælker om marvrum, og en tæt
   // kortikal skal langs kanten.
   knogle: `
     vec2 w = worley(sP * vec3(1250.0, 760.0, 1250.0));
     float trab = 1.0 - smoothstep(0.06, 0.26, w.y - w.x);
-    vec3 marv = mix(${lin(0xc98466)}, ${lin(0xb3634a)}, stoej(sP * 900.0));
-    vec3 c = mix(marv, ${lin(0xf0e4cb)}, trab);
-    c *= 0.93 + 0.1 * stoej(sP * 3000.0);
+    // Marvrummene er dæmpet sandfarvede (ikke røde), så snittet ikke tager opmærksomheden fra
+    // prolapsen og den klemte rod.
+    vec3 marv = mix(${lin(0xd6c19d)}, ${lin(0xcab190)}, stoej(sP * 900.0));
+    vec3 c = mix(marv, ${lin(0xeee5d2)}, trab * 0.85);
+    c *= 0.96 + 0.06 * stoej(sP * 3000.0);
     diffuseColor.rgb = mix(c, ${lin(0xf3ebd8)}, 1.0 - smoothstep(0.0007, 0.0016, sL));`,
   // Annulus fibrosus: koncentriske lameller, der følger diskens omrids (afstandsfelt i uDiskTex,
   // 0 i yderkanten og 1 ved kernen), med fine fibre og en blødere overgangszone mod kernen.
