@@ -1,0 +1,13 @@
+l3-s1.glb — 3D-model af lændesøjlen L3–S1 til MR-columna i 3D.
+
+Bearbejdning af "Z-Anatomy — The libre 3D atlas of anatomy" (Gauthier Kervyn, Marcin Zielinski m.fl.),
+som bygger på "BodyParts3D, © The Database Center for Life Science". Strukturerne er hentet fra
+Svitylo 3D Anatomy Atlas' datapakke (@authorod/svitylo-3d-anatomy-data 1.2.0, Z-Anatomy-commit
+e38ea5e6c7e22d229a975f3fde563a5aca52099e).
+
+Ændringer: L3, L4, L5, sacrum, diskene og nucleus L3/L4–L5/S1, lig. flavum, PLL og ALL er udtrukket
+og beskåret; hvirvler og diske er glattet (subdivision). Durasæk, nerverødder L3–S1 og cauda equina er
+bygget på ny, og patologi på L3/L4, L4/L5 og L5/S1 er tilføjet som morph targets. Fremstillet med tools/ryg/.
+
+Licens: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+https://creativecommons.org/licenses/by-sa/4.0/

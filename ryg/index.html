@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MR-columna i 3D (prototype)</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#2c5f7c">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="MR-ryg">
+<script type="importmap">{ "imports": { "three": "./lib/three.module.min.js" } }</script>
+</head>
+<body class="theme-ryg">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🦴</span>
+      <div>
+        <h1>MR-columna i 3D <span class="ryg-proto">prototype · L3–S1</span></h1>
+        <p class="subtitle">Indsæt MR-beskrivelsen af lænden — fundene vises på en 3D-model, du kan dreje og vise patienten</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost" type="button" data-install hidden>Installér som app</button>
+      <button id="rydBtn" class="btn btn-ghost" type="button">Ryd</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <span aria-current="page">MR-columna i 3D</span>
+  <a href="../oversigt.html">Alle værktøjer</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Illustration, ikke patientens billeder:</strong> Modellen viser et typisk udseende af de beskrevne fund på en standardryg. Størrelse og form er skematiske. Beskrivelsen tolkes kun i browseren med faste regler og sendes ingen steder hen — fjern alligevel navn og CPR-nummer, før du indsætter.
+</div>
+
+<a href="#visningPanel" class="mobile-jump" id="mobileJump">Se 3D-modellen ↓</a>
+
+<main class="layout ryg-layout">
+  <section class="panel" aria-label="MR-beskrivelse og fund">
+    <h2>1. MR-beskrivelse</h2>
+    <label for="mrTekst" class="sr-only">MR-beskrivelse</label>
+    <textarea id="mrTekst" class="ryg-tekst" rows="9" autocomplete="off" spellcheck="false" placeholder="Fx: L4/L5: Venstresidig paracentral diskusprolaps (ekstrusion), der komprimerer venstre L5-rod i recessus. Let foraminal stenose bilateralt. Facetledsartrose."></textarea>
+    <div class="udfyld-actions">
+      <button id="tolkBtn" class="btn btn-primary" type="button">Vis på modellen</button>
+      <button id="eksempelBtn" class="btn btn-outline" type="button">Indsæt eksempel</button>
+    </div>
+    <p id="cprAdvarsel" class="field-hint ryg-advarsel" hidden>Teksten ser ud til at indeholde et CPR-nummer. Det bruges ikke og vises ikke, men fjern det helst fra teksten.</p>
+
+    <h2 class="ryg-h2">2. Fund <span class="field-hint">— kontrollér og ret</span></h2>
+    <div id="fundListe" class="ryg-fund" aria-live="polite"><p class="field-hint">Indsæt en beskrivelse, eller tilføj fund nedenfor.</p></div>
+    <div class="ryg-tilfoej">
+      <label for="tilfoejValg" class="sr-only">Tilføj fund</label>
+      <select id="tilfoejValg">
+        <option value="">Tilføj fund …</option>
+        <option value="prolaps">Diskusprolaps</option>
+        <option value="bulging">Diskusbuling (bulging)</option>
+        <option value="spinalstenose">Central spinalstenose</option>
+        <option value="recesstenose">Recesstenose</option>
+        <option value="foraminalstenose">Foraminal stenose</option>
+        <option value="facetartrose">Facetledsartrose</option>
+        <option value="flavumhypertrofi">Flavumhypertrofi</option>
+        <option value="rod">Påvirket nerverod</option>
+      </select>
+    </div>
+    <div id="noter" class="ryg-noter"></div>
+
+    <h2 class="ryg-h2">3. Forklaring til patienten</h2>
+    <div id="forklaring" class="ryg-forklaring"><p class="field-hint">Forklaringen skrives ud fra fundene.</p></div>
+  </section>
+
+  <section class="panel ryg-visning-panel" aria-label="3D-model" id="visningPanel">
+    <div class="ryg-visninger" role="group" aria-label="Visning">
+      <button type="button" class="btn btn-small btn-outline" data-visning="3d" aria-pressed="true">3D</button>
+      <button type="button" class="btn btn-small btn-outline" data-visning="bag">Bagfra</button>
+      <button type="button" class="btn btn-small btn-outline" data-visning="koronal" title="Bagfra med hvirvelbuer, ledbånd og cauda equina skåret væk">Buer fjernet</button>
+      <button type="button" class="btn btn-small btn-outline" data-visning="venstre">Venstre side</button>
+      <button type="button" class="btn btn-small btn-outline" data-visning="hoejre">Højre side</button>
+      <button type="button" class="btn btn-small btn-outline" data-visning="aksial">Snit ovenfra</button>
+      <button type="button" class="btn btn-small btn-outline" data-visning="sagittal">Snit fra siden</button>
+    </div>
+    <div id="visning" class="ryg-visning" role="img" aria-label="3D-model af lændesøjlen L3 til korsbenet">
+      <p class="ryg-indlaeser" id="indlaeser">Indlæser 3D-model …</p>
+    </div>
+    <div class="ryg-kontrol">
+      <label class="ryg-slider">Normal <input type="range" id="fundStyrke" min="0" max="100" value="100" aria-label="Fra normal ryg til ryg med fund"> Med fund</label>
+      <label class="ryg-slider" id="snitKontrol" hidden>Snit <input type="range" id="snitPos" min="0" max="100" value="40" aria-label="Snitplanets placering"></label>
+      <div class="ryg-valg">
+        <label class="checkbox"><input type="checkbox" id="visDura" checked> Durasæk</label>
+        <label class="checkbox"><input type="checkbox" id="visLig" checked> Ledbånd</label>
+        <label class="checkbox"><input type="checkbox" id="glasKnogle"> Gennemsigtige knogler</label>
+        <label class="checkbox"><input type="checkbox" id="visNavne"> Navne</label>
+      </div>
+    </div>
+    <ul class="ryg-forklaring-farver">
+      <li><span class="ryg-prik ryg-prik-forandring"></span> Forandring (prolaps, fortykkelse, slid)</li>
+      <li><span class="ryg-prik ryg-prik-roed"></span> Klemt/påvirket nerverod</li>
+      <li><span class="ryg-prik ryg-prik-orange"></span> Nerverod, der typisk påvirkes af fundet</li>
+      <li><span class="ryg-prik ryg-prik-gul"></span> Normal nerverod</li>
+      <li><span class="ryg-prik ryg-prik-blaa"></span> Disk og durasæk</li>
+    </ul>
+    <section class="ryg-hel" id="helPanel" aria-label="Helingsforløbet">
+      <div class="ryg-hel-top">
+        <h3>Helingsforløbet <span class="field-hint" id="helType"></span></h3>
+        <div class="ryg-hel-knapper">
+          <button id="helStart" class="btn btn-small btn-primary" type="button" disabled>▶ Afspil helingen</button>
+          <button id="helStop" class="btn btn-small btn-outline" type="button" hidden>Tilbage til fundet</button>
+        </div>
+      </div>
+      <p id="helIngen" class="field-hint">Helingsforløbet kan vises, når der er en diskusprolaps blandt fundene.</p>
+      <div id="helIndhold" hidden>
+        <label class="ryg-slider ryg-hel-tid">Tid <input type="range" id="helTid" min="0" max="26" step="0.25" value="0" aria-label="Uger efter debut"> <output id="helTidTekst" for="helTid">Uge 0</output></label>
+        <ol class="ryg-faser" id="helFaser">
+          <li data-fase="1" data-uge="1"><button type="button"><strong>1. Den akutte fase</strong><span>Uge 1–4</span></button></li>
+          <li data-fase="2" data-uge="6"><button type="button"><strong>2. Nedbrydningsfasen</strong><span>Uge 4–12</span></button></li>
+          <li data-fase="3" data-uge="16"><button type="button"><strong>3. Stabiliseringsfasen</strong><span>Måned 3–6+</span></button></li>
+        </ol>
+        <p class="ryg-fasetekst" id="helFaseTekst"></p>
+      </div>
+    </section>
+
+  </section>
+</main>
+
+<section class="ryg-hel-detaljer" id="helDetaljer" aria-label="Sådan heler en diskusprolaps" hidden>
+  <h2>Sådan heler en diskusprolaps</h2>
+  <p class="field-hint">Kortene og grafen følger tidslinjen under 3D-modellen. Under helingsforløbet viser modellen kun prolapsen.</p>
+  <div class="ryg-mekanismer">
+    <div class="ryg-mek ryg-mek-inflam"><div class="ryg-mek-top"><strong>Immunrespons og inflammation</strong><span class="ryg-mek-tal">0 %</span></div><div class="ryg-maaler" data-maal="inflam"></div><p>Kroppen opfatter den udpressede kerne som fremmed. Der opstår en lokal betændelsesreaktion, og hvide blodlegemer (makrofager) sendes til området.</p></div>
+    <div class="ryg-mek ryg-mek-makro"><div class="ryg-mek-top"><strong>Makrofager nedbryder</strong><span class="ryg-mek-tal">0 %</span></div><div class="ryg-maaler" data-maal="makro"></div><p>Makrofagerne "spiser" og nedbryder det væv, der trykker på nerven (de lilla prikker i modellen).</p></div>
+    <div class="ryg-mek ryg-mek-tor"><div class="ryg-mek-top"><strong>Udtørring (dehydrering)</strong><span class="ryg-mek-tal">0 %</span></div><div class="ryg-maaler" data-maal="tor"></div><p>Kernen består mest af vand. Udenfor sine normale rammer mister den væsketilførslen, tørrer ind og skrumper, så trykket på nerven letter.</p></div>
+    <div class="ryg-mek ryg-mek-retr"><div class="ryg-mek-top"><strong>Tilbagetrækning (retraktion)</strong><span class="ryg-mek-tal">0 %</span></div><div class="ryg-maaler" data-maal="retr"></div><p>I nogle tilfælde glider materialet helt eller delvist tilbage på plads ved bevægelse og trykændringer i rygsøjlen (den blå pil).</p></div>
+    <div class="ryg-mek ryg-mek-ar"><div class="ryg-mek-top"><strong>Arvæv i diskens ydre ring</strong><span class="ryg-mek-tal">0 %</span></div><div class="ryg-maaler" data-maal="ar"></div><p>Sprækken i annulus fibrosus heler med arvæv og lukker sig, og segmentet bliver mere stabilt.</p></div>
+    <div class="ryg-mek ryg-mek-status"><div class="ryg-mek-top"><strong>Prolapsens størrelse</strong><span class="ryg-mek-tal">100 %</span></div><div class="ryg-maaler" data-maal="storrelse"></div><div class="ryg-mek-top"><strong>Typisk smerte</strong><span class="ryg-mek-tal">100 %</span></div><div class="ryg-maaler" data-maal="smerte"></div></div>
+  </div>
+  <figure class="ryg-graf">
+    <figcaption>Typisk forløb over et halvt år <span class="field-hint">— klik i grafen for at gå til et tidspunkt</span></figcaption>
+    <ul class="ryg-g-legende"><li><i class="ryg-g-nogle s1"></i>Prolapsens størrelse</li><li><i class="ryg-g-nogle s2"></i>Inflammation</li><li><i class="ryg-g-nogle s3 stiplet"></i>Typisk smerte</li></ul>
+    <div id="helGraf" class="ryg-g"></div>
+  </figure>
+  <div class="ryg-evidens">
+    <p id="helAndel"></p>
+    <p>Smerterne aftager hos de fleste over uger til måneder, og de følger ikke nøje, hvor meget prolapsen skrumper. Tiderne er gennemsnit — forløbet varierer meget fra person til person.</p>
+    <p class="ryg-advarsel-boks"><strong>Kontakt straks læge</strong> ved besvær med at lade vandet eller holde på afføringen, følelsesløshed i skridtet eller tiltagende lammelse i benet.</p>
+  </div>
+</section>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Fardon DF m.fl. Lumbar disc nomenclature: version 2.0. Recommendations of the combined task forces of NASS, ASSR og ASNR. <em>Spine J</em> 2014;14:2525–45: bulging, protrusion, ekstrusion og sekvester; zonerne central, subartikulær/paracentral, foraminal og ekstraforaminal</li>
+    <li>Schizas C m.fl. Qualitative grading of severity of lumbar spinal stenosis based on the morphology of the dural sac on MRI. <em>Spine</em> 2010;35:1919–24 (grad A–D); Lee S m.fl. A practical MRI grading system for lumbar foraminal stenosis. <em>AJR</em> 2010;194:1095–8 (grad 0–3); Schönström N m.fl. (durasækkens tværsnit: relativ stenose 75–99 mm², absolut under 75 mm²; kontrolleret via sekundære kilder) — modellens sæk måler ca. 160–190 mm² normalt og ca. 105–122, 81–91 og 64–70 mm² ved let, moderat og svær stenose (L3/L4–L5/S1)</li>
+    <li>Rodtopografi: en paracentral prolaps rammer typisk den traverserende rod (L3/L4 → L4, L4/L5 → L5, L5/S1 → S1), en foraminal/ekstraforaminal prolaps den udtrædende (L3, L4 og L5); dermatomer og kendemuskler efter gængse lærebøger (fx Lægehåndbogen, Netter)</li>
+    <li>3D-model: Z-Anatomy — The libre 3D atlas of anatomy (Gauthier Kervyn m.fl.), afledt af BodyParts3D © The Database Center for Life Science; via Svitylo 3D Anatomy Atlas' datapakke. Licens <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.da" target="_blank" rel="noopener">CC BY-SA 4.0</a> — modellen her er en bearbejdning under samme licens (durasæk, nerverødder og patologi er tilføjet, se tools/ryg/)</li>
+    <li>Helingsforløbet: Chiu CC m.fl. The probability of spontaneous regression of lumbar herniated disc: a systematic review. <em>Clin Rehabil</em> 2015;29:184–95 (tilbagedannelse hos 96 % af sekvestre, 70 % af ekstrusioner, 41 % af protrusioner, 13 % af bulging); oversigt over mekanismerne (makrofaginfiltration, inflammation, neovaskularisering og nedbrydning af matrix: "Characteristics and mechanisms of resorption in lumbar disc herniation", 2022); seriel MR med tydelig tilbagedannelse fra ca. 2 måneder og fortsat over et år; smerte med halveringstid ca. 6–7 uger (pilotdata, Académie nationale de médecine); Benson RT m.fl. <em>J Bone Joint Surg Br</em> 2010 (ringe sammenhæng mellem klinisk bedring og hvor meget prolapsen svinder); Peul WC m.fl. <em>NEJM</em> 2007 (tidlig operation gav hurtigere lindring af bensmerter, men ingen forskel i funktion efter et år). Tidskurverne i animationen er skematiske. Kontrolleret via sekundære kilder.</li>
+    <li>Visning: three.js (MIT-licens)</li>
+  </ul>
+  <p class="fineprint">Prototype til patientinformation — ikke til diagnostik. Modellen er en generisk voksen ryg; patologien er modelleret skematisk ud fra beskrivelsens niveau, side, zone og grad, ikke ud fra mål. Niveauerne L3/L4, L4/L5 og L5/S1 vises i 3D; fund på andre niveauer listes. Ingen tekst gemmes eller sendes.</p>
+</footer>
+
+<script src="mr.js"></script>
+<script src="ryg.js"></script>
+<script src="heling.js"></script>
+<script type="module" src="visning.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

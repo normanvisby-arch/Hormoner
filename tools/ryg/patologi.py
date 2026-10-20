@@ -1,0 +1,386 @@
+# ---------------------------------------------------------------- patologi som shape keys
+# Hver diagnose er en shape key med samme navn på alle objekter, den ændrer (disk, ligament,
+# knogle, sæk, rødder). Kilden (disk, flavum, facet) deformeres først; sæk og rødder skubbes
+# derefter ud af den deformerede kilde (kollision), så de trykkes, hvor de rammes.
+import numpy as np
+from mathutils.kdtree import KDTree
+
+def co(o): return [v.co.copy() for v in o.data.vertices]
+BASIS = {}
+def basis(n):
+    if n not in BASIS: BASIS[n] = co(O[n])
+    return BASIS[n]
+
+def tilfoej_key(n, navn, disp, min_mm=0.05):
+    if max((d.length for d in disp), default=0) < min_mm * mm: return False
+    o = O[n]
+    if not o.data.shape_keys: o.shape_key_add(name='Basis', from_mix=False)
+    k = o.shape_key_add(name=navn, from_mix=False)
+    b = basis(n)
+    for i, d in enumerate(disp): k.data[i].co = b[i] + d
+    return True
+
+def naboer(n):
+    nb = [[] for _ in O[n].data.vertices]
+    for e in O[n].data.edges:
+        a, b = e.vertices; nb[a].append(b); nb[b].append(a)
+    return nb
+
+def smoothstep(e0, e1, x):
+    t = min(1, max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t)
+
+def stoej(p):
+    x, y, z = p * 900
+    return 0.5 + 0.25 * (math.sin(x * 1.7 + 1.3 * math.sin(y * 2.3)) + math.sin(y * 1.9 + 1.1 * math.sin(z * 2.9)) * math.sin(z * 2.1 + x))
+
+def mesh_af(n, disp):
+    """Midlertidig deformeret kopi af et objekt (til kollision)."""
+    me = bpy.data.meshes.new('tmp'); b = basis(n)
+    me.from_pydata([b[i] + disp[i] for i in range(len(b))], [], [list(p.vertices) for p in O[n].data.polygons])
+    return me
+
+# --- niveauer: disk, kerne, hvirvler, rødder og målte punkter (Blender-koordinater, meter)
+NIVEAUER = {
+    'L3L4': dict(disk='Disc_L3L4', nuc='Nucleus_L3L4', over='L3', under='L4', trav='L4', exit='L3',
+                 drg=(17.0, -28.5, 1041.0), ekstra=(24.0, -31.2, 1034.5), foramen=(17.0, -27.3, 1039.1),
+                 recess=(9.3, -31.0, 1026.5), flavum=(1.010, 1.020, 1.040, 1.048), saek=(1.011, 1.023, 1.037, 1.047)),
+    'L4L5': dict(disk='Disc_L4L5', nuc='Nucleus_L4L5', over='L4', under='L5', trav='L5', exit='L4',
+                 drg=(17.0, -27.3, 1009.5), ekstra=(25.0, -31.5, 1002.5), foramen=(17.0, -28.6, 1006.8),
+                 recess=(9.8, -24.0, 994.0), flavum=(0.978, 0.988, 1.008, 1.016), saek=(0.980, 0.992, 1.006, 1.016)),
+    # Z-Anatomys lig. flavum slutter ved L5 — ved L5/S1 vises ingen flavumfortykkelse.
+    'L5S1': dict(disk='Disc_L5S1', nuc='Nucleus_L5S1', over='L5', under='Sacrum', trav='S1', exit='L5',
+                 drg=(17.0, -20.0, 981.6), ekstra=(24.0, -22.5, 974.5), foramen=(17.0, -21.8, 978.5),
+                 recess=(8.8, -14.0, 962.5), flavum=None, saek=(0.946, 0.954, 0.970, 0.978)),
+}
+P_mm = lambda t: Vector((t[0] * mm, t[1] * mm, t[2] * mm if t[2] > 10 else t[2]))
+
+def saet_niveau(niv):
+    """Sætter de globale størrelser (disk, akser, facetter …), som funktionerne nedenfor bruger."""
+    global NIV, D, NUC, BLOB, C, U, PB, LV, disk_t, FAC, OVER, UNDER, MAAL, FORAMEN, FLAV_Z
+    NIV = NIVEAUER[niv]; D = NIV['disk']; NUC = NIV['nuc']; OVER = NIV['over']; UNDER = NIV['under']
+    BLOB = f'Prolaps_{niv}'
+    P = np.array([list(v) for v in basis(D)])
+    C = Vector(P.mean(axis=0))
+    w_, V_ = np.linalg.eigh(np.cov((P - P.mean(axis=0)).T))
+    U = Vector(V_[:, 0]); U = U if U.z > 0 else -U                   # diskens akse (op)
+    PB = (Vector((0, 1, 0)) - U * U.y).normalized()                  # bagud i diskens plan
+    LV = U.cross(PB).normalized(); LV = LV if LV.x > 0 else -LV       # mod patientens venstre
+    disk_t = BVHTree.FromPolygons(basis(D), [list(p.vertices) for p in O[D].data.polygons])
+    FAC = fac[niv]
+    MAAL = {'foraminal': P_mm(NIV['drg']), 'ekstraforaminal': P_mm(NIV['ekstra'])}
+    f = P_mm(NIV['foramen']); FORAMEN = {'v': f, 'h': Vector((-f.x, f.y, f.z))}
+    FLAV_Z = NIV['flavum']
+    print('niveau', niv, 'disk centrum', [round(x * 1000, 1) for x in C], 'akse', [round(x, 2) for x in U])
+
+def kant(retning):
+    """Punkt på diskens overflade i en retning fra centrum (sidste udgang)."""
+    h = hits(disk_t, C, retning, 0.08)
+    return C + retning.normalized() * h[-1] if h else C
+
+ZONER = {'central': 0, 'paracentral': 20, 'foraminal': 52, 'ekstraforaminal': 74}
+OPAD = {'central': 0.0, 'paracentral': 0.05, 'foraminal': 0.35, 'ekstraforaminal': 0.15}
+
+def prolaps_disp(zone, sx, type_):
+    phi = math.radians(ZONER[zone]) * sx
+    r = (PB * math.cos(phi) + LV * math.sin(phi)).normalized()
+    c = kant(r); h = (r + U * OPAD[zone]).normalized(); t = h.cross(U).normalized()
+    if type_ == 'protrusion': A, sl, su = 4.6 * mm, 6.5 * mm, 4.5 * mm
+    else:                     A, sl, su = 7.0 * mm, 5.0 * mm, 4.5 * mm
+    if zone in MAAL:
+        T = MAAL[zone].copy(); T.x *= sx
+        h = (T - c).normalized(); t = r.cross(U).normalized()
+        A = (T - c).length * (0.55 if type_ == 'protrusion' else 1.0)
+        sl, su = sl * 1.2, su * 1.15
+    u2 = t.cross(h).normalized(); u2 = u2 if u2.dot(U) > 0 else -u2
+    nb = basis(NUC); cn = sum(nb, Vector()) / len(nb)
+    ud = []
+    if type_ == 'protrusion':
+        # Protrusion: annulus buler ud med bred base; den ydre ring er hel.
+        for q in basis(D):
+            d = q - c; rl = d.dot(t); ru = d.dot(u2); rh = d.dot(h)
+            w = math.exp(-rl * rl / (2 * sl * sl)) * math.exp(-ru * ru / (2 * su * su)) * smoothstep(-9 * mm, -1 * mm, rh)
+            ud.append(h * (A * w))
+    else:
+        # Ekstrusion: kun læberne omkring sprækken i annulus buler lidt; selve massen er prolapsobjektet.
+        for q in basis(D):
+            d = q - c; rl = d.dot(t); ru = d.dot(u2); rh = d.dot(h)
+            w = math.exp(-(rl * rl + ru * ru) / (2 * (3.2 * mm) ** 2)) * smoothstep(-6 * mm, -0.5 * mm, rh)
+            ud.append(h * (1.8 * mm * w))
+    # Nucleus forskydes let mod sprækken
+    Rn = sum((q - cn).length for q in nb) / len(nb)
+    P = c - r * 2.0 * mm
+    rn = (P - cn).normalized(); L = max(0, (P - cn).length - Rn) * (0.5 if type_ == 'ekstrusion' else 1.0)
+    nud = []
+    for q in nb:
+        d = q - cn
+        f = smoothstep(0.2, 0.95, d.normalized().dot(rn))
+        tvaer = d - rn * d.dot(rn)
+        nud.append(rn * (L * f) - tvaer * (0.2 * f))
+    return {D: ud, NUC: nud, BLOB: blob_disp(cn, c, h, r, A, type_)}, h
+
+def blob_disp(cn, c, h, r, A, type_):
+    """Prolapsmassen: en rygrad fra kernens midte gennem sprækken (c) ud til spidsen, med et
+    tværsnit, der er smalt i sprækken (ekstrusion) og bredt, lobuleret og let kaudalt forskudt ude
+    i kanalen. Grundformen er en lille kugle i kernen, så overgangen ser ud som en udpresning."""
+    bb = basis(BLOB); cb = sum(bb, Vector()) / len(bb)
+    ned = Vector((0, 0, -1))
+    if type_ == 'ekstrusion':
+        s_ = max(0.75, min(1.25, A / (7 * mm)))
+        S = [cn, c - h * 1.2 * mm, c + h * (A * 0.5) + ned * 1.5 * mm, c + h * (A * 0.88) + ned * 3.0 * mm]
+        prof = [(0, 3.0), (0.30, 2.8), (0.42, 1.6), (0.50, 2.0), (0.66, 4.0 * s_), (0.84, 3.6 * s_), (1.0, 0.0)]
+    else:
+        tip = c + h * max(0.5 * mm, A - 1.4 * mm)
+        S = [cn, c - h * 1.5 * mm, (c + tip) / 2, tip]
+        prof = [(0, 3.0), (0.40, 2.7), (0.70, 2.5), (0.90, 1.8), (1.0, 0.0)]
+    pts = catmull(S, 0.25 * mm)
+    # Tværsnittene ligger i parallelle planer vinkelret på retningen kerne → spræk (Dr); rygraden
+    # følges ved at forskyde snittene sidelæns (skævvridning). Snit i parallelle planer kan ikke
+    # krydse hinanden, så massen folder sig ikke ind i sig selv, heller ikke ved skrå prolapser.
+    Dr = (c - cn).normalized()
+    Vr = (U - Dr * U.dot(Dr)).normalized(); Lr = Vr.cross(Dr).normalized()   # højrehåndet (Dr, Lr, Vr)
+    ss, off = [], []
+    for q in pts:
+        t = (q - cn).dot(Dr)
+        if ss and t <= ss[-1] + 1e-7: continue                 # kun fremadskridende punkter
+        ss.append(t); off.append(q - cn - Dr * t)
+    def langs(u):
+        x = ss[0] + u * (ss[-1] - ss[0])
+        i = max(0, min(len(ss) - 2, next((j for j in range(1, len(ss)) if ss[j] >= x), len(ss) - 1) - 1))
+        f = (x - ss[i]) / max(1e-9, ss[i + 1] - ss[i])
+        return cn + Dr * x + off[i].lerp(off[i + 1], f)
+    def radius(u):
+        for (a, ra), (b, rb) in zip(prof, prof[1:]):
+            if a <= u <= b:
+                k = (u - a) / (b - a); k = k * k * (3 - 2 * k); return (ra + (rb - ra) * k) * mm
+        return 0
+    ud = []
+    X, Y, Z = Vector((1, 0, 0)), Vector((0, 1, 0)), Vector((0, 0, 1))
+    for q in bb:
+        d = (q - cb).normalized(); a = d.dot(X); u = (a + 1) / 2
+        rho = d - X * a
+        phi = math.atan2(rho.dot(Z), rho.dot(Y))
+        p = langs(u)
+        cap = max(0.0, 1 - a * a) ** 0.15
+        masse = smoothstep(0.45, 0.62, u)
+        lob = 1 + masse * 0.32 * (stoej(cb + d * 0.004) - 0.5)       # lobuleret overflade
+        rr = radius(u) * cap * lob
+        pos = p + Lr * (math.cos(phi) * rr * (1 + 0.15 * masse)) + Vr * (math.sin(phi) * rr * (1 + 0.3 * masse))
+        ud.append(pos - q)
+    return ud
+
+def bulging_disp(A=2.2 * mm):
+    ud = []
+    for q in basis(D):
+        d = q - C; ru = d.dot(U); plan = d - U * ru
+        if plan.length < 1e-6: ud.append(Vector()); continue
+        rad = plan.normalized()
+        bag = 0.55 + 0.45 * max(0, rad.dot(PB))                   # mest bagtil/lateralt
+        w = smoothstep(12 * mm, 20 * mm, plan.length) * math.exp(-ru * ru / (2 * (4 * mm) ** 2)) * bag
+        ud.append(rad * A * w)
+    return {D: ud}
+
+def flavum_disp(A, side=0):
+    """Fortykkelse af lig. flavum på niveauet ind mod kanalen (side 0 = begge, ±1 = én side)."""
+    if not FLAV_Z: return {}
+    z0, z1, z2, z3 = FLAV_Z
+    ud = []; o = O['Flavum']
+    for v, q in zip(o.data.vertices, basis('Flavum')):
+        mod = Vector((0, midt(q.z), q.z)) - q; mod.z = 0
+        if mod.length < 1e-6: ud.append(Vector()); continue
+        mod.normalize()
+        w = smoothstep(z0, z1, q.z) * (1 - smoothstep(z2, z3, q.z))
+        if v.normal.dot(mod) < 0.2: w = 0                            # kun forfladen
+        if side: w *= smoothstep(0, 6 * mm, side * q.x)
+        ud.append(mod * A * w)
+    return {'Flavum': ud}
+
+def facet_disp(side, A, medialt=0.0):
+    """Osteofytter/hypertrofi omkring facetleddet på niveauet, én side (side 'v' eller 'h')."""
+    c, n = FAC[side]; sx = 1 if side == 'v' else -1; ud = {}
+    for k in (OVER, UNDER):
+        o = O[k]; arr = []
+        for v, q in zip(o.data.vertices, basis(k)):
+            dist = (q - c).length
+            w = 1 - smoothstep(4 * mm, 12 * mm, dist)
+            v_ = v.normal * (A * w * (0.6 + 0.8 * stoej(q)))
+            if medialt and k == UNDER:
+                # SAP vokser medialt og fortil ind i recessen
+                w2 = (1 - smoothstep(4 * mm, 13 * mm, dist)) * smoothstep(-3 * mm, 3 * mm, sx * (c.x - q.x))
+                v_ += Vector((-sx, -1.0, 0.1)).normalized() * medialt * w2
+            arr.append(v_)
+        ud[k] = arr
+    return ud
+
+def sap_foramen_disp(side, A):
+    """Den nederste hvirvels øvre ledtap vokser op og fortil ind i foramen."""
+    f = FORAMEN[side]; arr = []
+    for q in basis(UNDER):
+        w = (1 - smoothstep(4 * mm, 13 * mm, (q - f).length)) * smoothstep(f.z - 0.019, f.z - 0.009, q.z)
+        arr.append((f - q).normalized() * A * w if (f - q).length > 1e-6 else Vector())
+    return {UNDER: arr}
+
+# --- kollision: sæk og rødder skubbes ud af de deformerede kilder
+SAEK = 'Durasaek'
+sac_nb = naboer(SAEK)
+PLL_NB = naboer('PLL')
+NERVER = [n for n in O if n.startswith('Rod_') or n.startswith('Cauda_') or n == 'Filum']
+sac_bvh0 = BVHTree.FromPolygons(basis(SAEK), [list(p.vertices) for p in O[SAEK].data.polygons])
+def inde_i_saek(p):
+    loc, nor, i, d = sac_bvh0.find_nearest(p)
+    return loc is not None and (p - loc).dot(nor) < 0
+
+def skub(punkter, tree, retning, margin=0.5 * mm, naer=None, maks=6 * mm):
+    """Forskydning, der flytter hvert punkt ud af en lukket flade (tree) langs retning(p).
+    naer: KD-træ over de flyttede kildepunkter — kun punkter tæt på dem påvirkes (så
+    eksisterende berøringer mellem knogle og sæk/rod ikke giver falske skub)."""
+    ud = []
+    for p in punkter:
+        if naer is not None and naer.find(p)[2] > 5 * mm: ud.append(Vector()); continue
+        loc, nor, i, d = tree.find_nearest(p)
+        if loc is None: ud.append(Vector()); continue
+        inde = (p - loc).dot(nor) < 0
+        if not inde and d > margin: ud.append(Vector()); continue
+        r = retning(p)
+        h = tree.ray_cast(p + r * 1e-5, r, 0.03)
+        if inde and h[0] is not None: v = r * (h[3] + margin)
+        elif not inde: v = r * (margin - d)
+        else: v = nor * (d + margin)
+        ud.append(v if v.length <= maks else v.normalized() * maks)
+    return ud
+
+def glat_felt(disp, nb, n=8):
+    org = [d.copy() for d in disp]
+    for _ in range(n):
+        ny = []
+        for i, d in enumerate(disp):
+            if not nb[i]: ny.append(d); continue
+            m = sum((disp[j] for j in nb[i]), Vector()) / len(nb[i])
+            v = d * 0.4 + m * 0.6
+            ny.append(v if v.length >= org[i].length else org[i])
+        disp = ny
+    return disp
+
+def kollision(kilder, navn, rodretning=None, saek_ekstra=None, klem=()):
+    """kilder: {objekt: disp}. Tilføjer shape keys på kilder, sæk og nerver."""
+    for n, d in kilder.items(): tilfoej_key(n, navn, d)
+    me = [mesh_af(n, d) for n, d in kilder.items()]
+    bm = bmesh.new()
+    for m in me: bm.from_mesh(m); bpy.data.meshes.remove(m)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    tree = BVHTree.FromBMesh(bm); bm.free()
+    flyttet = [basis(n)[i] + d[i] for n, d in kilder.items() for i in range(len(d)) if d[i].length > 0.2 * mm]
+    naer = KDTree(len(flyttet))
+    for i, p in enumerate(flyttet): naer.insert(p, i)
+    naer.balance()
+    # sæk: indad mod midtlinjen
+    def vandret(p):
+        v = Vector((0, midt(p.z), p.z)) - p; v.z = 0
+        return v.normalized() if v.length > 1e-6 else Vector((0, 1, 0))
+    sd = skub(basis(SAEK), tree, vandret, 0.4 * mm, naer, 5 * mm)
+    if saek_ekstra: sd = [a if a.length > b.length else b for a, b in zip(sd, saek_ekstra)]
+    sd = glat_felt(sd, sac_nb, 10)
+    tilfoej_key(SAEK, navn, sd)
+    # PLL løftes af disken (subligamentært)
+    tilfoej_key('PLL', navn, glat_felt(skub(basis('PLL'), tree, rodretning or vandret, 0.3 * mm, naer), PLL_NB, 6))
+    kd = KDTree(len(sd))
+    for i, p in enumerate(basis(SAEK)): kd.insert(p, i)
+    kd.balance()
+    for n in NERVER:
+        b = basis(n); seg, nr = RINGE[n]
+        # intratekalt: følg sækkens forskydning (vægtet efter afstand); ekstraduralt: skub ud af kilden
+        felt = []
+        for p in b:
+            if inde_i_saek(p):
+                ns = kd.find_n(p, 6); vs = Vector(); ws = 0
+                for q, i, dist in ns:
+                    w = 1 / (dist + 0.5 * mm); vs += sd[i] * w; ws += w
+                vs /= ws; dist0 = ns[0][2]
+                felt.append(vs * (1 - smoothstep(2 * mm, 6 * mm, dist0)))
+            else:
+                felt.append(None)
+        retn = rodretning or vandret
+        ex = skub(b, tree, lambda p: retn(p), 0.5 * mm, naer)
+        disp = [ex[i] if felt[i] is None else (felt[i] if felt[i].length >= ex[i].length else ex[i]) for i in range(len(b))]
+        # hele ringe flyttes (roden forskydes) og trykkes flad i skubberetningen
+        ringe_d = []
+        for r in range(nr):
+            ds = disp[r * seg:(r + 1) * seg]; mx = max(ds, key=lambda v: v.length)
+            ringe_d.append(mx)
+        for _ in range(4):
+            ringe_d = [ringe_d[max(0, r - 1)] * 0.25 + ringe_d[r] * 0.5 + ringe_d[min(nr - 1, r + 1)] * 0.25 for r in range(nr)]
+        ud = [Vector() for _ in b]
+        for r in range(nr):
+            mv = ringe_d[r]; idx = range(r * seg, (r + 1) * seg)
+            ctr = sum((b[i] for i in idx), Vector()) / seg
+            for i in idx:
+                fl = Vector()
+                if mv.length > 0.3 * mm:
+                    a = mv.normalized(); rel = b[i] - ctr
+                    fl = -a * rel.dot(a) * min(0.45, mv.length / (6 * mm))     # fladtrykt
+                ud[i] = mv + fl
+        for i in range(nr * seg, len(b)):                                   # endepunkter
+            ud[i] = ringe_d[0] if i == nr * seg else ringe_d[-1]
+        for kn, kp, kr, kf, ka in klem:                                      # eksplicit afklemning
+            if kn != n: continue
+            for r in range(nr):
+                idx = range(r * seg, (r + 1) * seg); ctr = sum((b[i] for i in idx), Vector()) / seg
+                w = 1 - smoothstep(0.4 * kr, kr, (ctr - kp).length)
+                if w <= 0: continue
+                for i in idx:
+                    rel = b[i] - ctr
+                    ud[i] += -ka * rel.dot(ka) * (1 - kf) * w
+        tilfoej_key(n, navn, ud)
+
+KEYS = []
+def key(navn, kilder, **kw):
+    kollision(kilder, navn, **kw); KEYS.append(navn); print('key', navn)
+
+def plus(*ds):
+    ud = {}
+    for d in ds:
+        for n, arr in d.items():
+            ud[n] = [a + b for a, b in zip(ud[n], arr)] if n in ud else list(arr)
+    return ud
+
+def byg_niveau(niv):
+    saet_niveau(niv)
+    k_ = lambda navn: f'{niv}_{navn}'
+    # Prolaps: protrusion og ekstrusion i fire zoner, venstre/højre
+    for zone in ZONER:
+        for side, sx in ((('', 1),) if zone == 'central' else (('_v', 1), ('_h', -1))):
+            for typ in ('protrusion', 'ekstrusion'):
+                kilder, h = prolaps_disp(zone, sx, typ)
+                key(k_(f'{typ}_{zone}{side}'), kilder, rodretning=lambda p, h=h: h)
+    key(k_('bulging'), bulging_disp())
+    if FLAV_Z: key(k_('flavumhypertrofi'), flavum_disp(2.8 * mm))
+    for side in ('v', 'h'):
+        sx = 1 if side == 'v' else -1
+        key(k_(f'facetartrose_{side}'), facet_disp(side, 2.0 * mm))
+        # recesstenose: øvre ledtap og flavum fylder recessen; den traverserende rod klemmes ved disken
+        rp = P_mm(NIV['recess']); rp.x *= sx
+        key(k_(f'recesstenose_{side}'), plus(facet_disp(side, 1.0 * mm, medialt=5.0 * mm), flavum_disp(2.4 * mm, sx)),
+            rodretning=lambda p, sx=sx: Vector((-sx * 0.5, -1, 0)).normalized(),
+            klem=[(f"Rod_{NIV['trav']}_{side}", rp, 7 * mm, 0.55, Vector((sx, 0.3, 0)).normalized())])
+        # foraminal stenose: disk og øvre ledtap indsnævrer foramen; den udtrædende rods ganglion klemmes
+        kilder, h = prolaps_disp('foraminal', sx, 'protrusion')
+        fb = {D: [v * 1.5 for v in kilder[D]]}
+        gp = P_mm(NIV['drg']); gp.x *= sx; gp.z += 0.3 * mm
+        key(k_(f'foraminalstenose_{side}'), plus(fb, sap_foramen_disp(side, 4.0 * mm), facet_disp(side, 0.8 * mm)),
+            rodretning=lambda p, h=h: (h + U * 0.6).normalized(),
+            klem=[(f"Rod_{NIV['exit']}_{side}", gp, 6 * mm, 0.5, U)])
+    # central spinalstenose: bulging, flavum og facetter + sækken presses til trekløverform
+    z0, z1, z2, z3 = NIV['saek']
+    saek_st = []
+    for q in basis(SAEK):
+        c_ = Vector((0, midt(q.z), q.z)); rel = q - c_; rel.z = 0
+        if rel.length < 1e-6: saek_st.append(Vector()); continue
+        a = math.atan2(rel.x, -rel.y)                  # 0 fortil, ±pi bagtil
+        bag = 0.5 - 0.5 * math.cos(a)                  # 1 bagtil
+        posterolat = math.exp(-((abs(a) - 2.3) / 0.6) ** 2)
+        f = (0.22 + 0.26 * bag + 0.18 * posterolat) * smoothstep(z0, z1, q.z) * (1 - smoothstep(z2, z3, q.z))
+        saek_st.append(-rel * f)
+    key(k_('spinalstenose'), plus(bulging_disp(2.4 * mm), flavum_disp(4.2 * mm), facet_disp('v', 1.4 * mm, medialt=2.5 * mm), facet_disp('h', 1.4 * mm, medialt=2.5 * mm)),
+        saek_ekstra=saek_st)
+
+for niv in NIVEAUER:
+    byg_niveau(niv)

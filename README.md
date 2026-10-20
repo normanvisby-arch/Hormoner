@@ -559,6 +559,124 @@ gruppenavne. Handelsnavne er kun søgeord og siger intet om aktuelt udbud.
 - Restordre.dk, sundhed.dk og Lægemiddelstyrelsen kunne ikke tilgås direkte. Skal verificeres i
   produktresuméet før ordination.
 
+## MR-columna i 3D (`ryg/`) — prototype
+
+Lægen indsætter MR-beskrivelsen af lænden (uden persondata). Fundene tolkes i browseren og vises på
+en 3D-model af L3–S1, som lægen kan dreje og vise patienten. Prototypen modellerer niveauerne L3/L4,
+L4/L5 og L5/S1; fund på andre niveauer listes og forklares, men vises ikke i 3D. Appen er skjult (ikke på
+downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet klinisk.
+
+- **Tolkning (`ryg/mr.js`, `MR.tolk`):** faste regler, intet sendes.
+  - Niveauer: "L4/L5", "L4-L5", "L4-5", "L45" → L4/L5; et niveau i sætningen gælder fundene i
+    den, ellers det seneste niveau (overskrifter som "L4/L5:").
+  - Fund: prolaps (protrusion/ekstrusion/sekvester; zone central, paracentral/subartikulær/recess,
+    foraminal, ekstraforaminal), bulging, central spinalstenose, recesstenose, foraminal stenose,
+    facetledsartrose, flavumhypertrofi og nerverødder (kontakt/påvirkning/kompression). Andre fund
+    (spondylolistese, Modic, diskusdegeneration, annulusfissur, synovialcyste, Schmorl, hæmangiom)
+    listes.
+  - Side (venstre/højre/bilateralt, også "sin.", "dx.", "th.", "tv.") og grad (let/moderat/svær,
+    Schizas A–D, Lee 1–3) læses i fundets eget led — afgrænset af nabofundene, så "moderat
+    spinalstenose … samt udtalt facetledsartrose" giver moderat stenose.
+  - Nægtelse ("ingen", "uden", "ikke", "frie foramina") gælder til "men"/"dog". Nægter teksten
+    rodpåvirkning på niveauet, fremhæves ingen afledte rødder.
+  - CPR-numre vises aldrig (og der advares).
+  - Lægen kan rette type, zone, side, grad og rod i listen, slå fund fra og tilføje fund.
+- **Fra fund til model (`MR.model`):** hver diagnose er en shape key i modellen.
+  - Nøglerne har niveauet foran, fx `L4L5_ekstrusion_paracentral_v`. Kameraet og snittene sættes
+    på det vigtigste fund (første prolaps/recess-/foraminalstenose); niveauet kan rettes i listen.
+  - Prolaps: `protrusion_`/`ekstrusion_` + zone + side. Type ikke angivet → protrusion; zone ikke
+    angivet → paracentral; side ikke angivet → venstre (alle med note). Sekvester vises som
+    ekstrusion. Størrelse lille/middel/stor → styrke 0,75/1/1,12.
+  - Stenoser og facetledsartrose: styrke 0,5/0,78/1 for let/moderat/svær (0,78 uden grad).
+  - Rødder: navngivne rødder i teksten bliver røde. Den rod, fundet typisk rammer, bliver orange:
+    paracentral prolaps og recesstenose → den traverserende rod (L3/L4 → L4, L4/L5 → L5, L5/S1 →
+    S1); foraminal/ekstraforaminal prolaps og foraminal stenose → den udtrædende rod (L3, L4, L5)
+    (Fardon 2014; klassisk rodtopografi). Flavumhypertrofi ved L5/S1 kan ikke vises (Z-Anatomys
+    lig. flavum slutter ved L5) og giver en note.
+- **Visning (`ryg/visning.js`, three.js r170 i `ryg/lib/`):** 3D, bagfra, "Buer fjernet", fra
+  siderne og snit. "Buer fjernet" ses skråt bagfra med alt bag et snit gennem durasækkens midte
+  skåret væk (snittet følger lændelordosen på niveauet), og ledbånd og cauda equina skjult, så
+  prolapsen ses foran i kanalen med roden spændt ud over sig.
+  Det aksiale snit ses nedefra som et MR-billede (patientens højre i billedets venstre side, fortil
+  opad), det sagittale fra den side, fundet sidder, med snittet gennem fundet. Skyder for snittets
+  placering og for "Normal ↔ Med fund", så patienten kan se forskellen. Væv, der er flyttet af
+  patologien, farves orangerødt; klemte rødder røde. Prolapsmassen er blank og geléagtig (kernevæv,
+  med blød refleksion fra et indbygget "rum"); når et fund vises, kommer de øvrige forandringer
+  først, og prolapsen presses derefter ud gennem sprækken med en blød opbremsning (ca. 2,6 s).
+  Snitflader har procedurale teksturer, beregnet i shaderen på det punkt, hvor synslinjen rammer
+  snitplanet (ingen billedfiler): annulus fibrosus med koncentriske lameller, der følger diskens
+  omrids (afstandsfelt beregnet ved indlæsning ud fra disken og kernen projiceret i diskens plan),
+  spongiøs knogle med overvejende lodrette knoglebjælker om dæmpet sandfarvede marvrum og en kortikal skal
+  langs kanten, og en marmoreret, geléagtig kerne. Knoglerne har bagt ambient occlusion (bløde
+  skygger i fordybninger og led). Navne står som billedtekster i kanten med streg ind til strukturen (slået fra som standard). Durasæk og ledbånd kan slås fra, og
+  knoglerne kan gøres gennemsigtige.
+- **Helingsforløbet (`ryg/heling.js`):** pædagogisk animation af en diskusprolaps' heling over 26 uger
+  (afspil, træk i tidslinjen eller klik i grafen). Modellen viser kun prolapsen, som skrumper mod en
+  typisk restgrad (sekvester 15 %, ekstrusion 30 %, protrusion 65 % af debutstørrelsen). De tre
+  biologiske mekanismer vises i 3D og som målere: inflammation (pulserende rød prolaps, uge 0–12),
+  makrofager (lilla partikler, der vandrer ind og nedbryder prolapsen, uge 1–15), udtørring
+  (prolapsen bliver gullig-grå, mat og stribet, uge 3–12) og tilbagetrækning (blå pil, uge 3–14, "kan ske"); i
+  stabiliseringsfasen lukker arvæv sprækken i annulus (lys farve, uge 10–24). Den klemte rod falmer
+  mod normal i takt med en typisk smertekurve (halveringstid ca. 6,5 uger fra uge 1). Faserne følger
+  lægens skema: akut fase uge 1–4, nedbrydningsfase uge 4–12, stabiliseringsfase måned 3–6+.
+  Kurverne er skematiske; tallene bag: tilbagedannelse hos 96 % af sekvestre, 70 % af ekstrusioner,
+  41 % af protrusioner (Chiu 2015), tydelig tilbagedannelse på MR fra ca. 2 måneder, smertens
+  halveringstid ca. 6–7 uger (pilotdata), og smerten følger ikke nøje prolapsens størrelse (Benson
+  2010). Siden viser røde flag (blære/tarm, ridebukseanæstesi, tiltagende lammelse). Grafen bruger
+  tre farver fra den validerede palet (farveblindhedstjek bestået i lys og mørk), stiplet smertekurve,
+  direkte etiketter og tooltip.
+- **Patienttekst (`MR.forklaring`):** kort forklaring pr. fund i lægmandssprog med rodens
+  udbredelse (L4: forside af knæ/inderside af underben, knæstrækning; L5: yderside af underben,
+  fodryg og storetå, løft af fod/storetå; S1: yderside af fod og lilletå, tågang) og en påmindelse
+  om, at fundene også ses hos mange uden smerter.
+- **3D-modellen (`ryg/model/l3-s1.glb`, 3,7 MB):** bearbejdning af Z-Anatomy (CC BY-SA 4.0, afledt
+  af BodyParts3D) via Svitylo-atlassets datapakke på npm (`@authorod/svitylo-3d-anatomy-data`
+  1.2.0). Se `ryg/model/LICENS.txt`.
+  - Fra Z-Anatomy: L3, L4, L5, sacrum, diskene og nucleus L3/L4–L5/S1, lig. flavum, PLL og ALL.
+    Hvirvler og diske er glattet med subdivision. Diskenes over- og underflade er lagt ind til
+    endepladerne (i Z-Anatomy stak de nogle steder ind i knoglen og stod andre steder fra), og
+    kernens punkter inde i knoglen er trukket ind i disken.
+  - Ambient occlusion på knoglerne er bagt i Blender (Cycles, 6 mm, 128 samples, knogler og diske
+    som skyggegivere) som vertexfarve og udjævnet; ingen UV-udfoldning.
+  - Bygget på ny, fordi Z-Anatomys dura stopper ved L3, og rødderne kun er tynde streger: durasækken
+    følger den målte spinalkanal (strålesøgning; ca. 1 mm epiduralrum fortil, 2,5 mm bagtil, højst
+    17 × 14 mm, afrundet bund ved S2). Rødderne L3–S1 er rør (0,9 mm intratekalt, 1,4 mm i manchetten,
+    2,6 mm ved spinalganglion, 2 mm som spinalnerve) og følger Z-Anatomys forløb gennem foramina, som
+    er lokaliseret med strålesøgning (foramen L4/L5 ca. 17 mm fra midtlinjen). L5-roden går fra
+    sækken ved diskens overkant gennem recessen bag disken L4/L5 og ud under L5-pediklen; L4-roden
+    går fra sækken ved disken L3/L4 gennem recessen bag den og ud under L4-pediklen i foramens
+    øvre del; S1-roden passerer bag disken L5/S1. Cauda equina (S2–S5) og filum som tynde tråde.
+  - Patologi som shape keys (`tools/ryg/patologi.py`), de samme 22–23 diagnoser på hvert niveau
+    med niveauets egne disk-akser, facetled (fundet som nærmeste punkter mellem ledtappene),
+    foramina og rødder: disken deformeres (protrusion: bred base,
+    4,6 mm; ekstrusion: afrundet masse 7 mm med kaudal udbredning; foraminal/ekstraforaminal rettes
+    mod spinalganglion/nerven). Selve prolapsen er en særskilt masse pr. niveau (`Prolaps_L4L5`
+    osv.): i hvile en lille kugle skjult i kernen, som prolapsnøglen former langs en rygrad fra
+    kernens midte gennem sprækken. Ved ekstrusion har den en smal hals i annulus og en bred,
+    lobuleret masse i kanalen, der er let kaudalt forskudt; annulus' læber buler kun 1,8 mm. Ved
+    protrusion bliver massen under den intakte annulus-kuppel. Tværsnittene ligger i parallelle
+    planer (rygraden følges ved skævvridning), så massen ikke folder sig ind i sig selv. Nucleus
+    skubbes desuden mildt mod sprækken. Nucleus farves ikke
+    som forandring, så den kan følges i snittene. Flavum fortykkes ind mod kanalen, facetleddene
+    får osteofytter (forskydning langs normalen med støj), og ved recesstenose vokser den nederste
+    hvirvels øvre ledtap medialt. Sæk, PLL og rødder skubbes derefter ud af det deformerede væv (kollision), og
+    rødderne trykkes flade, hvor de rammes. Central spinalstenose presser desuden sækken til
+    trekløverform. Sækkens tværsnit er normalt ca. 160/180/190 mm² (L3/L4, L4/L5, L5/S1) og
+    ca. 105–122, 81–91 og 64–70 mm² ved let, moderat og svær stenose — svarende til Schönströms ofte anførte grænser (relativ stenose
+    75–99 mm², absolut under 75 mm²; kontrolleret via sekundære kilder). Tværsnittet er målt i
+    snit af den byggede model.
+  - Byg: `node tools/ryg/udtraek.mjs … raw.glb …` (strukturliste i filen), `python3
+    tools/ryg/byg_model.py raw.glb model.glb` (Blender som Python-modul: `pip install bpy`), derefter
+    `gltf-transform meshopt model.glb ryg/model/l3-s1.glb`. Kontrollér med snit (fx
+    matplotlib-plots af snitflader), før modellen lægges ind.
+- **Forbehold:** generisk voksen ryg; patologien er skematisk ud fra niveau, side, zone og grad — ikke
+  ud fra mål. Ikke til diagnostik.
+- **App:** egen manifest, service worker og ikon; virker offline. Test: `tests/ryg.test.js`.
+- **claude.ai-version:** bygges med `tools/ryg/byg_artifact.py` (ikke `build_artifact.py`): tema-CSS fra
+  et publiceret værktøjs-artifact, three.js fra jsDelivr og modellen indlejret som gzip/base64 uden
+  meshopt (meshopt-dekoderen kræver WebAssembly). Test: `BASE=…/fil.html JSDELIVR_LOKAL=<npm-pakken
+  three@0.170.0> node tests/ryg.test.js`.
+
 ## Installér som app
 
 **Downloadside til kolleger:** `https://normanvisby-arch.github.io/Hormoner/apps.html`
@@ -867,6 +985,73 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**19. oktober 2026 — MR-columna i 3D: roligere knoglesnit:**
+- Marvrummene i knoglesnittene er nu dæmpet sandfarvede i stedet for rødlige og med lavere kontrast,
+  så de ikke stjæler opmærksomheden fra prolapsen og den klemte rod. Service worker hævet (ryg).
+
+**18. oktober 2026 — MR-columna i 3D: teksturer:**
+- Snitflader har nu teksturer: lameller i annulus fibrosus, spongiøs knogle med marvrum og kortikal
+  skal og en marmoreret kerne. Teksturerne er procedurale (beregnes i grafikkortet), så modellen ikke
+  bliver større.
+- Knoglerne har bagte bløde skygger (ambient occlusion), som giver mere dybde i 3D.
+- Rettet: diskene stak nogle steder ind i endepladerne, så knoglen dækkede disken i snittet ovenfra.
+- Service worker hævet (ryg).
+
+**18. oktober 2026 — MR-columna i 3D: mere naturtro prolaps:**
+- Prolapsen er nu en særskilt, blank og geléagtig masse af kernevæv, der presses ud gennem en
+  sprække i annulus. Ved ekstrusion har den en smal hals og en lobuleret masse i kanalen, der vandrer
+  lidt nedad, og ved protrusion bliver den under den intakte ring.
+- Animation: de øvrige forandringer kommer først, og prolapsen presses derefter langsomt ud med en
+  blød opbremsning. Under helingen bliver massen rødlig og gløder i kanten (inflammation), bliver
+  siden gullig-grå, mat og stribet (udtørring) og skrumper; makrofagerne søger mod massen i kanalen.
+- Ny visning "Buer fjernet": skråt bagfra med hvirvelbuer, ledbånd og cauda equina skåret væk, så
+  man ser prolapsen og roden, der er spændt ud over den.
+- Test: `tests/ryg.test.js` (M1b, M3c, M9b). Service worker hævet (ryg).
+
+**18. oktober 2026 — MR-columna i 3D: rolige navne:**
+- Navne og helingstekster skjules, mens modellen drejes, zoomes eller skifter visning, og vises,
+  når den står stille (modellen stopper nu, så snart man slipper — ingen efterglidning).
+- Rettet: "Korsben" (og andre punkter midt i billedet) sprang mellem venstre og højre kant; siden
+  skifter nu først, når punktet er et stykke over midten.
+- Test: `tests/ryg.test.js` (H11). Service workers hævet (style.css).
+
+**18. oktober 2026 — MR-columna i 3D: tekst uden for modellen:**
+- Navne og helingstekster står nu som billedtekster i venstre/højre kant af 3D-feltet med en tynd
+  streg ind til strukturen, stablet uden overlap — de dækker ikke længere modellen.
+- Rettet: på mobil skiftede siden ikke til én kolonne, så 3D-feltet var meget smalt.
+- Test: `tests/ryg.test.js` (H10). Service workers hævet (style.css).
+
+**18. oktober 2026 — MR-columna i 3D: helingsforløb og navne fra:**
+- Navne i 3D-modellen er nu slået fra som standard.
+- Nyt pædagogisk helingsforløb for diskusprolaps over 26 uger med de tre biologiske mekanismer
+  (inflammation/makrofager, udtørring, tilbagetrækning), arvæv i stabiliseringsfasen, faseskema,
+  målere og graf over prolapsens størrelse, inflammation og typisk smerte (se afsnittet ovenfor for
+  kilder). Test: `tests/ryg.test.js` (H0–H9).
+
+**18. oktober 2026 — MR-columna i 3D: L3/L4 og L5/S1:**
+- Modellen viser nu alle tre niveauer: prolaps (fire zoner, protrusion/ekstrusion), bulging,
+  spinal-, recess- og foraminal stenose, facetledsartrose og flavumhypertrofi (ikke L5/S1) med
+  niveauets egne rødder (L3/L4: L4 og L3; L5/S1: S1 og L5). L4-roden går nu bag disken L3/L4.
+- Stenosegraderne holder Schönströms grænser på alle niveauer (målt i modellen).
+- Fund kan flyttes til et andet niveau i listen; kamera og snit følger det vigtigste fund.
+- Modellen er 3,5 MB (før 1,7). Test: `tests/ryg.test.js` (T6–T6f, M3, M12b–d).
+
+**18. oktober 2026 — MR-columna i 3D: nucleus ved ekstrusion:**
+- Efter lægens ønske fortsætter nucleus nu som en tunge gennem annulus ud i prolapsen ved
+  ekstrusion (før stod kernen adskilt fra prolapsen), og den farves ikke længere som forandring.
+  Ved protrusion bliver kernen inden for annulus. Service worker for ryg er hævet.
+
+**18. oktober 2026 — Ny prototype: MR-columna i 3D (`ryg/`):**
+- Lægen indsætter MR-beskrivelsen af lænden; fund på L4/L5 (prolaps i fire zoner som protrusion
+  eller ekstrusion, bulging, central spinalstenose, recesstenose, foraminal stenose,
+  facetledsartrose, flavumhypertrofi og påvirkede rødder) vises på en 3D-model, der kan drejes og
+  snittes som MR-billeder. Patienttekst i lægmandssprog.
+- 3D-modellen er en bearbejdning af Z-Anatomy (CC BY-SA 4.0) bygget med Blender som Python-modul
+  (`tools/ryg/`); durasæk, nerverødder og patologi er tilføjet. Visning med three.js.
+- Appen er skjult (ikke på downloadsiden, oversigten eller i "Andre apps"), indtil den er vurderet
+  klinisk. claude.ai-version til afprøvning: https://claude.ai/artifact/TMz2DoRzK6UAvffJJqTMKd. Test: `tests/ryg.test.js`. Fælles `style.css` er ændret, så service workers er hævet i
+  alle apps.
 
 **6. oktober 2026 — Restordre synlig igen og restordre.dk fra alle værktøjer:**
 - Efter ønske vises Restordre igen på oversigten, downloadsiden (kort og QR-kode, nu otte apps) og i

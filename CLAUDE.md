@@ -52,13 +52,18 @@ eller "usikker" end et falsk præcist tal.
   `sw.js` og `icons/`. Doser skal stemme med de øvrige værktøjer (DOAK = `hjerte/af.js`, østrogen =
   `app.js`, cystitis = `infektion/urinveje.js`, DPP-4 = `nyre/dosis.js`). Test:
   `tests/restordre.test.js`.
+- `ryg/` (MR-columna i 3D, prototype — skjult som Notat-indgang): `index.html`, `mr.js` (tolkning af
+  MR-beskrivelsen, `MR.tolk`/`MR.model`/`MR.forklaring`), `ryg.js` (fundliste), `heling.js` (helingsforløbet: kurver, faser, graf), `visning.js` (three.js
+  i `lib/`), modellen `model/l3-s1.glb` (Z-Anatomy, CC BY-SA 4.0) med patologien som shape keys for
+  L3/L4, L4/L5 og L5/S1 (nøgler som `L4L5_ekstrusion_paracentral_v`). Modellen bygges med `tools/ryg/` (Blender som Python-modul, se README); nye
+  diagnoser = ny shape key i `tools/ryg/patologi.py` + navn i `MR.model`. Test: `tests/ryg.test.js`.
 - `apps.html` (downloadside "Hent klinikværktøjerne"): alle apps med "Åbn og installér" (→ `…#installer`),
   delbart link og QR-koder i `qr/` (lav dem med `python3 tools/mkqr.py`; listen `KODER` skal svare til
   kortene). Nyt app-modul: tilføj kort, QR-kode og filerne i rodens `sw.js`. Notat-indgang er skjult efter ønske (som blødningskalenderen): ikke på downloadsiden, oversigten eller i "Andre apps" — filerne findes fortsat. Restordre er synlig igen; alle værktøjer med præparatvalg har under resultatet linjen `restordre-hint` (restordre.dk + Restordre) — hold den med på nye værktøjssider. Test: `tests/apps.test.js`.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
   **Hæv `VERSION` i `sw.js`** og i den berørte apps `*/sw.js` (hjerte, lunge, thyreoidea,
-  diabetes, infektion, nyre, notat, restordre), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
+  diabetes, infektion, nyre, notat, restordre, ryg), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
   `valg.js`, `udfyld.js`) caches af alle apps.
 - `README.md`: klinisk logik, datagrundlag og ændringslog (opdateres ved hver ændring).
 - `tests/`: Playwright-suiter. `tests/run_all.sh` kører dem alle mod en lokal server.
