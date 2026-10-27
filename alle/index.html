@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Alle klinikværktøjer</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#334e68">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Alle værktøjer">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6f3;
+    --surface: #ffffff;
+    --border: #dbe2dc;
+    --text: #1c2624;
+    --muted: #5c6b64;
+    --primary: #334e68;
+    --primary-dark: #243b53;
+    --on-primary: #ffffff;
+    --chip-bg: #e4ebf2;
+    --chip-text: #243b53;
+    --note-bg: #eaf2fa;
+    --note-border: #a9c9e6;
+    --note-text: #1c4a72;
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101615; --surface: #1a2321; --border: #2c3835;
+      --text: #e7ece9; --muted: #9bb0a8;
+      --primary: #9fb3c8; --primary-dark: #829ab1; --on-primary: #06120f;
+      --chip-bg: #1f2a36; --chip-text: #d9e2ec;
+      --note-bg: #16273a; --note-border: #35608a; --note-text: #bcd9f5;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101615; --surface: #1a2321; --border: #2c3835;
+    --text: #e7ece9; --muted: #9bb0a8;
+    --primary: #9fb3c8; --primary-dark: #829ab1; --on-primary: #06120f;
+    --chip-bg: #1f2a36; --chip-text: #d9e2ec;
+    --note-bg: #16273a; --note-border: #35608a; --note-text: #bcd9f5;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: 40px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  header { display: flex; flex-direction: column; gap: 8px; max-width: 64ch; }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin: 0;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+  .lede { margin: 0; color: var(--muted); font-size: 1.02rem; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  @media (max-width: 720px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  .tool-wide { grid-column: 1 / -1; }
+  .section-title { margin: 8px 0 -12px; font-size: 1.1rem; color: var(--primary-dark); }
+
+  .tool {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tool-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .kind {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--chip-bg);
+    color: var(--chip-text);
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .who { font-size: 0.8rem; color: var(--muted); }
+  .tool h2 { margin: 0; font-size: 1.2rem; line-height: 1.25; }
+  .tool p { margin: 0; }
+  .use { color: var(--text); }
+  .basis {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.74rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+    margin-top: auto;
+  }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    font: inherit; font-size: 0.9rem; font-weight: 600;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    text-decoration: none; border: 1px solid transparent;
+  }
+  .btn-open { background: var(--primary); color: var(--on-primary); }
+  .btn-open:hover { background: var(--primary-dark); }
+  .btn-copy { background: var(--surface); color: var(--text); border-color: var(--border); }
+  .btn-copy:hover { background: var(--bg); }
+  [hidden] { display: none !important; }
+  .btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .copied { font-size: 0.82rem; color: var(--primary); font-weight: 600; min-width: 5ch; }
+  .url {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    word-break: break-all;
+    user-select: all;
+  }
+
+  .note {
+    background: var(--note-bg);
+    border: 1px solid var(--note-border);
+    color: var(--note-text);
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 0.9rem;
+    max-width: 80ch;
+  }
+  .note p { margin: 0; }
+  .note a { color: inherit; font-weight: 600; }
+  .note p + p { margin-top: 6px; }
+  footer { font-size: 0.8rem; color: var(--muted); max-width: 80ch; }
+
+  .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  @media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 420px) { .tiles { grid-template-columns: minmax(0, 1fr); } }
+  .tile {
+    display: flex; gap: 12px; align-items: center; text-decoration: none; color: var(--text);
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px;
+  }
+  .tile:hover { border-color: var(--primary); }
+  .tile:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .tile img { width: 48px; height: 48px; flex-shrink: 0; border-radius: 11px; }
+  .tile strong { display: block; font-size: 1.02rem; line-height: 1.25; }
+  .tile small { display: block; color: var(--muted); font-size: 0.82rem; line-height: 1.35; margin-top: 2px; }
+  .status { font-size: 0.85rem; color: var(--muted); min-height: 1.2em; margin: 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Almen praksis · danske forhold</p>
+    <h1>Alle klinikværktøjer</h1>
+    <p class="lede">Alle ni apps samlet ét sted. Installeret som app får du ét ikon på skrivebordet, der åbner alle værktøjerne — også uden internet. Intet gemmes eller sendes.</p>
+  </header>
+
+  <nav class="tiles" aria-label="Apps">
+    <a class="tile" href="../oversigt.html"><img src="../icons/icon.svg" alt="" width="48" height="48"><span><strong>Kvindesundhed</strong><small>Klimakterie, MHT-risiko, prævention, MRS, osteoporose</small></span></a>
+    <a class="tile" href="../hjerte/index.html"><img src="../hjerte/icons/icon.svg" alt="" width="48" height="48"><span><strong>Hjerte-kar</strong><small>SCORE2, atrieflimren og EKG</small></span></a>
+    <a class="tile" href="../lunge/index.html"><img src="../lunge/icons/icon.svg" alt="" width="48" height="48"><span><strong>Lunger</strong><small>KOL og astma</small></span></a>
+    <a class="tile" href="../thyreoidea/index.html"><img src="../thyreoidea/icons/icon.svg" alt="" width="48" height="48"><span><strong>Hypothyreose</strong><small>TSH, T4 og levothyroxin</small></span></a>
+    <a class="tile" href="../diabetes/index.html"><img src="../diabetes/icons/icon.svg" alt="" width="48" height="48"><span><strong>Type 2-diabetes</strong><small>Behandling og årskontrol</small></span></a>
+    <a class="tile" href="../infektion/index.html"><img src="../infektion/icons/icon.svg" alt="" width="48" height="48"><span><strong>Infektioner</strong><small>Antibiotika ved luftveje, urinveje og hud</small></span></a>
+    <a class="tile" href="../nyre/index.html"><img src="../nyre/icons/icon.svg" alt="" width="48" height="48"><span><strong>Nyrer</strong><small>Kronisk nyresygdom og dosis efter nyrefunktion</small></span></a>
+    <a class="tile" href="../svangre/index.html"><img src="../svangre/icons/icon.svg" alt="" width="48" height="48"><span><strong>Svangreomsorg</strong><small>Graviditetsundersøgelser med tjekliste</small></span></a>
+    <a class="tile" href="../restordre/index.html"><img src="../restordre/icons/icon.svg" alt="" width="48" height="48"><span><strong>Restordre</strong><small>Alternativer, når et præparat ikke kan skaffes</small></span></a>
+  </nav>
+
+  <div class="note" role="note" data-app-only>
+    <p><strong>Installér alle apps på én gang:</strong> klik på knappen (Chrome eller Edge på computer og Android). Du får ét ikon på skrivebordet og i startmenuen, og alle værktøjerne kan bruges uden internet.</p>
+    <p><button class="btn btn-open" type="button" data-install hidden>Installér alle apps</button></p>
+    <p>Ingen knap? Klik på installér-ikonet yderst i adresselinjen (eller menuen → "Installer …"). iPhone: Safari → Del → "Føj til hjemmeskærm". Mac med Safari: Arkiv → "Føj til Dock".</p>
+    <p class="status" id="offlineStatus" aria-live="polite"></p>
+  </div>
+
+  <div class="note" role="note">
+    <p>Hver app kan også installeres for sig, og der findes genveje til skrivebordet: <a href="../apps.html">Hent klinikværktøjerne</a>.</p>
+    <p>Værktøjerne er hurtige huskesedler til konsultationen. De erstatter ikke den kliniske vurdering, nationale vejledninger eller opslag på pro.medicin.dk før ordination.</p>
+  </div>
+
+  <footer>Uafhængige hjælpeværktøjer til almen praksis. Senest opdateret 27. oktober 2026.</footer>
+</div>
+<script src="registrer.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

@@ -6,6 +6,7 @@
 <title>Hent klinikværktøjerne</title>
 <meta name="description" content="Ni gratis klinikværktøjer til almen praksis — installér dem som apps på computer, iPhone og Android. Virker uden internet.">
 <meta name="theme-color" content="#0b6e5f">
+<link rel="manifest" href="alle/manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -124,6 +125,13 @@
     .app { gap: 4px; }
     footer { font-size: 9px; }
   }
+  .alle { display: flex; gap: 18px; align-items: flex-start; border-color: var(--primary); }
+  .alle img { flex-shrink: 0; border-radius: 14px; }
+  .alle-tekst { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .alle h2 { margin: 0; }
+  .alle p { margin: 0; }
+  .alle .lille { font-size: 0.85rem; color: var(--muted); }
+  @media (max-width: 560px) { .alle { flex-direction: column; } }
 </style>
 </head>
 <body>
@@ -133,6 +141,21 @@
     <h1>Hent klinikværktøjerne</h1>
     <p class="lede">Ni små, gratis apps til konsultationen. De installeres fra browseren — uden App Store — og virker uden internet, når de har været åbnet én gang. Intet sendes nogen steder hen.</p>
   </header>
+
+  <section class="card alle note-print-skjul" aria-labelledby="alleTitel">
+    <img src="alle/icons/icon.svg" alt="" width="64" height="64">
+    <div class="alle-tekst">
+      <h2 id="alleTitel">Alle apps med ét klik</h2>
+      <p><strong>Som én app:</strong> installér alle ni værktøjer samlet — ét ikon på skrivebordet, eget vindue, og alt virker uden internet (Chrome eller Edge).</p>
+      <div class="actions">
+        <button class="btn btn-open" type="button" data-install hidden>Installér alle apps</button>
+        <a class="btn btn-open" href="alle/index.html#installer" id="alleAaben">Åbn den samlede app</a>
+        <a class="btn btn-copy" href="alle/klinikvaerktoejer-genveje.zip" download id="genvejeBtn">Hent genveje til skrivebordet (.zip)</a>
+      </div>
+      <p class="lille"><strong>Som genveje:</strong> zip-filen indeholder en genvej til hver app (Windows og Mac) — pak den ud, og træk genvejene over på skrivebordet. De åbner i browseren.</p>
+      <p class="lille" id="offlineStatus" aria-live="polite"></p>
+    </div>
+  </section>
 
   <section class="card del" aria-labelledby="delTitel">
     <img class="qr-stor" src="qr/apps.svg" alt="QR-kode til denne side: https://normanvisby-arch.github.io/Hormoner/apps.html" width="196" height="196">
@@ -157,7 +180,7 @@
       <li><strong>iPhone og iPad:</strong> åbn appen i Safari → Del-knappen → <em>Føj til hjemmeskærm</em>.</li>
       <li><strong>Android:</strong> åbn appen i Chrome → ⋮ → <em>Installer app</em>.</li>
     </ul>
-    <p>Browseren installerer én app ad gangen, så hver app installeres for sig (ca. 10 sekunder pr. app). Installér kun dem, du bruger. Apps opdaterer sig selv, næste gang de åbnes med internet.</p>
+    <p>Vil du have det hele på én gang, så brug <em>Alle apps med ét klik</em> øverst. Ellers installeres hver app for sig (ca. 10 sekunder pr. app) — installér kun dem, du bruger. Apps opdaterer sig selv, næste gang de åbnes med internet.</p>
   </section>
 
   <div class="grid" id="apps">
@@ -295,6 +318,7 @@
     document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
   })();
 </script>
+<script src="alle/registrer.js"></script>
 <script src="pwa.js"></script>
 </body>
 </html>
