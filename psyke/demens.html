@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Demensudredning i almen praksis</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f6e73">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Psyke">
+</head>
+<body class="theme-psyke">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🧩</span>
+      <div>
+        <h1>Demensudredning i almen praksis</h1>
+        <p class="subtitle">Basisudredning før henvisning: delirium og depression udelukket, kognitiv test, medicingennemgang, blodprøver med "hold øje med", EKG og scanning, henvisning, kørekort og journalnotat</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <a href="depression.html">Depression</a>
+  <span aria-current="page">Demens</span>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Følger Sundhedsstyrelsens NKR for diagnostik af MCI og demens, Lægehåndbogen og regionernes forløbsbeskrivelser for demensudredning. Hvilke prøver, og om praksis bestiller CT, varierer mellem regionerne — følg regionens forløbsbeskrivelse. Intet gemmes eller sendes.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se tjekliste ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patient og symptomer</h2>
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="18" max="110" placeholder="fx 78">
+    </div>
+    <fieldset class="field">
+      <legend>Uddannelse</legend>
+      <label class="radio"><input type="radio" name="udd" value="mellem" checked> Gennemsnitlig</label>
+      <label class="radio"><input type="radio" name="udd" value="kort"> Kort (højst 9 års skolegang) eller dansk ikke modersmål</label>
+      <label class="radio"><input type="radio" name="udd" value="lang"> Lang videregående uddannelse</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Forløb</legend>
+      <label class="checkbox"><input type="checkbox" name="forloeb" value="akut"> Akut debut, svingende bevidsthed eller opmærksomhed (delirium?)</label>
+      <label class="checkbox"><input type="checkbox" name="forloeb" value="hurtig"> Hurtig forværring over uger til få måneder</label>
+      <label class="checkbox"><input type="checkbox" name="forloeb" value="adl"> Svært ved daglige gøremål (økonomi, medicin, indkøb, transport)</label>
+      <label class="checkbox"><input type="checkbox" name="forloeb" value="paaroerende"> Pårørende bekymrede</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Særlige træk</legend>
+      <label class="checkbox"><input type="checkbox" name="trak" value="personlighed"> Personlighedsændring, hæmningsløshed eller sprogproblemer (frontotemporal?)</label>
+      <label class="checkbox"><input type="checkbox" name="trak" value="lewy"> Synshallucinationer, parkinsonisme eller svingende vågenhed (Lewy body?)</label>
+      <label class="checkbox"><input type="checkbox" name="trak" value="vaskulaer"> Apopleksi/TCI eller trinvis forværring (vaskulær?)</label>
+      <label class="checkbox"><input type="checkbox" name="trak" value="nph"> Gangbesvær og urininkontinens (normaltrykshydrocephalus?)</label>
+      <label class="checkbox"><input type="checkbox" name="trak" value="alkohol"> Alkoholoverforbrug</label>
+    </fieldset>
+
+    <h2>2. Test</h2>
+    <div class="field">
+      <label for="mmse">MMSE (0–30)</label>
+      <input type="number" id="mmse" min="0" max="30" placeholder="fx 24">
+    </div>
+    <fieldset class="field">
+      <legend>Urskivetest</legend>
+      <label class="radio"><input type="radio" name="ur" value="ukendt" checked> Ikke udført</label>
+      <label class="radio"><input type="radio" name="ur" value="normal"> Normal</label>
+      <label class="radio"><input type="radio" name="ur" value="afvigende"> Afvigende</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Depression (GDS eller MDI)</legend>
+      <label class="radio"><input type="radio" name="dep" value="ukendt" checked> Ikke vurderet</label>
+      <label class="radio"><input type="radio" name="dep" value="neg"> Ikke tegn på depression</label>
+      <label class="radio"><input type="radio" name="dep" value="pos"> Tegn på depression</label>
+    </fieldset>
+
+    <h2>3. Medicin</h2>
+    <fieldset class="field">
+      <legend>Kan påvirke hukommelsen</legend>
+      <label class="checkbox"><input type="checkbox" name="med" value="antikolin"> Antikolinerge (fx amitriptylin, tolterodin, solifenacin, hydroxyzin, promethazin)</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="benzo"> Benzodiazepiner eller sovemedicin (zopiclon, zolpidem)</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="opioid"> Opioider eller gabapentin/pregabalin</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="antipsyk"> Antipsykotika</label>
+    </fieldset>
+
+    <h2>4. Blodprøver (valgfrit)</h2>
+    <div class="field"><label for="hb">Hæmoglobin (mmol/l)</label><input type="number" id="hb" min="2" max="14" step="0.1" placeholder="fx 8,2"></div>
+    <div class="field"><label for="na">Natrium (mmol/l)</label><input type="number" id="na" min="100" max="170" placeholder="fx 139"></div>
+    <div class="field"><label for="ca">Calcium, ioniseret (mmol/l)</label><input type="number" id="ca" min="0.5" max="2.5" step="0.01" placeholder="fx 1,25"></div>
+    <div class="field"><label for="tsh">TSH (mIE/l)</label><input type="number" id="tsh" min="0" max="200" step="0.01" placeholder="fx 1,8"></div>
+    <div class="field"><label for="b12">B12 (pmol/l)</label><input type="number" id="b12" min="0" max="3000" placeholder="fx 310"></div>
+    <div class="field"><label for="hba1c">HbA1c (mmol/mol)</label><input type="number" id="hba1c" min="15" max="200" placeholder="fx 40"></div>
+    <div class="field"><label for="egfr">eGFR (ml/min/1,73 m²)</label><input type="number" id="egfr" min="2" max="150" placeholder="fx 64"></div>
+    <div class="field"><label for="crp">CRP (mg/l)</label><input type="number" id="crp" min="0" max="500" placeholder="fx 3"></div>
+
+    <h2>5. Praktisk</h2>
+    <fieldset class="field">
+      <legend>Forhold</legend>
+      <label class="checkbox"><input type="checkbox" name="prak" value="koerekort"> Har kørekort og kører bil</label>
+      <label class="checkbox"><input type="checkbox" name="prak" value="alene"> Bor alene</label>
+      <label class="checkbox"><input type="checkbox" name="prak" value="scanning"> Hjernescanning inden for 12 måneder</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Tjekliste og vurdering" id="resultPanel">
+    <h2>Tjekliste og vurdering</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld vurdering</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+    <p class="field-hint restordre-hint">Kan et præparat ikke skaffes? Tjek <a href="https://restordre.dk/" target="_blank" rel="noopener">restordre.dk</a> (dagligt opdateret status fra grossister og apoteker), og find alternativer med vejledende ækvivalente doser i <a href="../restordre/index.html">Restordre</a>.</p>
+  </section>
+</main>
+
+<div id="linkKort" hidden><a data-sti="depression.html" href="depression.html">Depression</a><a data-sti="../thyreoidea/hypothyreose.html" href="../thyreoidea/hypothyreose.html">Hypothyreose</a><a data-sti="../hjerte/ekg.html" href="../hjerte/ekg.html">EKG</a></div>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Sundhedsstyrelsen — NKR for diagnostik af mild cognitive impairment og demens (2018): kort kognitiv test og vurdering af instrumentel funktionsevne (IADL), strukturel hjernescanning i basal udredning; NKR for udredning og behandling af demens (2013): ikke udredning under akut konfusion eller aktuelt misbrug</li>
+    <li>Lægehåndbogen — Demensudredning (læge): indledende udredning i almen praksis (anamnese med pårørende, objektiv undersøgelse, kognitiv test — MMSE, urskivetest eller BASIC — depressionsscreening med GDS eller MDI, blodprøver), medicin optimeres og depression behandles før test; ikke under akut sygdom; efter apopleksi som regel 3 måneder før henvisning</li>
+    <li>Regionernes forløbsbeskrivelser for demens (Syddanmark 2025, Sjælland, Nordjylland, Hovedstaden): hæmoglobin, leukocytter, trombocytter, CRP, natrium, kalium, kreatinin, calcium, albumin, ALAT, basisk fosfatase, HbA1c, TSH, folat, B12 (og D-vitamin); EKG; CT af cerebrum bestilles af praksis i nogle regioner (Region Hovedstaden ved MMSE under 20 uden scanning inden for 12 måneder)</li>
+    <li>MMSE: Folstein 1975; sværhedsgrad ved demens (NICE TA217): 21–26 let, 10–20 moderat, under 10 svær — påvirkes af uddannelse, sprog, syn og hørelse</li>
+    <li>Sundhedsstyrelsen — Vejledning om helbredskrav til kørekort: demens kræver vurdering af køreevnen</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — erstatter ikke den kliniske vurdering eller regionens forløbsbeskrivelse. sundhed.dk og sst.dk kunne ikke tilgås direkte ved udviklingen; anbefalingerne er kontrolleret via sekundære kilder (søgeresultater). Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="demens.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

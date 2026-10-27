@@ -66,6 +66,10 @@ body.theme-svangre {
   --color-primary: #a83660;
   --color-primary-dark: #7d2647;
 }
+body.theme-psyke {
+  --color-primary: #0f6e73;
+  --color-primary-dark: #0a5256;
+}
 body.theme-notat {
   --color-primary: #334e68;
   --color-primary-dark: #243b53;
@@ -888,6 +892,12 @@ textarea.ekg-maskine { width: 100%; box-sizing: border-box; font: inherit; font-
 .theme-svangre .field select { padding: 0.4rem 0.5rem; border: 1px solid var(--color-border); border-radius: 6px; font-size: 0.95rem; background: var(--color-panel); color: inherit; }
 .theme-svangre .field input[type="number"] + input[type="number"] { margin-top: 0.4rem; }
 .field.bt-par input[type="number"] + input[type="number"] { margin-top: 0.4rem; }
+/* MDI-spørgeskema (psyke/depression.html) */
+.mdi { margin: 0 0 1rem; }
+.mdi-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(9rem, auto); gap: 0.3rem 0.6rem; align-items: center; padding: 0.35rem 0; border-bottom: 1px solid var(--color-border); font-size: 0.88rem; }
+.mdi-nr { font-weight: 700; color: var(--color-primary-dark); }
+.mdi select, .theme-psyke .field select { padding: 0.35rem 0.4rem; border: 1px solid var(--color-border); border-radius: 6px; font-size: 0.88rem; background: var(--color-panel); color: inherit; max-width: 100%; }
+@media (max-width: 520px) { .mdi-row { grid-template-columns: minmax(0, 1fr); } }
 .ga-badge { display: inline-block; font-weight: 700; font-variant-numeric: tabular-nums; }
 @media print {
   .tjekliste input { accent-color: #000; }

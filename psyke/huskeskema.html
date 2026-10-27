@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Psyke-huskeskema</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f6e73">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Psyke">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f6f3;
+    --surface: #ffffff;
+    --surface-2: #eef1ee;
+    --border: #dbe2dc;
+    --text: #1c2624;
+    --text-muted: #5c6b64;
+    --primary: #0f6e73;
+    --primary-dark: #0a5256;
+    --primary-contrast: #ffffff;
+    --accent: #2f6fa3;
+
+    --red-bg: #fdecec;    --red-border: #e0a0a0; --red-text: #7c1f1f;
+    --amber-bg: #fff6e0;  --amber-border: #e0c46f; --amber-text: #5c4404;
+    --green-bg: #e7f5ee;  --green-border: #9ad2b8; --green-text: #0b5c47;
+    --blue-bg: #eaf2fa;   --blue-border: #a9c9e6; --blue-text: #1c4a72;
+
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101615;
+      --surface: #1a2321;
+      --surface-2: #202b28;
+      --border: #2c3835;
+      --text: #e7ece9;
+      --text-muted: #9bb0a8;
+      --primary: #5fc4c8;
+      --primary-dark: #3fa9ad;
+      --primary-contrast: #06120f;
+      --accent: #7db1e0;
+      --red-bg: #3a1f1f;   --red-border: #7c3b3b; --red-text: #f2b6b6;
+      --amber-bg: #3a2f10; --amber-border: #7d611f; --amber-text: #f2da98;
+      --green-bg: #12332a; --green-border: #2f6b56; --green-text: #a9e6cd;
+      --blue-bg: #16273a;  --blue-border: #35608a; --blue-text: #bcd9f5;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101615;
+    --surface: #1a2321;
+    --surface-2: #202b28;
+    --border: #2c3835;
+    --text: #e7ece9;
+    --text-muted: #9bb0a8;
+    --primary: #5fc4c8;
+    --primary-dark: #3fa9ad;
+    --primary-contrast: #06120f;
+    --accent: #7db1e0;
+    --red-bg: #3a1f1f;   --red-border: #7c3b3b; --red-text: #f2b6b6;
+    --amber-bg: #3a2f10; --amber-border: #7d611f; --amber-text: #f2da98;
+    --green-bg: #12332a; --green-border: #2f6b56; --green-text: #a9e6cd;
+    --blue-bg: #16273a;  --blue-border: #35608a; --blue-text: #bcd9f5;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.5;
+    font-size: 15.5px;
+  }
+  h1, h2, h3 { text-wrap: balance; }
+
+  .topbar {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: var(--primary-contrast);
+    padding: 1.1rem 1.25rem;
+  }
+  .topbar-inner { max-width: 1160px; margin: 0 auto; display: flex; align-items: center; gap: 0.8rem; }
+  .brand-mark {
+    width: 2.4rem; height: 2.4rem; flex-shrink: 0; border-radius: 10px;
+    background: color-mix(in srgb, var(--primary-contrast) 16%, transparent);
+    display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700;
+  }
+  .topbar h1 { margin: 0; font-size: 1.28rem; font-weight: 700; letter-spacing: -0.01em; }
+  .topbar p { margin: 0.15rem 0 0; font-size: 0.85rem; opacity: 0.92; }
+
+  .wrap { max-width: 1160px; margin: 0 auto; padding-inline: 1.1rem; }
+
+  .tool-nav { display: flex; gap: 0.4rem 0.8rem; flex-wrap: wrap; font-size: 0.83rem; margin-top: 0.6rem; }
+  .tool-nav a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .tool-nav a:hover { text-decoration: underline; }
+  .tool-nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  .tool-nav span { color: var(--text-muted); font-weight: 600; }
+
+  .lead {
+    margin: 1rem 0 0; padding: 0.75rem 1.1rem; border-radius: 9px;
+    background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-text); font-size: 0.9rem;
+  }
+
+  .groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.1rem; }
+  @media (max-width: 820px) { .groups { grid-template-columns: minmax(0, 1fr); } }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem 0.4rem; }
+  .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 0.2rem; }
+  .panel h2 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--primary-dark); }
+  .phase { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+
+  .rules { list-style: none; margin: 0; padding: 0; }
+  .rule { display: grid; grid-template-columns: 1.9rem minmax(0, 1fr); gap: 0.2rem 0.6rem; padding: 0.65rem 0; border-bottom: 1px solid var(--border); }
+  .rule:last-child { border-bottom: none; }
+  .num {
+    grid-row: span 2; width: 1.75rem; height: 1.75rem; border-radius: 50%;
+    background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.8rem; font-weight: 600;
+  }
+  .rule strong { font-size: 0.95rem; }
+  .why { font-size: 0.85rem; color: var(--text-muted); }
+  .fig {
+    display: inline-block; margin-left: 0.3rem; padding: 0.02rem 0.45rem; border-radius: 999px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.74rem; font-weight: 600; white-space: nowrap;
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+  }
+  .tradeoff {
+    display: block; margin: 0.45rem 0 0; padding: 0.45rem 0.65rem; border-radius: 7px; font-size: 0.83rem;
+    background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber-text);
+  }
+
+  .section { margin-top: 1rem; }
+  .tradeoff a { color: inherit; font-weight: 600; }
+  .intro { margin: 0.6rem 0 0.2rem; font-size: 0.9rem; max-width: 75ch; }
+  .compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; margin: 0.8rem 0; }
+  @media (max-width: 720px) { .compare { grid-template-columns: minmax(0, 1fr); } }
+  .opt { border-radius: 10px; padding: 0.75rem 0.9rem; border: 1px solid; }
+  .opt-cont { background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); }
+  .opt-seq { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); }
+  .opt h3 { margin: 0 0 0.35rem; font-size: 0.95rem; }
+  .opt ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.25rem; font-size: 0.87rem; }
+  .opt .tag { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.85; margin-left: 0.35rem; }
+  .ev { font-size: 0.8rem; color: var(--text-muted); }
+  .mirena { margin: 0 0 0.8rem; padding: 0.6rem 0.8rem; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border); font-size: 0.86rem; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+  th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-2); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
+  td.effect { font-variant-numeric: tabular-nums; }
+  td.src { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; }
+  .down { color: var(--green-text); font-weight: 700; }
+  .up { color: var(--red-text); font-weight: 700; }
+  @media (max-width: 640px) {
+    thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+    tr { padding: 0.45rem 0; border-bottom: 1px solid var(--border); }
+    td { border: none; padding: 0.12rem 0.2rem; }
+    td:first-child { font-weight: 600; }
+    td.src { white-space: normal; }
+  }
+  .table-note { font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0 0.6rem; }
+  .table-note a { color: var(--accent); font-weight: 600; }
+
+  .alert { margin-top: 1rem; border-radius: 12px; padding: 1rem 1.1rem; background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red-text); }
+  .alert h2 { margin: 0 0 0.5rem; font-size: 1rem; }
+  .alert ul { margin: 0; padding-left: 1.15rem; display: grid; gap: 0.35rem; font-size: 0.9rem; }
+
+  footer { margin: 1.4rem auto 2.2rem; color: var(--text-muted); font-size: 0.82rem; }
+  footer h2 { font-size: 0.92rem; color: var(--text); margin: 0 0 0.4rem; }
+  footer ul { padding-left: 1.15rem; margin: 0 0 0.6rem; }
+  footer li { margin-bottom: 0.2rem; }
+  .fineprint { font-style: italic; font-size: 0.78rem; }
+
+  .box-num { background: var(--surface-2); color: var(--text); border-color: var(--border); border-radius: 4px; }
+  .when { display: block; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.1rem; }
+  @media print {
+    body { background: #fff; font-size: 11px; }
+    .topbar { background: none; color: #000; padding: 0 0 0.4rem; border-bottom: 2px solid #000; }
+    .brand-mark, .tool-nav, .lead { display: none; }
+    .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+    .panel { break-inside: avoid; padding: 0.4rem 0.6rem 0.2rem; }
+    .rule { padding: 0.25rem 0; }
+    .alert, .section { break-inside: avoid; }
+  }
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <span class="brand-mark" aria-hidden="true">✓</span>
+    <div>
+      <h1>Psyke-huskeskema</h1>
+      <p>Depression og demensudredning i almen praksis — til konsultationen og udskrift</p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="tool-nav" aria-label="Værktøjer">
+    <a href="index.html">Oversigt</a>
+    <a href="depression.html">Depression</a>
+    <a href="demens.html">Demens</a>
+    <span>Huskeskema</span>
+  </nav>
+
+  <p class="lead">Udskriv skemaet, eller brug <a href="depression.html">Depression</a> (MDI med ICD-10-algoritmen og plan) og <a href="demens.html">Demens</a> (tjekliste til basisudredningen), der også skriver journalnotatet.</p>
+
+  <div class="groups">
+    <section class="panel" aria-labelledby="g1">
+      <div class="panel-head"><h2 id="g1">Depression — diagnose</h2><span class="phase">MDI og ICD-10</span></div>
+      <ol class="rules"><li class="rule"><span class="num box-num">☐</span><strong>MDI (de sidste 2 uger)</strong><span class="why">10 spørgsmål, 0–5; spørgsmål 8 og 10 har a/b — den højeste tæller. Sum 0–50.</span></li><li class="rule"><span class="num box-num">☐</span><strong>ICD-10-algoritmen</strong><span class="why">Kernesymptomer (1–3) tæller ved 4–5, ledsagesymptomer (4–10) ved 3–5. Let: ≥ 2 kerne + ≥ 2 ledsage. Moderat: ≥ 2 kerne + ≥ 4 ledsage. Svær: 3 kerne + ≥ 5 ledsage. Varighed ≥ 2 uger.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Sumscore til forløb</strong><span class="why">21–25 let, 26–30 moderat, ≥ 31 svær. Respons = fald ≥ 50 %; remission = under 21.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Udeluk</strong><span class="why">Bipolar lidelse (tidligere mani/hypomani), psykotiske symptomer, somatisk årsag (TSH, Hb, HbA1c, elektrolytter, calcium, B12), alkohol og medicin.</span></li></ol>
+    </section>
+    <section class="panel" aria-labelledby="g2">
+      <div class="panel-head"><h2 id="g2">Depression — behandling</h2><span class="phase">Efter sværhedsgrad</span></div>
+      <ol class="rules"><li class="rule"><span class="num box-num">☐</span><strong>Let</strong><span class="why">Psykoedukation og samtaleterapi (psykolog med tilskud fra 18 år, gratis 18–24 år). Ikke antidepressiva som udgangspunkt.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Moderat</strong><span class="why">Samtaleterapi eller antidepressivum — kombinationen er ofte bedst.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Svær</strong><span class="why">Antidepressivum og støttende samtaler; overvej psykiatrien. Psykotisk eller bipolar: henvis.</span></li><li class="rule"><span class="num box-num">☐</span><strong>SSRI førstevalg</strong><span class="why">Sertralin 25–50 mg → 100 mg (højst 200 mg); escitalopram 10 mg (5–10 mg fra 65 år). 2. valg: mirtazapin 15–30 mg (søvn, vægttab) eller SNRI. Natrium hos ældre; blødningsrisiko med AK/NSAID; QT ved (es)citalopram.</span></li></ol>
+    </section>
+    <section class="panel" aria-labelledby="g3">
+      <div class="panel-head"><h2 id="g3">Depression — opfølgning</h2><span class="phase">Plan</span></div>
+      <ol class="rules"><li class="rule"><span class="num box-num">☐</span><strong>1–2 uger</strong><span class="why">Bivirkninger, selvmordstanker, at medicinen tages — efter 1 uge under 25 år.</span></li><li class="rule"><span class="num box-num">☐</span><strong>4–6 uger</strong><span class="why">Ny MDI. Ingen effekt i tilstrækkelig dosis: øg dosis eller skift. Efter to forsøg: psykiatrien.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Varighed</strong><span class="why">Mindst 6 måneder efter remission; ca. 2 år ved tilbagevendende depression. Aftrap over mindst 4 uger.</span></li></ol>
+    </section>
+    <section class="panel" aria-labelledby="g4">
+      <div class="panel-head"><h2 id="g4">Demens — basisudredning</h2><span class="phase">Før henvisning</span></div>
+      <ol class="rules"><li class="rule"><span class="num box-num">☐</span><strong>Ikke under delirium</strong><span class="why">Akut debut og svingende bevidsthed: find årsagen (infektion, medicin, dehydrering), test igen efter bedring.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Anamnese og funktion</strong><span class="why">Med pårørende; instrumentel ADL (økonomi, medicin, indkøb, transport).</span></li><li class="rule"><span class="num box-num">☐</span><strong>Test</strong><span class="why">MMSE (27–30 normalområde; ved demens 21–26 let, 10–20 moderat, &lt; 10 svær) og urskivetest; BASIC ved anden sproglig baggrund. GDS/MDI — behandl depression først.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Medicin og alkohol</strong><span class="why">Antikolinerge, benzodiazepiner, opioider seponeres/reduceres før test.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Henvisning</strong><span class="why">Til hukommelsesklinik ved fortsat mistanke; hurtigt under 65 år, ved hurtig forværring og atypiske træk. Kommunens demenskoordinator. Kørekort skal vurderes.</span></li></ol>
+    </section>
+  </div>
+
+  <section class="panel section" aria-labelledby="t1">
+    <div class="panel-head"><h2 id="t1">Prøver ved demensudredning</h2><span class="phase">Hold øje med</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Prøve</th><th>Hvorfor</th><th>Hold øje med</th></tr></thead>
+        <tbody>
+          <tr><td>Hb, leukocytter, trombocytter, CRP</td><td>Anæmi, infektion</td><td class="effect">Anæmi → B12/folat/jern; højt CRP → infektion/delirium.</td></tr>
+          <tr><td>Natrium, kalium, kreatinin/eGFR</td><td>Elektrolytter, nyrefunktion</td><td class="effect">Natrium &lt; 130 → årsag (thiazid, SSRI).</td></tr>
+          <tr><td>Calcium og albumin</td><td>Hypercalcæmi</td><td class="effect">Forhøjet → PTH.</td></tr>
+          <tr><td>ALAT, basisk fosfatase</td><td>Lever, alkohol</td><td class="effect">Forhøjet → alkohol, leversygdom.</td></tr>
+          <tr><td>HbA1c, TSH</td><td>Diabetes, thyreoidea</td><td class="effect">HbA1c ≥ 48 → diabetes; afvigende TSH → T4.</td></tr>
+          <tr><td>B12 og folat (D-vitamin)</td><td>Mangel</td><td class="effect">B12 &lt; 200 → behandling; 200–300 → metylmalonsyre.</td></tr>
+          <tr><td>EKG</td><td>Før kolinesterasehæmmer</td><td class="effect">Bradykardi, AV-blok → forsigtighed.</td></tr>
+          <tr><td>CT/MR cerebrum</td><td>Strukturelle årsager</td><td class="effect">Efter regionens forløbsbeskrivelse (fx Region Hovedstaden: praksis bestiller ved MMSE &lt; 20).</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">Panelet svarer til regionernes forløbsbeskrivelser — tjek din regions liste.</p>
+  </section>
+
+  <section class="alert" aria-labelledby="a1">
+    <h2 id="a1">Akut</h2>
+    <ul>
+      <li><strong>Selvmordsplaner</strong> eller kan ikke tage afstand: akut psykiatrisk vurdering samme dag — lad ikke patienten gå alene.</li>
+      <li><strong>Psykotiske symptomer</strong> eller mistanke om mani: akut/subakut psykiatrisk vurdering.</li>
+      <li><strong>Delirium:</strong> find og behandl årsagen; indlæggelse ved svær påvirkning.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <h2>Kilder</h2>
+    <ul>
+      <li>Major Depression Inventory (WHO/Bech) — ICD-10-algoritme og sumscore (Bech 2015)</li>
+      <li>DSAM — Unipolar depression; Sundhedsstyrelsen — NKR om depression og vejledning om antidepressiva; pro.medicin.dk og regionernes basislister</li>
+      <li>Sundhedsstyrelsen — NKR for diagnostik af MCI og demens (2018); Lægehåndbogen — Demensudredning; regionernes forløbsbeskrivelser for demens</li>
+    </ul>
+    <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra de nævnte kilder og erstatter ikke den kliniske vurdering. Primærkilderne kunne ikke tilgås direkte; indholdet er kontrolleret via sekundære kilder.</p>
+  </footer>
+</div>
+<script src="../pwa.js"></script>
+</body>
+</html>
