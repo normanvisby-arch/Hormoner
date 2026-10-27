@@ -3,7 +3,7 @@
 // Bruges af den samlede app (alle/index.html) og downloadsiden (apps.html).
 (function () {
   "use strict";
-  var MAPPER = ["", "hjerte/", "lunge/", "thyreoidea/", "diabetes/", "infektion/", "nyre/", "svangre/", "psyke/", "restordre/", "alle/"];
+  var MAPPER = ["", "hjerte/", "lunge/", "thyreoidea/", "diabetes/", "infektion/", "nyre/", "svangre/", "psyke/", "boern/", "restordre/", "alle/"];
   var status = function (t) {
     var el = document.getElementById("offlineStatus");
     if (el) el.textContent = t;

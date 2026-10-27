@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Børne-huskeskema</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#c2511d">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Børn">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f6f3;
+    --surface: #ffffff;
+    --surface-2: #eef1ee;
+    --border: #dbe2dc;
+    --text: #1c2624;
+    --text-muted: #5c6b64;
+    --primary: #c2511d;
+    --primary-dark: #94390f;
+    --primary-contrast: #ffffff;
+    --accent: #2f6fa3;
+
+    --red-bg: #fdecec;    --red-border: #e0a0a0; --red-text: #7c1f1f;
+    --amber-bg: #fff6e0;  --amber-border: #e0c46f; --amber-text: #5c4404;
+    --green-bg: #e7f5ee;  --green-border: #9ad2b8; --green-text: #0b5c47;
+    --blue-bg: #eaf2fa;   --blue-border: #a9c9e6; --blue-text: #1c4a72;
+
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #101615;
+      --surface: #1a2321;
+      --surface-2: #202b28;
+      --border: #2c3835;
+      --text: #e7ece9;
+      --text-muted: #9bb0a8;
+      --primary: #f0a07a;
+      --primary-dark: #e08356;
+      --primary-contrast: #06120f;
+      --accent: #7db1e0;
+      --red-bg: #3a1f1f;   --red-border: #7c3b3b; --red-text: #f2b6b6;
+      --amber-bg: #3a2f10; --amber-border: #7d611f; --amber-text: #f2da98;
+      --green-bg: #12332a; --green-border: #2f6b56; --green-text: #a9e6cd;
+      --blue-bg: #16273a;  --blue-border: #35608a; --blue-text: #bcd9f5;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #101615;
+    --surface: #1a2321;
+    --surface-2: #202b28;
+    --border: #2c3835;
+    --text: #e7ece9;
+    --text-muted: #9bb0a8;
+    --primary: #f0a07a;
+    --primary-dark: #e08356;
+    --primary-contrast: #06120f;
+    --accent: #7db1e0;
+    --red-bg: #3a1f1f;   --red-border: #7c3b3b; --red-text: #f2b6b6;
+    --amber-bg: #3a2f10; --amber-border: #7d611f; --amber-text: #f2da98;
+    --green-bg: #12332a; --green-border: #2f6b56; --green-text: #a9e6cd;
+    --blue-bg: #16273a;  --blue-border: #35608a; --blue-text: #bcd9f5;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.5;
+    font-size: 15.5px;
+  }
+  h1, h2, h3 { text-wrap: balance; }
+
+  .topbar {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: var(--primary-contrast);
+    padding: 1.1rem 1.25rem;
+  }
+  .topbar-inner { max-width: 1160px; margin: 0 auto; display: flex; align-items: center; gap: 0.8rem; }
+  .brand-mark {
+    width: 2.4rem; height: 2.4rem; flex-shrink: 0; border-radius: 10px;
+    background: color-mix(in srgb, var(--primary-contrast) 16%, transparent);
+    display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700;
+  }
+  .topbar h1 { margin: 0; font-size: 1.28rem; font-weight: 700; letter-spacing: -0.01em; }
+  .topbar p { margin: 0.15rem 0 0; font-size: 0.85rem; opacity: 0.92; }
+
+  .wrap { max-width: 1160px; margin: 0 auto; padding-inline: 1.1rem; }
+
+  .tool-nav { display: flex; gap: 0.4rem 0.8rem; flex-wrap: wrap; font-size: 0.83rem; margin-top: 0.6rem; }
+  .tool-nav a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .tool-nav a:hover { text-decoration: underline; }
+  .tool-nav a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+  .tool-nav span { color: var(--text-muted); font-weight: 600; }
+
+  .lead {
+    margin: 1rem 0 0; padding: 0.75rem 1.1rem; border-radius: 9px;
+    background: var(--blue-bg); border: 1px solid var(--blue-border); color: var(--blue-text); font-size: 0.9rem;
+  }
+
+  .groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 1.1rem; }
+  @media (max-width: 820px) { .groups { grid-template-columns: minmax(0, 1fr); } }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem 0.4rem; }
+  .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 0.2rem; }
+  .panel h2 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--primary-dark); }
+  .phase { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); white-space: nowrap; }
+
+  .rules { list-style: none; margin: 0; padding: 0; }
+  .rule { display: grid; grid-template-columns: 1.9rem minmax(0, 1fr); gap: 0.2rem 0.6rem; padding: 0.65rem 0; border-bottom: 1px solid var(--border); }
+  .rule:last-child { border-bottom: none; }
+  .num {
+    grid-row: span 2; width: 1.75rem; height: 1.75rem; border-radius: 50%;
+    background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.8rem; font-weight: 600;
+  }
+  .rule strong { font-size: 0.95rem; }
+  .why { font-size: 0.85rem; color: var(--text-muted); }
+  .fig {
+    display: inline-block; margin-left: 0.3rem; padding: 0.02rem 0.45rem; border-radius: 999px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 0.74rem; font-weight: 600; white-space: nowrap;
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
+  }
+  .tradeoff {
+    display: block; margin: 0.45rem 0 0; padding: 0.45rem 0.65rem; border-radius: 7px; font-size: 0.83rem;
+    background: var(--amber-bg); border: 1px solid var(--amber-border); color: var(--amber-text);
+  }
+
+  .section { margin-top: 1rem; }
+  .tradeoff a { color: inherit; font-weight: 600; }
+  .intro { margin: 0.6rem 0 0.2rem; font-size: 0.9rem; max-width: 75ch; }
+  .compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; margin: 0.8rem 0; }
+  @media (max-width: 720px) { .compare { grid-template-columns: minmax(0, 1fr); } }
+  .opt { border-radius: 10px; padding: 0.75rem 0.9rem; border: 1px solid; }
+  .opt-cont { background: var(--green-bg); border-color: var(--green-border); color: var(--green-text); }
+  .opt-seq { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); }
+  .opt h3 { margin: 0 0 0.35rem; font-size: 0.95rem; }
+  .opt ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.25rem; font-size: 0.87rem; }
+  .opt .tag { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; opacity: 0.85; margin-left: 0.35rem; }
+  .ev { font-size: 0.8rem; color: var(--text-muted); }
+  .mirena { margin: 0 0 0.8rem; padding: 0.6rem 0.8rem; border-radius: 8px; background: var(--surface-2); border: 1px solid var(--border); font-size: 0.86rem; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+  th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface-2); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); font-weight: 600; }
+  td.effect { font-variant-numeric: tabular-nums; }
+  td.src { color: var(--text-muted); font-size: 0.8rem; white-space: nowrap; }
+  .down { color: var(--green-text); font-weight: 700; }
+  .up { color: var(--red-text); font-weight: 700; }
+  @media (max-width: 640px) {
+    thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+    tr { padding: 0.45rem 0; border-bottom: 1px solid var(--border); }
+    td { border: none; padding: 0.12rem 0.2rem; }
+    td:first-child { font-weight: 600; }
+    td.src { white-space: normal; }
+  }
+  .table-note { font-size: 0.8rem; color: var(--text-muted); margin: 0.5rem 0 0.6rem; }
+  .table-note a { color: var(--accent); font-weight: 600; }
+
+  .alert { margin-top: 1rem; border-radius: 12px; padding: 1rem 1.1rem; background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red-text); }
+  .alert h2 { margin: 0 0 0.5rem; font-size: 1rem; }
+  .alert ul { margin: 0; padding-left: 1.15rem; display: grid; gap: 0.35rem; font-size: 0.9rem; }
+
+  footer { margin: 1.4rem auto 2.2rem; color: var(--text-muted); font-size: 0.82rem; }
+  footer h2 { font-size: 0.92rem; color: var(--text); margin: 0 0 0.4rem; }
+  footer ul { padding-left: 1.15rem; margin: 0 0 0.6rem; }
+  footer li { margin-bottom: 0.2rem; }
+  .fineprint { font-style: italic; font-size: 0.78rem; }
+
+  .box-num { background: var(--surface-2); color: var(--text); border-color: var(--border); border-radius: 4px; }
+  .when { display: block; font-size: 0.8rem; color: var(--text-muted); margin-top: 0.1rem; }
+  @media print {
+    body { background: #fff; font-size: 11px; }
+    .topbar { background: none; color: #000; padding: 0 0 0.4rem; border-bottom: 2px solid #000; }
+    .brand-mark, .tool-nav, .lead { display: none; }
+    .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+    .panel { break-inside: avoid; padding: 0.4rem 0.6rem 0.2rem; }
+    .rule { padding: 0.25rem 0; }
+    .alert, .section { break-inside: avoid; }
+  }
+
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <span class="brand-mark" aria-hidden="true">✓</span>
+    <div>
+      <h1>Børne-huskeskema</h1>
+      <p>De syv forebyggende børneundersøgelser fra 5 uger til 5 år — til konsultationen og udskrift</p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <nav class="tool-nav" aria-label="Værktøjer">
+    <a href="index.html">Oversigt</a>
+    <a href="boern.html">Børneundersøgelser</a>
+    <span>Huskeskema</span>
+  </nav>
+
+  <p class="lead">Udskriv skemaet, eller brug <a href="boern.html">Børneundersøgelser</a>, der vælger undersøgelsen ud fra alderen (korrigeret ved for tidlig fødsel), beregner vaccinationsdatoer og skriver journalnotatet. Alle undersøgelser: samtale om trivsel, udvikling og sygdom, undersøgelse, vejledning og vaccination.</p>
+
+  <div class="groups">
+    <section class="panel" aria-labelledby="g1">
+      <div class="panel-head"><h2 id="g1">5 uger</h2><span class="phase">Forældre + barn</span></div>
+      <ol class="rules"><li class="rule"><span class="num box-num">☐</span><strong>Samtale</strong><span class="why">Trivsel, søvn, spisning, gulsot efter 2 uger og afføringens farve; forældrenes trivsel (fødselsdepression hos mor og far).</span></li><li class="rule"><span class="num box-num">☐</span><strong>Vækst</strong><span class="why">Vægt, længde, hovedomfang på kurven.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Objektivt</strong><span class="why">Kranie/fontanel, rød refleks og fiksation, hjerte (mislyd, femoralispulse), hofter (Ortolani, Barlow, Galeazzi, abduktion), testikler, hud/navle, tonus og symmetri.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Udvikling</strong><span class="why">Løfter hovedet, følger med øjnene, smiler (ca. 6 uger).</span></li><li class="rule"><span class="num box-num">☐</span><strong>Vejledning</strong><span class="why">Rygleje og røgfrit, D-vitamin 10 mikrog. fra 2 uger til 4 år, ryst aldrig et barn; vaccination ved 3 måneder.</span></li></ol>
+    </section>
+    <section class="panel" aria-labelledby="g2">
+      <div class="panel-head"><h2 id="g2">5 måneder</h2><span class="phase">Vaccination 2</span></div>
+      <ol class="rules"><li class="rule"><span class="num box-num">☐</span><strong>Vækst og objektivt</strong><span class="why">Vægt, længde, hovedomfang; rød refleks og skelen, hofter (abduktion, Galeazzi), testikler, tonus og symmetri.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Udvikling</strong><span class="why">Holder hovedet, drejer om, griber og flytter mellem hænderne, pludrer, griner. Håndpræference før 12 måneder er alarmtegn.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Vaccination</strong><span class="why">DiTeKiPol/Hib + pneumokok (2).</span></li><li class="rule"><span class="num box-num">☐</span><strong>Vejledning</strong><span class="why">Overgangskost fra 4–6 måneder, ulykker (puslebord), søvn.</span></li></ol>
+    </section>
+    <section class="panel" aria-labelledby="g3">
+      <div class="panel-head"><h2 id="g3">12 måneder</h2><span class="phase">Vaccination 3</span></div>
+      <ol class="rules"><li class="rule"><span class="num box-num">☐</span><strong>Vækst og objektivt</strong><span class="why">Vægt, længde, hovedomfang; rød refleks og skelen, hofter, testikler, motorik.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Udvikling</strong><span class="why">Sidder selv, rejser sig ved møbler, pincetgreb, pludrer med konsonanter, reagerer på navn, peger.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Vaccination</strong><span class="why">DiTeKiPol/Hib + pneumokok (3); MFR ved 15 måneder.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Vejledning</strong><span class="why">Tandbørstning med fluortandpasta, ulykker (forgiftning, drukning, skoldning), kost.</span></li></ol>
+    </section>
+    <section class="panel" aria-labelledby="g4">
+      <div class="panel-head"><h2 id="g4">2 år</h2><span class="phase">Sprog og samspil</span></div>
+      <ol class="rules"><li class="rule"><span class="num box-num">☐</span><strong>Vækst</strong><span class="why">Vægt, højde og iso-BMI.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Udvikling</strong><span class="why">Går sikkert (senest 18 mdr.), løber; mange ord og to-ordssætninger; peger, leger "som om".</span></li><li class="rule"><span class="num box-num">☐</span><strong>Samspil</strong><span class="why">Øjenkontakt, pegen, fælles opmærksomhed — autisme?</span></li><li class="rule"><span class="num box-num">☐</span><strong>Øvrigt</strong><span class="why">Skelen, hørelse, tænder; influenza i sæsonen (2–6 år); skærm og sprogstimulering.</span></li></ol>
+    </section>
+    <section class="panel" aria-labelledby="g5">
+      <div class="panel-head"><h2 id="g5">3 år</h2><span class="phase">Sætninger</span></div>
+      <ol class="rules"><li class="rule"><span class="num box-num">☐</span><strong>Vækst</strong><span class="why">Vægt, højde og iso-BMI.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Udvikling</strong><span class="why">Korte sætninger, som fremmede forstår; går på trapper; leger med andre; tør om dagen.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Øvrigt</strong><span class="why">Skelen, hørelse, tænder; trivsel i institution; kost, bevægelse, søvn.</span></li></ol>
+    </section>
+    <section class="panel" aria-labelledby="g6">
+      <div class="panel-head"><h2 id="g6">4 år</h2><span class="phase">MFR 2</span></div>
+      <ol class="rules"><li class="rule"><span class="num box-num">☐</span><strong>Vækst og syn</strong><span class="why">Vægt, højde, iso-BMI; skelen og synsprøve, hvis barnet kan medvirke.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Udvikling</strong><span class="why">Fortæller sammenhængende, hopper på ét ben, tegner et menneske, klæder sig af og på.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Vaccination</strong><span class="why">MFR (2).</span></li></ol>
+    </section>
+    <section class="panel" aria-labelledby="g7">
+      <div class="panel-head"><h2 id="g7">5 år</h2><span class="phase">DiTeKiPol</span></div>
+      <ol class="rules"><li class="rule"><span class="num box-num">☐</span><strong>Vækst og syn</strong><span class="why">Vægt, højde, iso-BMI; skelen og synsprøve; hørelse.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Skoleparathed</strong><span class="why">Sprog, motorik, koncentration og social udvikling.</span></li><li class="rule"><span class="num box-num">☐</span><strong>Vaccination</strong><span class="why">DiTeKiPol (revaccination).</span></li></ol>
+    </section>
+  </div>
+
+  <section class="panel section" aria-labelledby="t1">
+    <div class="panel-head"><h2 id="t1">Børnevaccinationsprogrammet</h2><span class="phase">SSI</span></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Alder</th><th>Vaccine</th><th>Bemærk</th></tr></thead>
+        <tbody>
+          <tr><td>3, 5 og 12 måneder</td><td>DiTeKiPol/Hib + pneumokok</td><td class="effect">Pneumokok: Vaxneuvance fra 1. november 2025; påbegyndt Prevenar 13 gøres færdig.</td></tr>
+          <tr><td>15 måneder</td><td>MFR (1)</td><td class="effect">Kan gives fra 12 måneder ved indhentning.</td></tr>
+          <tr><td>4 år</td><td>MFR (2)</td><td class="effect">Ved 4-årsundersøgelsen.</td></tr>
+          <tr><td>5 år</td><td>DiTeKiPol (revaccination)</td><td class="effect">Ved 5-årsundersøgelsen.</td></tr>
+          <tr><td>12 år</td><td>HPV</td><td class="effect">2 doser med mindst 5 måneders mellemrum.</td></tr>
+          <tr><td>2–6 år</td><td>Influenza (næsespray)</td><td class="effect">I sæsonen efter Sundhedsstyrelsens program; første gang 2 doser.</td></tr>
+          <tr><td>Mor HBsAg-positiv</td><td>Hepatitis B</td><td class="effect">Ved fødslen (med immunglobulin), 1, 2 og 12 måneder; antistofkontrol.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="alert" aria-labelledby="a1">
+    <h2 id="a1">Alarmtegn — handling</h2>
+    <ul>
+      <li><strong>Hvid pupil / manglende rød refleks:</strong> akut øjenafdeling. <strong>Svage femoralispulse:</strong> akut pædiatri.</li>
+      <li><strong>Gulsot efter 2 uger (3 ved fuld amning) eller lys afføring:</strong> konjugeret bilirubin samme dag (galdegangsatresi).</li>
+      <li><strong>Ustabil hofte / positiv Ortolani:</strong> hurtig henvisning til børneortopæd (ultralyd).</li>
+      <li><strong>Testikel ikke i scrotum:</strong> henvis ved 3 måneder efter termin (DPS 2025); operation 6–12 måneder.</li>
+      <li><strong>Tab af færdigheder</strong> i alle aldre, <strong>går ikke ved 18 måneder</strong>, hovedomfang der krydser percentiler: pædiatri. Skelen: øjenlæge. Sprog: hørelse og tale-høre-pædagog.</li>
+      <li><strong>Bekymring for omsorg:</strong> skærpet underretningspligt — underret kommunen.</li>
+    </ul>
+  </section>
+
+  <footer>
+    <h2>Kilder</h2>
+    <ul>
+      <li>Sundhedsstyrelsen — Vejledning og Anbefalinger om forebyggende sundhedsydelser til børn og unge (2025)</li>
+      <li>Statens Serum Institut — børnevaccinationsprogrammet; Lægehåndbogen — Forebyggende børneundersøgelse; Dansk Pædiatrisk Selskab — Testis retention (2025)</li>
+    </ul>
+    <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra de nævnte kilder og erstatter ikke den kliniske vurdering. Primærkilderne kunne ikke tilgås direkte; indholdet er kontrolleret via sekundære kilder.</p>
+  </footer>
+</div>
+<script src="../pwa.js"></script>
+</body>
+</html>

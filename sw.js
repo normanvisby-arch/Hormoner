@@ -4,7 +4,7 @@
  * åbning med forbindelse; uden forbindelse bruges den gemte kopi.
  * Hæv VERSION, når filer tilføjes eller fjernes fra listen.
  */
-const VERSION = "v21";
+const VERSION = "v22";
 const CACHE = `klinikvaerktoejer-${VERSION}`;
 const FILES = [
   "./",
@@ -47,6 +47,7 @@ const FILES = [
   "qr/nyre.svg",
   "qr/svangre.svg",
   "qr/psyke.svg",
+  "qr/boern.svg",
   "qr/restordre.svg",
 ];
 
