@@ -559,11 +559,66 @@ gruppenavne. Handelsnavne er kun søgeord og siger intet om aktuelt udbud.
 - Restordre.dk, sundhed.dk og Lægemiddelstyrelsen kunne ikke tilgås direkte. Skal verificeres i
   produktresuméet før ordination.
 
+## Svangreomsorg (`svangre/`) — logik og datagrundlag
+
+Egen app (`svangre/index.html`, `svangre.html` + `svangre.js`, `huskeskema.html`, manifest, `sw.js`,
+ikoner; `body.theme-svangre`). Til de tre graviditetsundersøgelser hos egen læge (uge 6–10, 25 og 32)
+og efterundersøgelsen 8 uger efter fødslen (Sundhedsstyrelsen, Anbefalinger for svangreomsorgen 2022).
+
+- **Termin og graviditetsalder:** sidste menstruation + 280 dage (+ cykluslængde − 28) eller
+  ultralydstermin, som har forrang; afvigelse ≥ 7 dage nævnes. Konsultationen vælges automatisk ud fra
+  graviditetsugen (< 18 uger: 1., 18–28: 2., 29–44: 3., derefter efterundersøgelse) eller manuelt; uden
+  for det anbefalede vindue vises en advarsel.
+- **Tjekliste pr. konsultation:** punkterne afhænger af risikofaktorerne (fx ASA-recept, RhD-prøve,
+  OGTT, RSV ved termin juli–marts, influenza i sæsonen oktober–februar, klamydia under 25 år, TSH ved
+  thyreoideasygdom, folsyre 5 mg efter neuralrørsdefekt). Afkrydsninger huskes kun, mens siden er
+  åben, og kommer med i journalnotatet som "Gennemgået" og "Ikke afkrydset".
+- **Graviditetsdiabetes (regionernes risikofaktormodel):** tidligere GDM, BMI ≥ 27 før graviditeten,
+  diabetes hos forældre/søskende, tidligere barn ≥ 4.500 g, PCOS, flerfold. Tidligere GDM eller ≥ 2
+  faktorer: OGTT uge 10–20 og igen 24–28; 1 faktor: OGTT uge 24–28; glukosuri: OGTT snarest. Diagnose
+  ved 2-timers værdi ≥ 9,0 mmol/l. DSOG's screeningsguideline 2023 (HbA1c før uge 20, ≥ 48 =
+  manifest diabetes; fasteglukose i uge 24–28) nævnes som alternativ — følg regionens instruks.
+- **Præeklampsi (DSOG):** høje faktorer (tidligere præeklampsi med svær sygdom/før uge 34 eller svær
+  væksthæmning, kronisk hypertension, prægestationel diabetes, kronisk nyresygdom, SLE/APS,
+  ægdonation) → acetylsalicylsyre 150 mg til natten anbefales; ≥ 2 moderate (tidligere præeklampsi,
+  første fødsel, alder ≥ 40, BMI ≥ 30, > 10 år siden sidste fødsel, flerfold) → kan overvejes. Start
+  uge 10–12, senest 16 (effekt ved start før uge 20); stop uge 36–37 efter fødestedets instruks. På
+  fødesteder med 1. trimester-screening (PREPRED, udrulles fra 15. september 2025) afgøres det ved
+  nakkefoldsscanningen; lægen vælger "ved ikke", "PREPRED" eller "DSOG's risikofaktorer".
+- **Alarmfund:** BT ≥ 160/110 → akut; bekræftet BT ≥ 140/90 efter uge 20 → fødeafdeling samme dag (før
+  uge 20: kronisk hypertension, henvisning og skift af ACE-hæmmer/ARB/thiazid); symptomer på
+  præeklampsi/HELLP → akut også ved normalt BT; blødning (1. trimester: vurdering, ellers akut),
+  vandafgang, veer før uge 37, nedsatte fosterbevægelser fra uge 24 og manglende hjertelyd → akut.
+  Opfølgning: proteinuri ≥ 2+ (kvantificér), glukosuri, bakteriuri (dyrkning), kløe (galdesyrer),
+  hyperemesis og symfyse-fundus-mål, der afviger > 3 cm fra graviditetsugen (tommelfingerregel, uge
+  24–40; fødestedets SF-kurve bruges).
+- **RhD-negative:** antistoffer og fosterets RhD i uge 25, anti-D 250–300 mikrog. i uge 29 ved
+  RhD-positivt foster, efter fødslen og ved blødning/traume inden 72 timer.
+- **Henvisning og omsorgsniveau (vejledende):** liste over grunde til tidlig henvisning til obstetrisk
+  afdeling (fx prægestationel diabetes, kronisk hypertension, VTE/trombofili, epilepsi, flerfold,
+  BMI ≥ 35). Niveau 4 ved rusmidler (familieambulatoriet), 3 ved psykisk sygdom, vold eller social
+  sårbarhed, 2 ved medicinske/obstetriske risici, ASA-indikation eller rygning, ellers 1.
+- **Vaccinationer (SSI):** kighoste i uge 25 hele året; RSV (Abrysvo) i uge 32 ved termin juli–marts,
+  mindst 2 uger efter kighoste; influenza i sæsonen. **Kosttilskud:** folsyre 400 mikrog. til uge 12,
+  D-vitamin 10 mikrog., jern 40–50 mg fra uge 10, calcium 500 mg uden mælkeprodukter; anbefalet
+  vægtøgning efter BMI (12,5–18 / 11,5–16 / 7–11,5 / 5–9 kg).
+- **Efterundersøgelse:** trivsel og EPDS (≥ 10 mulig, ≥ 13 sandsynlig depression; spørgsmål 10
+  vurderes samme dag), blødning, bækkenbund, amning, prævention, BT; HbA1c ca. 3 måneder og 1 år
+  efter graviditetsdiabetes; BT og hjerte-kar-risiko efter præeklampsi.
+- **Tidslinje:** datoer for alle trin beregnet ud fra terminen, med passerede og aktuelle trin markeret.
+- **Huskeskema:** de fire konsultationer til afkrydsning og udskrift, risikotabel, tidslinje og
+  akutliste.
+- Primærkilderne (sst.dk, sundhed.dk, dsog.dk, ssi.dk) kunne ikke tilgås fra udviklingsmiljøet; tallene
+  er kontrolleret via sekundære kilder (søgeresultater, regionale forløbsbeskrivelser, Ugeskrift for
+  Læger) og står som sådan i kildelisterne.
+- Test: `tests/svangre.test.js` (68 tjek: termin, konsultation, tjekliste, GDM, præeklampsi, alarmfund,
+  RhD, omsorgsniveau, tidslinje, efterundersøgelse, journalnotat, udskrift, mobil og app).
+
 ## Installér som app
 
 **Downloadside til kolleger:** `https://normanvisby-arch.github.io/Hormoner/apps.html`
 (`apps.html`).
-- Siden samler otte apps (Notat-indgang er skjult efter ønske, men findes fortsat på sin adresse) med beskrivelse, "Åbn og installér" (appens startside åbnes i en ny fane med
+- Siden samler ni apps (Notat-indgang er skjult efter ønske, men findes fortsat på sin adresse) med beskrivelse, "Åbn og installér" (appens startside åbnes i en ny fane med
   `#installer`, og `pwa.js` fremhæver installér-knappen), "Kopiér link" og en QR-kode til mobilen.
 - Øverst står et delbart link, en QR-kode til selve siden og knapper til at dele og udskrive. Udskriften
   er et A4-opslag med en QR-kode pr. app.
@@ -867,6 +922,18 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**27. oktober 2026 — Ny app: Svangreomsorg (`svangre/`):**
+- Tjekliste og beslutningsstøtte til de tre graviditetsundersøgelser (uge 6–10, 25 og 32) og
+  efterundersøgelsen 8 uger efter fødslen: termin og graviditetsuge, tjekliste pr. konsultation med
+  afkrydsning til journalnotatet, alarmfund, graviditetsdiabetes/OGTT, præeklampsi og
+  acetylsalicylsyre (DSOG og PREPRED), RhD og anti-D, henvisning, vejledende omsorgsniveau,
+  vaccinationer, kosttilskud, vægtøgning og tidslinje. Huskeskema til udskrift.
+- Kilder: Sundhedsstyrelsen 2022, Lægehåndbogen, DSOG (hypertension/præeklampsi 2024, ASA, PREPRED,
+  GDM 2023), SSI og regionernes forløbsbeskrivelser — kontrolleret via sekundære kilder.
+- Appen er med på downloadsiden (kort og QR-kode, nu ni apps), på oversigten og i "Andre apps" på alle
+  startsider. Tests: `tests/svangre.test.js`, `tests/apps.test.js` (A1, A5, A8, A9, A11, A12) og
+  `tests/pwa-apps.test.js`. Service workers er hævet (fælles `style.css`).
 
 **6. oktober 2026 — Restordre synlig igen og restordre.dk fra alle værktøjer:**
 - Efter ønske vises Restordre igen på oversigten, downloadsiden (kort og QR-kode, nu otte apps) og i

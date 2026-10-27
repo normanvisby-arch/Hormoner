@@ -1,0 +1,37 @@
+{
+  "name": "Svangreomsorg i almen praksis",
+  "short_name": "Svangre",
+  "description": "Svangreundersøgelser — tjekliste, termin, risikovurdering, alarmfund og huskeskema til de tre graviditetsundersøgelser og efterundersøgelsen.",
+  "lang": "da",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f8f3f5",
+  "theme_color": "#a83660",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
