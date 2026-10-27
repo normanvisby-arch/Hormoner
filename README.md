@@ -644,6 +644,17 @@ Værktøjerne er en installerbar webapp (PWA) med eget ikon, som også virker ud
 - Ikonerne i `icons/` er genereret fra `icons/icon.svg` (maskable-varianten har symbolet inden for
   sikkerhedszonen).
 
+**Alle apps med ét klik** (øverst på `apps.html`):
+- *Installér alle apps*: `apps.html` peger på `alle/manifest.webmanifest` (id `alle/`, område `../` =
+  hele sitet, start i `alle/index.html`). Ét klik installerer den samlede app "Alle klinikværktøjer":
+  ét ikon på skrivebordet med alle ni apps; navigation mellem dem bliver i app-vinduet.
+- `alle/registrer.js` registrerer service workeren for hver app (rod, hjerte, lunge, thyreoidea,
+  diabetes, infektion, nyre, svangre, restordre og alle) fra downloadsiden og den samlede app, så
+  alle apps virker uden internet efter ét besøg.
+- *Hent genveje til skrivebordet (.zip)*: `alle/klinikvaerktoejer-genveje.zip` med en genvej til hver
+  app — Windows `.url` med appens ikon (`icons/favicon.ico`) og Mac `.webloc` — samt en vejledning.
+  Byg den igen med `python3 tools/mkgenveje.py`, når en app tilføjes (listen `APPS`).
+
 ## Tests og publicering
 
 - `tests/run_all.sh` kører alle Playwright-suiter (klimakterie, endometrie, risiko, prævention,
@@ -922,6 +933,15 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**27. oktober 2026 — Alle apps med ét klik:**
+- Downloadsiden har fået "Alle apps med ét klik": knappen *Installér alle apps* installerer den
+  samlede app "Alle klinikværktøjer" (`alle/`) — ét skrivebordsikon, der åbner alle ni apps — og
+  `alle/registrer.js` gør alle apps klar til brug uden internet efter ét besøg.
+- *Hent genveje til skrivebordet (.zip)* giver en genvej til hver app til Windows (med ikon) og Mac
+  (`tools/mkgenveje.py`, `icons/favicon.ico` i hver app).
+- Test: `tests/alle.test.js` (installér-knap, zip-indhold, ikoner, service workers og offline for
+  alle apps). Rod-service-worker v19.
 
 **27. oktober 2026 — Ny app: Svangreomsorg (`svangre/`):**
 - Tjekliste og beslutningsstøtte til de tre graviditetsundersøgelser (uge 6–10, 25 og 32) og

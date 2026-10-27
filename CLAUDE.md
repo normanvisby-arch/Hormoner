@@ -60,10 +60,17 @@ eller "usikker" end et falsk præcist tal.
 - `apps.html` (downloadside "Hent klinikværktøjerne"): alle apps med "Åbn og installér" (→ `…#installer`),
   delbart link og QR-koder i `qr/` (lav dem med `python3 tools/mkqr.py`; listen `KODER` skal svare til
   kortene). Nyt app-modul: tilføj kort, QR-kode og filerne i rodens `sw.js`. Notat-indgang er skjult efter ønske (som blødningskalenderen): ikke på downloadsiden, oversigten eller i "Andre apps" — filerne findes fortsat. Restordre er synlig igen; alle værktøjer med præparatvalg har under resultatet linjen `restordre-hint` (restordre.dk + Restordre) — hold den med på nye værktøjssider. Test: `tests/apps.test.js`.
+- `alle/` (samlet app "Alle klinikværktøjer"): launcher `index.html`, `manifest.webmanifest` (id `alle/`,
+  scope `../`), `sw.js`, `icons/` og `registrer.js`, der registrerer alle apps' service workers (bruges
+  også af `apps.html`, som peger på dette manifest og har knappen "Installér alle apps"). Zip med
+  skrivebordsgenveje (`alle/klinikvaerktoejer-genveje.zip`, Windows `.url` + Mac `.webloc`) bygges med
+  `python3 tools/mkgenveje.py`, der også laver `icons/favicon.ico` pr. app. Nyt app-modul: tilføj det i
+  `MAPPER` i `registrer.js`, en flise i `alle/index.html`, ikonet i `alle/sw.js` og i `APPS` i
+  `tools/mkgenveje.py`. Test: `tests/alle.test.js`.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
   **Hæv `VERSION` i `sw.js`** og i den berørte apps `*/sw.js` (hjerte, lunge, thyreoidea,
-  diabetes, infektion, nyre, svangre, notat, restordre), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
+  diabetes, infektion, nyre, svangre, notat, restordre, alle), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
   `valg.js`, `udfyld.js`) caches af alle apps.
 - `README.md`: klinisk logik, datagrundlag og ændringslog (opdateres ved hver ændring).
 - `tests/`: Playwright-suiter. `tests/run_all.sh` kører dem alle mod en lokal server.
