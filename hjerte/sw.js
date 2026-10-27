@@ -3,13 +3,15 @@
  * internet. Netværket prøves først, så opdateringer slår igennem ved næste
  * åbning med forbindelse. Hæv VERSION, når filer tilføjes eller ændres.
  */
-const VERSION = "v15";
+const VERSION = "v16";
 const CACHE = `hjertekar-${VERSION}`;
 const FILES = [
   "./",
   "index.html",
   "cvrisiko.html",
   "cvrisiko.js",
+  "hypertension.html",
+  "hypertension.js",
   "af.html",
   "af.js",
   "ekg.html",

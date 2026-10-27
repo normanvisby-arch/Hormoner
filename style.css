@@ -887,6 +887,7 @@ textarea.ekg-maskine { width: 100%; box-sizing: border-box; font: inherit; font-
 .tidslinje tr.nu td { font-weight: 600; background: var(--color-green-bg); }
 .theme-svangre .field select { padding: 0.4rem 0.5rem; border: 1px solid var(--color-border); border-radius: 6px; font-size: 0.95rem; background: var(--color-panel); color: inherit; }
 .theme-svangre .field input[type="number"] + input[type="number"] { margin-top: 0.4rem; }
+.field.bt-par input[type="number"] + input[type="number"] { margin-top: 0.4rem; }
 .ga-badge { display: inline-block; font-weight: 700; font-variant-numeric: tabular-nums; }
 @media print {
   .tjekliste input { accent-color: #000; }
