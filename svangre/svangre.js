@@ -130,6 +130,9 @@
       nullipara: radio("paritet") === "0",
       graviditet: checked("graviditet"),
       rhd: radio("rhd"),
+      antistof: radio("antistof"),
+      antistofType: $("antistofType").value,
+      fosterRhd: radio("fosterRhd"),
       risiko: checked("risiko"),
       prepred: radio("prepred"),
       bts: num("bts"), btd: num("btd"),
@@ -152,6 +155,10 @@
   // RSV-programmet gælder gravide med termin i juli–marts (SSI).
   const rsvTermin = (s) => !!s.termin && [6, 7, 8, 9, 10, 11, 0, 1, 2].includes(s.termin.getUTCMonth());
   const influenzaSaeson = (s) => [9, 10, 11, 0, 1].includes(s.dato.getUTCMonth());
+  // Påviste irregulære antistoffer, bortset fra passiv anti-D efter givet profylakse.
+  const immuniseret = (s) => s.antistof === "pos" && s.antistofType !== "passiv";
+  // Anti-D i uge 29 og efter fødslen, medmindre fosteret er bestemt RhD-negativt.
+  const antiDIndiceret = (s) => s.rhd === "neg" && !immuniseret(s) && s.fosterRhd !== "neg";
 
   // ---------------------------------------------------------------------
   // Risikovurdering
@@ -211,6 +218,7 @@
     if (flerfold(s)) g.push("flerfoldsgraviditet");
     if (has(s.graviditet, "aegdonation")) g.push("graviditet efter ægdonation");
     if (s.bmi >= 35) g.push(`BMI ${fmt1(s.bmi)} (≥ 35)`);
+    if (immuniseret(s)) g.push(s.antistofType === "antiD" || s.antistofType === "cK" ? "irregulære blodtypeantistoffer (anti-D, anti-c eller anti-K: højt specialiseret fødested)" : "irregulære blodtypeantistoffer");
     return g;
   }
 
@@ -261,8 +269,8 @@
     if (has(s.sym, "pe") && efter20) roed.push("<strong>Symptomer på præeklampsi eller HELLP</strong> (hovedpine, synsforstyrrelser, epigastrie-/højresidige ribbenssmerter, kvalme): akut telefonisk kontakt til fødeafdelingen — også ved normalt blodtryk og uden proteinuri.");
     if (has(s.sym, "oedem")) gul.push("<strong>Pludselige eller udtalte ødemer:</strong> mål BT og urin-protein — kan være tegn på præeklampsi.");
     if (has(s.sym, "bloedning")) {
-      if (!isNaN(u) && u < 14) gul.push("<strong>Blødning i første trimester:</strong> vurdér mængde og smerter — ved smerter, kraftig blødning eller påvirket almentilstand akut gynækologisk vurdering (husk ekstrauterin graviditet). RhD-negative: anti-D efter fødestedets instruks.");
-      else roed.push("<strong>Vaginal blødning efter første trimester:</strong> akut kontakt til fødeafdelingen.");
+      if (!isNaN(u) && u < 14) gul.push(`<strong>Blødning i første trimester:</strong> vurdér mængde og smerter — ved smerter, kraftig blødning eller påvirket almentilstand akut gynækologisk vurdering (husk ekstrauterin graviditet).${s.rhd === "neg" && !immuniseret(s) ? " RhD-negativ: anti-D inden 72 timer fra uge 8 (se Rhesus-boksen)." : ""}`);
+      else roed.push(`<strong>Vaginal blødning efter første trimester:</strong> akut kontakt til fødeafdelingen.${s.rhd === "neg" && !immuniseret(s) ? " RhD-negativ: anti-D inden 72 timer." : ""}`);
     }
     if (has(s.sym, "vand")) roed.push(`<strong>Vandafgang:</strong> kontakt fødeafdelingen${!isNaN(u) && u < 37 ? " akut (før uge 37)" : ""}.`);
     if (has(s.sym, "veer") && (isNaN(u) || u < 37)) roed.push("<strong>Truende for tidlig fødsel:</strong> akut kontakt til fødeafdelingen.");
@@ -276,6 +284,7 @@
       const afv = s.sf - u;
       if (Math.abs(afv) > 3) gul.push(`<strong>Symfyse-fundus-mål ${fmt1(s.sf)} cm i uge ${Math.floor(u)}:</strong> afviger ${fmt1(Math.abs(afv))} cm ${afv < 0 ? "under" : "over"} forventet — henvis til ultralydsskanning (fostervækst og fostervand). Tommelfingerregel: cm ≈ graviditetsuge ± 3 (uge 24–36); brug fødestedets SF-kurve.`);
     }
+    if (immuniseret(s)) gul.push(`<strong>Irregulære blodtypeantistoffer påvist:</strong> henvis til obstetrisk afdeling${s.antistofType === "antiD" || s.antistofType === "cK" ? " — anti-D, anti-c og anti-K følges på højt specialiseret fødested (risiko for hæmolytisk sygdom og anæmi hos fosteret)" : ""}.${s.antistofType === "antiD" ? " Anti-D-profylakse har ingen effekt, når hun er immuniseret." : ""}`);
     return { roed, gul };
   }
 
@@ -296,7 +305,7 @@
       add("bt", "Blodtryk");
       add("vaegt", "Højde, vægt og BMI før graviditeten — anbefalet vægtøgning");
       add("urin", "Urinstix (protein, glukose) og screening for asymptomatisk bakteriuri");
-      add("blod", "Blodprøve: blodtype (AB0 og RhD), irregulære blodtypeantistoffer samt hepatitis B, hiv og syfilis (tidspunkt efter regionens anvisning)");
+      add("blod", "Blodprøve: blodtype (AB0 og RhD) og irregulære blodtypeantistoffer (uge 6–10) samt hepatitis B, hiv og syfilis (tidspunkt efter regionens anvisning)");
       add("fosterdiagnostik", "Information om fosterdiagnostik: doubletest og nakkefoldsscanning (11+2–13+6) samt misdannelsesskanning (18+0–21+6) — informeret valg");
       add("gdm", "Risikovurdering for graviditetsdiabetes og plan for OGTT");
       add("pe", "Risikovurdering for præeklampsi (acetylsalicylsyre?)");
@@ -316,7 +325,9 @@
       add("oedem", "Ødemer");
       add("sf", "Symfyse-fundus-mål (livmoderens størrelse)");
       add("hjertelyd", "Fosterets hjertelyd");
-      if (rhdNeg || s.rhd === "ukendt") add("rhd", "RhD-negativ: blodprøve til irregulære antistoffer og fosterets RhD-type (uge 25)");
+      if (rhdNeg && immuniseret(s)) add("rhd", "RhD-negativ med antistoffer: følges af obstetrisk afdeling (ingen profylakse)");
+      else if (rhdNeg) add("rhd", "RhD-negativ: blodprøve til irregulære antistoffer og fosterets RhD-type (uge 25)");
+      else if (s.rhd === "ukendt") add("rhd", "RhD-type tjekket fra 1. undersøgelse — er hun RhD-negativ: blodprøve til antistoffer og fosterets RhD-type (uge 25)");
       if (gdm.ogtt) add("ogtt", "OGTT i uge 24–28 er bestilt (eller svar fra tidlig OGTT gennemgået)");
       add("kighoste", "Kighostevaccination (anbefales i uge 25)");
       if (pe.niveau) add("asa", "Acetylsalicylsyre tages fortsat (til uge 36)");
@@ -329,7 +340,11 @@
       add("oedem", "Ødemer");
       add("sf", "Symfyse-fundus-mål (fostervækst)");
       add("hjertelyd", "Fosterets hjertelyd og fosterbevægelser");
-      if (rhdNeg) add("antid", "Anti-D givet i uge 29 (hvis fosteret er RhD-positivt)");
+      if (rhdNeg && !immuniseret(s)) {
+        add("rhdsvar", "Svar på uge 25-prøven gennemgået (antistoffer og fosterets RhD-type)");
+        if (s.fosterRhd === "neg") add("antid", "Fosteret RhD-negativt: ingen anti-D (noteret i vandrejournalen)");
+        else add("antid", "Anti-D givet i uge 29 (fosteret RhD-positivt, inkonklusivt eller ikke bestemt)");
+      }
       if (gdm.ogtt) add("ogttsvar", "Svar på OGTT gennemgået");
       add("kighoste", "Kighostevaccination givet (ellers nu — kan gives indtil 1 uge før termin)");
       if (rsvTermin(s) || !s.termin) add("rsv", "RSV-vaccination (uge 32 ved termin juli–marts; mindst 2 uger efter kighoste)");
@@ -348,6 +363,7 @@
       if (has(s.forloeb, "gdm")) add("hba1c", "Efter graviditetsdiabetes: HbA1c ca. 3 måneder efter fødslen og efter 1 år, derefter hvert 1.–3. år");
       if (has(s.forloeb, "pe")) add("pe", "Efter præeklampsi/graviditetshypertension: BT-kontrol, aftrapning af medicin og årlig BT (øget hjerte-kar-risiko)");
       if (has(s.forloeb, "pph")) add("hb", "Hæmoglobin efter stor blødning/anæmi");
+      if (rhdNeg && !immuniseret(s) && s.fosterRhd !== "neg") add("antid", "RhD-negativ: anti-D givet inden 72 timer efter fødslen, hvis barnet var RhD-positivt (tjek epikrisen)");
       if (has(s.forloeb, "bristning")) add("sphincter", "Sphincterruptur: kontinens og opfølgning efter fødestedets plan");
       add("thyreoidea", "Symptomer på thyreoiditis efter fødslen (træthed, uro, hjertebanken) — TSH ved mistanke");
       add("celle", "Celleprøve (livmoderhalskræft), hvis den er forfalden");
@@ -451,19 +467,98 @@
     );
   }
 
-  function rhdBoks(s) {
-    if (s.kons === "efter" || s.rhd !== "neg") return "";
+  // Prøver ved konsultationen: hvornår, og hvad man holder øje med i svaret.
+  function proeveBoks(s, gdm) {
+    const r = [];
+    const add = (proeve, hvornaar, oeje) => r.push([proeve, hvornaar, oeje]);
     const d = (u) => (s.termin ? ` (${fmtKort(vedGA(s, u))})` : "");
-    return box(
-      "box-blue",
-      "RhD-negativ",
-      ul([
-        `Uge 25${d(25)}: blodprøve til irregulære antistoffer og fosterets RhD-type (frit foster-DNA i moderens blod).`,
-        `Uge 29${d(29)}: anti-D 250–300 mikrog. i.m., hvis fosteret er RhD-positivt, og kvinden ikke er immuniseret (gives efter regional aftale hos jordemoder eller læge).`,
-        "Efter fødslen: anti-D inden 72 timer, hvis barnet er RhD-positivt.",
-        "Ved blødning, abdominaltraume eller indgreb i graviditeten: kontakt fødeafdelingen mhp. anti-D inden 72 timer.",
-      ])
-    );
+    const hb = "Anæmi: Hb < 6,8 mmol/l i 1. trimester og < 6,5 mmol/l i 2.–3. trimester. Jernmangel: ferritin < 30 mikrog./l → behandlingsdosis jern, og Hb og ferritin kontrolleres 2–4 uger efter start.";
+    const ogtt = "75 g OGTT: 2-timers værdi ≥ 9,0 mmol/l = graviditetsdiabetes → henvis til obstetrisk afdeling (diabetesteam).";
+    const urin = `Nitrit/leukocytter (eller positiv mikroskopi) → urindyrkning. Asymptomatisk bakteriuri behandles efter resistens og kontroldyrkes; gruppe B-streptokokker i urinen (uanset mængde) behandles og noteres i vandrejournalen (profylakse under fødslen) — se <a href="${URINVEJE_URL}" target="_blank" rel="noopener">Urinvejsinfektioner</a>. Glukosuri → OGTT. Protein ≥ 2+ → BT og præeklampsi.`;
+    if (s.kons === "1") {
+      add("Blodtype (AB0 og RhD) og irregulære antistoffer", "Uge 6–10 — alle", "RhD-negativ → blodprøve i uge 25 (se Rhesus). Antistoffer påvist → henvis til obstetrisk afdeling; anti-D, anti-c og anti-K følges på højt specialiseret fødested.");
+      add("Hepatitis B (HBsAg), hiv og syfilis", "1. undersøgelse — tilbydes alle (frivilligt); tidspunkt efter regionens anvisning", "Positivt svar: hepatitis B → fødestedet informeres, barnet skal have vaccine og immunglobulin ved fødslen, og hun henvises til hepatologisk/infektionsmedicinsk vurdering. Hiv → infektionsmedicinsk afdeling straks. Syfilis → bekræftende test og behandling. Husk partner.");
+      add("Urinstix og bakteriuri", "Hver konsultation; bakteriuri ved 1. og 2. undersøgelse", urin);
+      add("Hæmoglobin (evt. MCV og ferritin)", "På indikation: fx tidligere anæmi, blødning, flerfold, kort interval, kost", hb);
+      add("Hæmoglobinopatiscreening", "Oprindelse i risikoområde (fx Middelhavet, Mellemøsten, Afrika, Asien) — efter regional retningslinje", "Bærerstatus → test partneren, og henvis tidligt til genetisk rådgivning og evt. fosterdiagnostik.");
+      if (s.alder < 25 || has(s.risiko, "saarbar")) add("Klamydia (evt. gonoré)", "Under 25 år eller risiko", "Positiv → azithromycin 1 g som engangsdosis (alternativt amoxicillin); tetracykliner er kontraindiceret. Partnerbehandling.");
+      add("Doubletest (PAPP-A og hCG)", "Uge 8+0–13+6, hvis hun ønsker nakkefoldsscanning — efter regional aftale", "Indgår i risikoberegningen ved nakkefoldsscanningen; fødestedet giver svaret.");
+      if (gdm.tidlig) add("OGTT (tidlig)", `Uge 10–20${d(10)} — tidligere graviditetsdiabetes eller mindst 2 risikofaktorer`, `${ogtt} Normalt svar → ny OGTT i uge 24–28.`);
+      else if (gdm.ogtt) add("OGTT", `Bestil til uge 24–28${d(24)}`, ogtt);
+      if (has(s.risiko, "thyreoidea")) add("TSH (og T4)", "Hver 4. uge til uge 20 ved kendt thyreoideasygdom", `TSH-mål under 2,5 mIE/l i 1. trimester — se <a href="${HYPOTHYREOSE_URL}" target="_blank" rel="noopener">Hypothyreose</a>.`);
+    } else if (s.kons === "2") {
+      if (s.rhd === "neg" && immuniseret(s)) add("Antistoftiter", "Efter obstetrisk afdelings plan (typisk hver 4. uge)", "Følges af højt specialiseret fødested — ingen anti-D-profylakse.");
+      else if (s.rhd === "neg") add("Irregulære antistoffer og fosterets RhD-type", `Uge 25${d(25)} hos egen læge — EDTA-glas efter laboratoriets prøvevejledning`, "Fosteret RhD-positivt eller inkonklusivt → anti-D i uge 29. RhD-negativt → ingen anti-D. Antistoffer påvist (bortset fra passiv anti-D) → henvis.");
+      else if (s.rhd === "pos") add("Blodtypeprøve", "Ikke rutinemæssigt i uge 25 hos RhD-positive", "Kun ved påviste antistoffer — de følges af obstetrisk afdeling.");
+      else add("RhD-type", "Tjek svaret fra 1. undersøgelse", "RhD-negativ → blodprøve til antistoffer og fosterets RhD-type i uge 25.");
+      add("Urinstix og bakteriuri", "2. screening for asymptomatisk bakteriuri", urin);
+      if (gdm.ogtt) add("OGTT", `Uge 24–28${d(24)}`, ogtt);
+      add("Hæmoglobin (og ferritin)", "Ved anæmi tidligere i graviditeten, symptomer eller blødning", hb);
+      add("Misdannelsesskanning (uge 18–21)", "Svar i vandrejournalen", "Fund følges efter fødestedets plan (fx lavtsiddende moderkage → kontrolskanning).");
+    } else if (s.kons === "3") {
+      if (s.rhd === "neg" && !immuniseret(s)) add("Svar på uge 25-prøven og anti-D", "Anti-D i uge 29", s.fosterRhd === "neg" ? "Fosteret RhD-negativt → ingen anti-D i uge 29 eller efter fødslen." : "Tjek, at anti-D er givet. Ikke givet → gives snarest efter aftale med fødestedet.");
+      add("Urinstix (protein, glukose)", "Hver konsultation", "Protein ≥ 2+ og BT ≥ 140/90 → fødeafdelingen samme dag.");
+      if (gdm.ogtt) add("OGTT-svar", "Gennemgå svaret fra uge 24–28", ogtt);
+      add("Hæmoglobin (og ferritin)", "Ved anæmi eller jernbehandling", hb);
+      add("Galdesyrer og levertal", "Kun ved kløe uden udslæt", "Forhøjede værdier (intrahepatisk kolestase) → fødeafdelingen.");
+    } else {
+      if (has(s.forloeb, "gdm")) add("HbA1c", "Ca. 3 måneder efter fødslen, efter 1 år og derefter hvert 1.–3. år", "≥ 48 mmol/mol = diabetes; let forhøjet (under 48) → livsstilsråd og årlig kontrol.");
+      if (has(s.forloeb, "pph")) add("Hæmoglobin (og ferritin)", "Efter stor blødning eller anæmi", "Fortsat anæmi → jern og kontrol; ved amning gives jern som i graviditeten.");
+      if (s.rhd === "neg" && !immuniseret(s) && s.fosterRhd !== "neg") add("Anti-D efter fødslen", "Inden 72 timer ved RhD-positivt barn", "Tjek epikrisen. Ikke givet → kontakt fødestedet; gives hurtigst muligt, også efter 72 timer.");
+      add("TSH", "Ved symptomer (træthed, uro, hjertebanken, depression)", "Thyreoiditis efter fødslen: ofte forbigående hyperthyreose efterfulgt af hypothyreose.");
+      add("Celleprøve", "Hvis forfalden (ca. 3 måneder efter fødslen)", "Følg screeningsprogrammet.");
+      if (has(s.forloeb, "pe")) add("BT (og evt. kreatinin og urin-albumin)", "Ved efterundersøgelsen og derefter årligt", `Øget hjerte-kar-risiko — se <a href="${CVRISIKO_URL}" target="_blank" rel="noopener">CV-risiko</a>.`);
+    }
+    const rows = r.map(([a, b, c]) => `<tr><td data-label="Prøve">${a}</td><td data-label="Hvornår">${b}</td><td data-label="Hold øje med">${c}</td></tr>`).join("");
+    return box("box-blue", `Prøver og svar — ${KONS_NAVN[s.kons].replace(/ \(.*\)$/, "")}`, `<div class="drug-table-wrap"><table class="drug-table stack-mobile proever"><thead><tr><th>Prøve</th><th>Hvornår</th><th>Hold øje med</th></tr></thead><tbody>${rows}</tbody></table></div><p class="field-hint">Blodprøvetidspunkter og glas følger regionens forløbsbeskrivelse og laboratoriets prøvevejledning.</p>`);
+  }
+
+  function rhesusBoks(s) {
+    const d = (u) => (s.termin ? ` (${fmtKort(vedGA(s, u))})` : "");
+    const antistofTekst = {
+      antiD: "<strong>Anti-D (immuniseret):</strong> anti-D-profylakse har ingen effekt. Henvis til højt specialiseret fødested; titer følges typisk hver 4. uge, og fosteret overvåges for anæmi (Doppler). Fosterets RhD-type bestemmes på fødestedet.",
+      cK: "<strong>Anti-c eller anti-K:</strong> henvis til højt specialiseret fødested uanset titer — kan give hæmolytisk sygdom og anæmi hos fosteret (anti-K også tidligt og ved lav titer).",
+      andet: "<strong>Andet antistof:</strong> henvis til obstetrisk afdeling; blodbanken vurderer den kliniske betydning (titer, antistoftype — nogle, fx anti-Lewis, er uden betydning for fosteret).",
+      ukendt: "<strong>Antistof påvist:</strong> afvent blodbankens specifikation, og henvis til obstetrisk afdeling.",
+    };
+    if (immuniseret(s)) {
+      return box("box-amber", "Rhesus og blodtypeantistoffer", `<p>${antistofTekst[s.antistofType] || antistofTekst.ukendt}</p><p class="field-hint">Henvisningsgrænser efter DSKI og regionen (fx Lægehåndbogen: anti-D med titer ≥ 32 og anti-c/anti-K uanset titer til specialafdeling; nogle fødesteder henviser ved lavere titer).</p>`);
+    }
+    const passiv = s.antistof === "pos" && s.antistofType === "passiv" ? "<p><strong>Passiv anti-D:</strong> ses i op til ca. 8–12 uger efter givet anti-D og er ikke immunisering — programmet fortsætter. Skriv altid på rekvisitionen, hvornår anti-D er givet.</p>" : "";
+    if (s.rhd === "ukendt") {
+      if (s.kons === "efter") return "";
+      return box("box-blue", "Rhesus (RhD)", `<p>Blodtype (AB0 og RhD) og screening for irregulære antistoffer tages hos alle i uge 6–10. Angiv RhD-typen, når svaret foreligger — så vises planen.</p>${passiv}`);
+    }
+    if (s.rhd === "pos") {
+      if (s.kons === "efter") return "";
+      return box("box-blue", "Rhesus (RhD)", `<p><strong>RhD-positiv:</strong> ingen anti-D-profylakse og ingen rutinemæssig ny antistofprøve i uge 25.${s.antistof === "ukendt" ? " Tjek, at antistofscreeningen fra 1. undersøgelse er negativ — andre antistoffer (fx anti-c, anti-K) kan give hæmolytisk sygdom hos fosteret." : ""}</p>${passiv}`);
+    }
+    // RhD-negativ
+    const foster = {
+      ukendt: "Afvent svaret — uden konklusivt svar behandles som RhD-positivt foster.",
+      pos: "<strong>Fosteret er RhD-positivt:</strong> anti-D i uge 29 og efter fødslen.",
+      neg: "<strong>Fosteret er RhD-negativt:</strong> ingen anti-D i uge 29 eller efter fødslen (analysen er meget sikker, sensitivitet ca. 99,9 %). Ved senere blødning eller indgreb er anti-D normalt ikke nødvendig — aftal med fødestedet.",
+      inkonkl: "<strong>Inkonklusivt svar:</strong> behandles som RhD-positivt foster — anti-D i uge 29, og barnets RhD-type bestemmes på navlesnorsblod ved fødslen.",
+    }[s.fosterRhd];
+    const efter = s.kons === "efter";
+    const trin = efter
+      ? [
+          s.fosterRhd === "neg" ? "Fosteret var bestemt RhD-negativt — ingen anti-D efter fødslen." : "Anti-D 250–300 mikrog. skal være givet inden 72 timer efter fødslen, hvis barnet er RhD-positivt (barnets type bestemmes på navlesnorsblod, hvis fosterets RhD ikke var konklusiv). Tjek epikrisen — ikke givet: kontakt fødestedet; gives hurtigst muligt, også efter 72 timer.",
+          "Næste graviditet: samme program (antistoffer i uge 6–10 og 25).",
+        ]
+      : [
+          "<strong>Uge 6–10:</strong> blodtype og irregulære antistoffer (ingen antistoffer = ikke immuniseret).",
+          `<strong>Uge 25${d(25)}:</strong> blodprøve hos egen læge til irregulære antistoffer og fosterets RhD-type (frit foster-DNA i moderens plasma). ${foster}`,
+          s.fosterRhd === "neg" ? `<strong>Uge 29${d(29)}:</strong> ingen anti-D (fosteret RhD-negativt).` : `<strong>Uge 29${d(29)}:</strong> anti-D 250–300 mikrog. i.m., hvis fosteret er RhD-positivt eller svaret er inkonklusivt (gives efter regional aftale — fødested, jordemoder eller egen læge).`,
+          s.fosterRhd === "neg" ? "<strong>Efter fødslen:</strong> ingen anti-D." : "<strong>Efter fødslen:</strong> anti-D 250–300 mikrog. inden 72 timer, hvis barnet er RhD-positivt (gives på fødestedet; er fristen overskredet, gives den alligevel hurtigst muligt).",
+        ];
+    const haendelser = efter ? "" : `<p><strong>Blødning, abort, ekstrauterin graviditet, indgreb (fx moderkageprøve, fostervandsprøve, vending), abdominaltraume eller fosterdød:</strong> anti-D inden 72 timer via gynækologisk/obstetrisk afdeling${s.fosterRhd === "neg" ? " (normalt ikke nødvendig, når fosteret er bestemt RhD-negativt)" : ""}:</p>${ul([
+      "Til og med uge 6: ikke indiceret (uge 7 efter lokal instruks).",
+      "Uge 8–19: 100–150 mikrog. (evt. 250–300 mikrog.).",
+      "Fra uge 20: 250–300 mikrog.",
+      "Gentagne blødningsepisoder: som udgangspunkt ikke ny dosis — følg fødestedets instruks (fx ny dosis, hvis der er gået mere end 6 uger).",
+    ])}<p class="field-hint">Skriv på rekvisitionen, hvis anti-D er givet: passiv anti-D kan ses i op til ca. 8–12 uger og må ikke forveksles med immunisering.</p>`;
+    return box("box-blue", "Rhesus (RhD) — RhD-negativ", `${ul(trin)}${passiv}${haendelser}`);
   }
 
   function henvisningBoks(s, henv, oms) {
@@ -544,8 +639,8 @@
     add("Misdannelsesskanning (18+0–21+6)", g(18), g(21, 6), `${fmtKort(g(18))}–${fmtKort(g(21, 6))}`);
     if (gdm.ogtt) add("OGTT (uge 24–28)", g(24), g(27, 6), `${fmtKort(g(24))}–${fmtKort(g(27, 6))}`);
     add("2. graviditetsundersøgelse og kighostevaccination (uge 25)", g(25), g(25, 6), fmtKort(g(25)));
-    if (s.rhd === "neg") add("RhD-negativ: antistoffer og fosterets RhD (uge 25)", g(25), g(25, 6), fmtKort(g(25)));
-    if (s.rhd === "neg") add("Anti-D ved RhD-positivt foster (uge 29)", g(29), g(29, 6), fmtKort(g(29)));
+    if (s.rhd === "neg" && !immuniseret(s)) add("RhD-negativ: antistoffer og fosterets RhD (uge 25)", g(25), g(25, 6), fmtKort(g(25)));
+    if (antiDIndiceret(s)) add(s.fosterRhd === "pos" ? "Anti-D (fosteret RhD-positivt) (uge 29)" : "Anti-D ved RhD-positivt foster (uge 29)", g(29), g(29, 6), fmtKort(g(29)));
     add("3. graviditetsundersøgelse (uge 32)", g(32), g(32, 6), fmtKort(g(32)));
     if (rsvTermin(s)) add("RSV-vaccination (uge 32)", g(32), g(35, 6), fmtKort(g(32)));
     if (pe.niveau && s.prepred !== "ja") add("Acetylsalicylsyre stoppes (uge 36–37)", g(36), g(36, 6), fmtKort(g(36)));
@@ -573,6 +668,8 @@
     $("efterFelter").hidden = !efter;
     $("sfFelt").hidden = s.kons === "1";
     $("hjertelydFelt").hidden = s.kons === "1";
+    $("antistofTypeFelt").hidden = s.antistof !== "pos";
+    $("fosterRhdFelt").hidden = s.rhd !== "neg" || s.kons === "1" || immuniseret(s);
     $("gaHint").textContent = s.termin && s.ga >= 0 && s.ga <= 44 * 7 ? `Termin ${fmtD(s.termin)} · uge ${fmtGA(s.ga)} på konsultationsdagen${s.valgt === "auto" ? ` · ${KONS_NAVN[s.kons]}` : ""}` : "";
     const advarsler = [];
     if (s.smFremtid) advarsler.push("Sidste menstruation ligger efter konsultationsdatoen.");
@@ -592,10 +689,11 @@
     if (al.roed.length) html += box("box-red", "⚠ Handling nu", ul(al.roed));
     if (al.gul.length) html += box("box-amber", "Fund der skal følges op", ul(al.gul));
     html += tjekBoks(s, t);
+    html += proeveBoks(s, gdm);
     html += efterBoks(s);
     html += peBoks(s, pe);
     html += gdmBoks(s, gdm);
-    html += rhdBoks(s);
+    html += rhesusBoks(s);
     html += henvisningBoks(s, henv, oms);
     html += vaccineBoks(s);
     html += tilskudBoks(s);
@@ -623,6 +721,8 @@
     if (flerfold(s)) basis.push("flerfoldsgraviditet");
     if (!isNaN(s.bmi)) basis.push(`BMI før graviditeten ${fmt1(s.bmi)}`);
     if (s.rhd !== "ukendt") basis.push(`RhD-${s.rhd === "neg" ? "negativ" : "positiv"}`);
+    if (s.antistof === "neg") basis.push("irregulære antistoffer ikke påvist");
+    else if (s.antistof === "pos") basis.push({ antiD: "anti-D påvist (immuniseret)", cK: "anti-c/anti-K påvist", andet: "irregulære antistoffer påvist", ukendt: "irregulære antistoffer påvist", passiv: "passiv anti-D efter givet anti-D" }[s.antistofType]);
     L.push(basis.join(", ").replace(/^./, (c) => c.toUpperCase()) + ".");
     const rf = s.risiko.map((k) => RISIKO_NAVN[k]);
     L.push(`Anamnese/risikofaktorer: ${rf.length ? rf.join(", ") : "ingen markeret"}.`);
@@ -651,7 +751,10 @@
       if (s.prepred === "ja") L.push("Præeklampsi: risikovurdering ved nakkefoldsscanningen (PREPRED).");
       else if (pe.niveau) L.push(`Præeklampsi: ${pe.hoej.length ? `høj risiko (${pe.hoej.join(", ")})` : `${pe.mod.length} moderate risikofaktorer (${pe.mod.join(", ")})`} — acetylsalicylsyre 150 mg til natten ${pe.niveau} til uge 36–37.`);
       else L.push("Præeklampsi: ikke indikation for acetylsalicylsyre efter risikofaktorer.");
-      if (s.rhd === "neg") L.push("RhD-negativ: antistoffer og fosterets RhD i uge 25, anti-D i uge 29 ved RhD-positivt foster.");
+      if (s.rhd === "neg" && !immuniseret(s)) {
+        const fr = { ukendt: "", pos: " Fosteret RhD-positivt.", neg: " Fosteret RhD-negativt — ingen anti-D.", inkonkl: " Fosterets RhD inkonklusiv — behandles som RhD-positivt." }[s.fosterRhd];
+        L.push(`RhD-negativ: antistoffer og fosterets RhD i uge 25, anti-D i uge 29 og efter fødslen ved RhD-positivt foster.${fr}`);
+      }
       if (henv.length) L.push(`Henvisning til obstetrisk afdeling: ${henv.join("; ")}.`);
       L.push(`Omsorgsniveau ${oms.niveau} (vejledende).`);
     }
@@ -667,7 +770,7 @@
     output.querySelectorAll(".box").forEach((b) => {
       const h3 = b.querySelector("h3");
       if (h3) L.push(h3.textContent.trim().toUpperCase());
-      b.querySelectorAll(":scope > p, :scope > ul, :scope > details > p, :scope > details > ul, :scope > details > .drug-table-wrap").forEach((el) => {
+      b.querySelectorAll(":scope > p, :scope > ul, :scope > details > p, :scope > details > ul, :scope > .drug-table-wrap, :scope > details > .drug-table-wrap").forEach((el) => {
         if (el.tagName === "P") L.push(el.textContent.replace(/\s+/g, " ").trim());
         else if (el.tagName === "UL") el.querySelectorAll("li").forEach((li) => L.push(`${li.querySelector("input:checked") ? "[x]" : li.querySelector("input") ? "[ ]" : "-"} ${li.textContent.replace(/\s+/g, " ").trim()}`));
         else el.querySelectorAll("tbody tr").forEach((tr) => L.push("  " + Array.from(tr.children).map((td) => td.textContent.trim()).join(" — ")));

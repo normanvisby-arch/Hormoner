@@ -102,6 +102,29 @@
       <label class="radio"><input type="radio" name="rhd" value="pos"> RhD-positiv</label>
       <label class="radio"><input type="radio" name="rhd" value="neg"> RhD-negativ</label>
     </fieldset>
+    <fieldset class="field">
+      <legend>Irregulære blodtypeantistoffer</legend>
+      <label class="radio"><input type="radio" name="antistof" value="ukendt" checked> Ikke taget / svar mangler</label>
+      <label class="radio"><input type="radio" name="antistof" value="neg"> Ikke påvist</label>
+      <label class="radio"><input type="radio" name="antistof" value="pos"> Påvist</label>
+      <div id="antistofTypeFelt" hidden>
+        <label for="antistofType" class="field-sublabel">Antistof</label>
+        <select id="antistofType">
+          <option value="ukendt">Ikke specificeret endnu</option>
+          <option value="antiD">Anti-D (immuniseret)</option>
+          <option value="cK">Anti-c eller anti-K (Kell)</option>
+          <option value="andet">Andet antistof</option>
+          <option value="passiv">Passiv anti-D efter givet anti-D</option>
+        </select>
+      </div>
+    </fieldset>
+    <fieldset class="field" id="fosterRhdFelt" hidden>
+      <legend>Fosterets RhD-type (prøve i uge 25)</legend>
+      <label class="radio"><input type="radio" name="fosterRhd" value="ukendt" checked> Ikke taget / svar mangler</label>
+      <label class="radio"><input type="radio" name="fosterRhd" value="pos"> RhD-positivt</label>
+      <label class="radio"><input type="radio" name="fosterRhd" value="neg"> RhD-negativt</label>
+      <label class="radio"><input type="radio" name="fosterRhd" value="inkonkl"> Inkonklusivt</label>
+    </fieldset>
 
     <h2>3. Anamnese og risikofaktorer</h2>
     <fieldset class="field">
@@ -244,7 +267,9 @@
     <li>DSOG — Acetylsalicylsyre i graviditeten (150 mg til natten fra GA 10–16, optimalt 10–12; høje og moderate risikofaktorer) og Opstart af screening for præeklampsi (PREPRED, udrulles på fødestederne fra 15. september 2025 og erstatter da risikofaktorerne)</li>
     <li>Gestationel diabetes: regionernes forløbsbeskrivelser (risikofaktorer; OGTT uge 10–20 og/eller 24–28; 2-timers værdi ≥ 9,0 mmol/l) og DSOG's screeningsguideline 2023 (HbA1c før uge 20; HbA1c ≥ 48 mmol/mol = manifest diabetes)</li>
     <li>Statens Serum Institut — vaccination af gravide: kighoste i uge 25 (hele året), RSV (Abrysvo) i uge 32 ved termin juli–marts, mindst 2 uger efter kighoste; influenza i sæsonen</li>
-    <li>Dansk Selskab for Klinisk Immunologi og pro.medicin.dk — RhD-negative: irregulære antistoffer og fosterets RHD-type i uge 25, anti-D 250–300 mikrog. i uge 29 ved RhD-positivt foster og igen efter fødslen</li>
+    <li>Dansk Selskab for Klinisk Immunologi (DSKI) — Blodtypeserologi: blodtype og irregulære antistoffer hos alle i uge 6–10; RhD-negative: antistoffer og fosterets RHD-type (frit foster-DNA) i uge 25; RhD-immunprofylakse: anti-D 250–300 mikrog. i uge 29 og efter fødslen ved RhD-positivt foster/barn; ved blødning, abort, indgreb og traume ikke indiceret til og med uge 6, 100–150 mikrog. i uge 8–19, 250–300 mikrog. fra uge 20, inden 72 timer; ved gentagne blødninger ikke ny dosis. Kontrolleret via sekundære kilder (søgeresultater), da dski.dk ikke kunne hentes direkte</li>
+    <li>Lægehåndbogen — Blodtypeimmunisering: anti-D med titer ≥ 32 samt anti-c og anti-K uanset titer til specialafdeling, titer hver 4. uge; anti-D efter fødslen gives hurtigst muligt, også efter 72 timer. Hvidovre Hospital: navlesnorsblod RhD-typebestemmes, når fosterets RhD ikke er konklusivt bestemt. Ugeskrift for Læger: sensitivitet ca. 99,9 % for føtal RHD-bestemmelse</li>
+    <li>Prøver: regionernes forløbsbeskrivelser (bakteriuri ved 1. og 2. undersøgelse med dyrkning ved positiv stix; gruppe B-streptokokker i urinen behandles; Hb, ferritin, klamydia og hæmoglobinopati på indikation); anæmi Hb &lt; 6,8 mmol/l i 1. trimester og &lt; 6,5 mmol/l i 2.–3. trimester, jernmangel ferritin &lt; 30 mikrog./l (DSOG/Rigshospitalet); Sundhedsstyrelsens vejledning om screening af gravide for hepatitis B, hiv og syfilis</li>
     <li>Cox m.fl. (1987) — Edinburgh Postnatal Depression Scale (EPDS)</li>
   </ul>
   <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra Sundhedsstyrelsen, DSOG eller regionerne. Primærkilderne (sst.dk, sundhed.dk, dsog.dk, ssi.dk) kunne ikke tilgås direkte ved udviklingen; anbefalingerne er kontrolleret via sekundære kilder (søgeresultater, regionale forløbsbeskrivelser og Ugeskrift for Læger) og skal verificeres i de gældende vejledninger. Ingen patientdata gemmes eller sendes.</p>

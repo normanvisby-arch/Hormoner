@@ -592,8 +592,26 @@ og efterundersøgelsen 8 uger efter fødslen (Sundhedsstyrelsen, Anbefalinger fo
   Opfølgning: proteinuri ≥ 2+ (kvantificér), glukosuri, bakteriuri (dyrkning), kløe (galdesyrer),
   hyperemesis og symfyse-fundus-mål, der afviger > 3 cm fra graviditetsugen (tommelfingerregel, uge
   24–40; fødestedets SF-kurve bruges).
-- **RhD-negative:** antistoffer og fosterets RhD i uge 25, anti-D 250–300 mikrog. i uge 29 ved
-  RhD-positivt foster, efter fødslen og ved blødning/traume inden 72 timer.
+- **Prøver og svar:** tabel pr. konsultation med prøve, tidspunkt og hvad man holder øje med i
+  svaret — 1. undersøgelse: blodtype og irregulære antistoffer (uge 6–10, alle), hepatitis B/hiv/
+  syfilis (handling ved positivt svar), urinstix og bakteriuri (1. og 2. undersøgelse; dyrkning ved
+  positiv stix, GBS i urinen behandles og noteres), Hb/ferritin på indikation (anæmi Hb < 6,8 mmol/l
+  i 1. trimester og < 6,5 i 2.–3.; jernmangel ferritin < 30 mikrog./l), hæmoglobinopati og klamydia
+  på indikation, doubletest, tidlig OGTT og TSH ved thyreoideasygdom. 2. undersøgelse: RhD-prøve
+  (eller "ikke rutinemæssigt" hos RhD-positive), bakteriuri, OGTT, Hb, misdannelsesskanning. 3.:
+  uge 25-svar og anti-D, urinprotein, OGTT-svar, Hb, galdesyrer ved kløe. Efter: HbA1c, Hb, anti-D
+  efter fødslen, TSH, celleprøve, BT efter præeklampsi. Tabellen kommer med i "Kopiér fuld vurdering".
+- **Rhesus og antistoffer (DSKI):** felterne "Irregulære blodtypeantistoffer" (ikke påvist/påvist +
+  type) og "Fosterets RhD-type" (vises ved RhD-negativ fra 2. undersøgelse). RhD-negativ: uge 6–10
+  antistoffer, uge 25 antistoffer og fosterets RHD (frit foster-DNA), anti-D 250–300 mikrog. i uge 29
+  og efter fødslen inden 72 timer ved RhD-positivt eller inkonklusivt foster (inkonklusivt →
+  navlesnorsblod); fosteret RhD-negativt → ingen anti-D. Hændelser (blødning, abort, ekstrauterin,
+  indgreb, traume, vending, fosterdød): til og med uge 6 ikke indiceret, uge 8–19 100–150 mikrog.,
+  fra uge 20 250–300 mikrog., inden 72 timer; gentagne blødninger som udgangspunkt ikke ny dosis.
+  Påviste antistoffer (ikke passiv anti-D) = immuniseret → ingen profylakse, henvisning (anti-D,
+  anti-c og anti-K til højt specialiseret fødested; Lægehåndbogen: anti-D titer ≥ 32, anti-c/anti-K
+  uanset titer), fund-boks og henvisningsliste. Passiv anti-D (op til ca. 8–12 uger) er ikke
+  immunisering — skriv på rekvisitionen, når anti-D er givet.
 - **Henvisning og omsorgsniveau (vejledende):** liste over grunde til tidlig henvisning til obstetrisk
   afdeling (fx prægestationel diabetes, kronisk hypertension, VTE/trombofili, epilepsi, flerfold,
   BMI ≥ 35). Niveau 4 ved rusmidler (familieambulatoriet), 3 ved psykisk sygdom, vold eller social
@@ -933,6 +951,20 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**27. oktober 2026 — Svangreomsorg: prøver pr. konsultation og rhesus:**
+- Ny boks "Prøver og svar" i Svangreundersøgelser: hver konsultations prøver med tidspunkt og hvad
+  man holder øje med i svaret (handling ved positiv hepatitis B/hiv/syfilis, anæmigrænser, bakteriuri
+  og GBS, OGTT, galdesyrer, HbA1c m.m.); også i huskeskemaet.
+- Rhesus udvidet: nye felter for irregulære antistoffer og fosterets RhD-type; plan for RhD-negative
+  efter svaret (RhD-negativt foster → ingen anti-D; inkonklusivt → som RhD-positivt + navlesnorsblod),
+  anti-D-doser ved blødning/abort/indgreb efter uge (DSKI A1.120–A1.125), immuniserede kvinder
+  (henvisning, ingen profylakse) og passiv anti-D. Journalnotat, tjekliste og tidslinje følger svaret.
+- Kilder: DSKI's retningslinjer (blodtypeserologi og RhD-immunprofylakse), Lægehåndbogen
+  (blodtypeimmunisering), Hvidovre Hospital (navlesnorsblod), Ugeskrift for Læger (føtal RHD),
+  regionernes forløbsbeskrivelser og DSOG/Rigshospitalet (anæmi) — kontrolleret via sekundære kilder,
+  da dski.dk, sundhed.dk og sst.dk ikke kunne hentes direkte. `svangre/sw.js` v2. Test:
+  `tests/svangre.test.js` (P1–P6, RH1–RH9, J5–J6).
 
 **27. oktober 2026 — Alle apps med ét klik:**
 - Downloadsiden har fået "Alle apps med ét klik": knappen *Installér alle apps* installerer den
