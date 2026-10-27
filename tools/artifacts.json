@@ -39,6 +39,10 @@
   "svangre/index.html": { "url": "https://claude.ai/artifact/TmtNJaA2efDBBFgGwWDko4", "mode": "standalone", "title": "Svangreomsorg i almen praksis" },
   "svangre/svangre.html": { "url": "https://claude.ai/artifact/Kf22nL215Qe1ivaYJS5qfi", "mode": "tool", "title": "Svangreundersøgelser" },
   "svangre/huskeskema.html": { "url": "https://claude.ai/artifact/EBDnsn5fJXsdWErSX4U63d", "mode": "standalone", "title": "Svangre-huskeskema" },
+  "psyke/index.html": { "url": "https://claude.ai/artifact/MzGySqjnKXvwgoGLd4Ybk9", "mode": "standalone", "title": "Psyke og hukommelse i almen praksis" },
+  "psyke/depression.html": { "url": "https://claude.ai/artifact/8odFMwiTSYjYn4MkSid4Ax", "mode": "tool", "title": "Depression — MDI og behandling" },
+  "psyke/demens.html": { "url": "https://claude.ai/artifact/SA4XNm53HijWJGpvUbdgJ6", "mode": "tool", "title": "Demensudredning" },
+  "psyke/huskeskema.html": { "url": "https://claude.ai/artifact/ND5im2qzijfCgqpgSFEjKw", "mode": "standalone", "title": "Psyke-huskeskema" },
   "notat/index.html": { "url": "https://claude.ai/artifact/9iTFaYJb7WSQCHP8ttAQQF", "mode": "tool", "title": "Notat-indgang" },
   "restordre/index.html": { "url": "https://claude.ai/artifact/CVGjrxq9iQ78RHRSp7kQwn", "mode": "tool", "title": "Restordre — alternativer" }
 }

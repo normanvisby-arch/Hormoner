@@ -657,6 +657,45 @@ og efterundersøgelsen 8 uger efter fødslen (Sundhedsstyrelsen, Anbefalinger fo
 - Test: `tests/svangre.test.js` (68 tjek: termin, konsultation, tjekliste, GDM, præeklampsi, alarmfund,
   RhD, omsorgsniveau, tidslinje, efterundersøgelse, journalnotat, udskrift, mobil og app).
 
+## Psyke og hukommelse (`psyke/`) — logik og datagrundlag
+
+Selvstændig app med eget manifest, ikon og service worker (installeres fra
+`https://normanvisby-arch.github.io/Hormoner/psyke/`), tema `body.theme-psyke` (#0f6e73).
+
+- **`depression.html`** (`depression.js`):
+  - **MDI** (WHO/Bech) som 12 rullemenuer (0–5; 8 og 10 med a/b — den højeste tæller) eller kun
+    totalscore. **ICD-10-algoritmen:** kernesymptomer (1–3) tæller ved 4–5, ledsagesymptomer (4–10)
+    ved 3–5; let ≥ 2 + ≥ 2, moderat ≥ 2 + ≥ 4, svær 3 + ≥ 5. Sumscore 21–25 let, 26–30 moderat,
+    ≥ 31 svær (Bech 2015). Uenighed mellem algoritme og sum nævnes; algoritmen bestemmer
+    sværhedsgraden, når alle spørgsmål er udfyldt. Under 2 ugers symptomer markeres.
+  - **Selvmordsrisiko:** planer eller manglende afstand → rød boks (akut psykiatrisk vurdering
+    samme dag); tanker, MDI-spørgsmål 6 ≥ 3, tidligere forsøg, misbrug eller alene → vurdering,
+    kriseplan og tæt opfølgning. **Psykiatri:** psykotiske symptomer, tidligere mani (ikke
+    antidepressivum alene), under 18 år, svær depression (overvej), to forsøg uden effekt.
+  - **Behandling (DSAM, SST):** let → samtaleterapi/psykolog (tilskud 60 % fra 18 år, gratis 18–24
+    år), ikke medicin; moderat → samtaleterapi eller antidepressivum; svær → antidepressivum og
+    støttesamtaler. SSRI førstevalg: sertralin 25–50 → 100 mg (højst 200; også graviditet),
+    escitalopram 10 mg (højst 20; 5–10 mg fra 65 år); 2. valg mirtazapin eller SNRI. Hensyn:
+    blødning (AK/NSAID), QT, hyponatriæmi (ældre, diuretika), graviditet, under 25 år.
+  - **Opfølgning:** MDI før → nu: respons ≥ 50 % fald, remission < 21; ingen effekt efter 4–6 uger
+    → øg/skift; varighed ≥ 6 måneder efter remission, ca. 2 år ved ≥ 2 tidligere episoder;
+    aftrapning over ≥ 4 uger. **Prøver:** TSH, Hb, HbA1c, elektrolytter/calcium, B12, AUDIT, EKG
+    ved QT-risiko.
+- **`demens.html`** (`demens.js`): tjekliste til basisudredningen (afkrydsning kun i sessionen, med
+  i journalnotatet); delirium (akut/svingende → ikke udredning nu); MMSE (27–30 normalområde; ved
+  demens 21–26 let, 10–20 moderat, < 10 svær; uddannelse/sprog), urskivetest, IADL; depression
+  (behandl først, test igen efter 2–3 måneder); medicin (antikolinerge, benzodiazepiner, opioider,
+  antipsykotika — Lewy body), alkohol; blodprøvefund (Na < 130, ion. Ca > 1,32, TSH, B12 < 200 /
+  200–300 metylmalonsyre, Hb < 7,3, HbA1c ≥ 48, eGFR < 30, CRP > 20); prøvetabel efter regionernes
+  forløbsbeskrivelser; særlige træk (frontotemporal, Lewy, vaskulær, NPH); henvisning (hurtigt
+  under 65 år, hurtig forværring, atypisk; Region Hovedstaden: CT ved MMSE < 20 uden scanning);
+  kørekort og praktiske forhold.
+- **`huskeskema.html`**: MDI-algoritmen, behandling, opfølgning, basisudredning, prøvetabel og akut.
+
+**Forbehold:** dsam.dk, sundhed.dk og sst.dk kunne ikke tilgås direkte; algoritme, doser og
+prøvepanel er kontrolleret via sekundære kilder (søgeresultater, valideringsstudier, regionernes
+forløbsbeskrivelser).
+
 ## Installér som app
 
 **Downloadside til kolleger:** `https://normanvisby-arch.github.io/Hormoner/apps.html`
@@ -976,6 +1015,19 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**27. oktober 2026 — Ny app: Psyke og hukommelse (`psyke/`):**
+- Depression: MDI med ICD-10-algoritmen og sumscore, selvmordsrisiko, henvisning til psykiatrien,
+  behandling efter sværhedsgrad, SSRI-valg og -dosis med hensyn (alder, blødning, QT, natrium,
+  graviditet), opfølgning (respons/remission, varighed), prøver og journalnotat.
+- Demensudredning: tjekliste til basisudredningen, delirium, MMSE/urskivetest, depression,
+  medicingennemgang, blodprøvefund og prøvetabel, særlige træk, henvisning, kørekort og journalnotat.
+- Huskeskema, startside, manifest, service worker og ikoner; kort og QR på downloadsiden, flise i
+  den samlede app, genvej i zip-filen, "Andre apps" på alle startsider; artifacts.
+- Kilder: MDI (WHO/Bech; Bech 2015), DSAM (unipolar depression), Sundhedsstyrelsen (NKR depression,
+  NKR diagnostik af MCI og demens), pro.medicin.dk og regionernes basislister, Lægehåndbogen,
+  regionernes forløbsbeskrivelser for demens — kontrolleret via sekundære kilder.
+  Test: `tests/psyke.test.js`; apps, alle, pwa-apps og smoke opdateret.
 
 **27. oktober 2026 — Hjerte-kar: Forhøjet blodtryk (`hjerte/hypertension.html`):**
 - Nyt værktøj: diagnose med hjemme-/døgnblodtryk (hvidkittel og maskeret hypertension),

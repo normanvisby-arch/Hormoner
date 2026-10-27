@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Depression — MDI, behandling og opfølgning</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0f6e73">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Psyke">
+</head>
+<body class="theme-psyke">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">☁</span>
+      <div>
+        <h1>Depression — MDI, behandling og opfølgning</h1>
+        <p class="subtitle">MDI-score med ICD-10-algoritmen, selvmordsrisiko, behandling efter sværhedsgrad, valg og dosis af antidepressiva, prøver, opfølgning og journalnotat</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <span aria-current="page">Depression</span>
+  <a href="demens.html">Demens</a>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> MDI er et hjælperedskab — diagnosen stilles klinisk (ICD-10: symptomer i mindst 2 uger, somatiske årsager og bipolar lidelse overvejet). Følger DSAM, Sundhedsstyrelsens NKR om depression og regionernes basislister. Gælder voksne; børn og unge under 18 år henvises. Intet gemmes eller sendes.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se vurdering ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Konsultation</h2>
+    <fieldset class="field">
+      <legend>Type</legend>
+      <label class="radio"><input type="radio" name="type" value="ny" checked> Ny vurdering (diagnose og plan)</label>
+      <label class="radio"><input type="radio" name="type" value="kontrol"> Opfølgning under behandling</label>
+    </fieldset>
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="12" max="110" placeholder="fx 42">
+    </div>
+    <fieldset class="field">
+      <legend>Forløb</legend>
+      <label class="checkbox"><input type="checkbox" name="forloeb" value="to_uger" checked> Symptomer i mindst 2 uger</label>
+      <label class="checkbox"><input type="checkbox" name="forloeb" value="tidligere"> Tidligere depressiv episode</label>
+      <label class="checkbox"><input type="checkbox" name="forloeb" value="flere"> To eller flere tidligere episoder</label>
+    </fieldset>
+
+    <h2>2. MDI — de sidste 2 uger</h2>
+    <p class="field-hint">0 = aldrig · 1 = lidt af tiden · 2 = under halvdelen af tiden · 3 = over halvdelen af tiden · 4 = det meste af tiden · 5 = hele tiden. Udfyld spørgsmålene — eller kun totalscoren nederst.</p>
+    <div class="mdi" id="mdi"></div>
+    <div class="field">
+      <label for="mdiTotal">Eller: MDI-totalscore (0–50)</label>
+      <input type="number" id="mdiTotal" min="0" max="50" placeholder="fx 28">
+    </div>
+
+    <h2>3. Selvmordsrisiko og psykiatri</h2>
+    <fieldset class="field">
+      <legend>Spørg direkte</legend>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="tanker"> Selvmordstanker</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="planer"> Konkrete planer eller forberedelser</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="afstand"> Kan ikke troværdigt tage afstand fra selvmord</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="forsoeg"> Tidligere selvmordsforsøg</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="misbrug"> Alkohol- eller stofmisbrug</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="alene"> Bor alene / mangler netværk, eller nyligt tab</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Andet psykiatrisk</legend>
+      <label class="checkbox"><input type="checkbox" name="psyk" value="psykotisk"> Psykotiske symptomer (vrangforestillinger, hallucinationer)</label>
+      <label class="checkbox"><input type="checkbox" name="psyk" value="mani"> Tidligere mani eller hypomani (bipolar lidelse?)</label>
+      <label class="checkbox"><input type="checkbox" name="psyk" value="angst"> Betydende angst</label>
+      <label class="checkbox"><input type="checkbox" name="psyk" value="funktion"> Ude af stand til at klare arbejde eller hverdag</label>
+    </fieldset>
+
+    <h2>4. Forhold ved medicin</h2>
+    <fieldset class="field">
+      <legend>Tilstede</legend>
+      <label class="checkbox"><input type="checkbox" name="somatik" value="bloedning"> Antikoagulation, NSAID eller trombocythæmmer</label>
+      <label class="checkbox"><input type="checkbox" name="somatik" value="qt"> Hjertesygdom eller anden QT-forlængende medicin</label>
+      <label class="checkbox"><input type="checkbox" name="somatik" value="natrium"> Diuretika eller tidligere lavt natrium</label>
+      <label class="checkbox"><input type="checkbox" name="somatik" value="gravid"> Gravid, ammer eller planlægger graviditet</label>
+      <label class="checkbox"><input type="checkbox" name="somatik" value="soevn"> Udtalt søvnbesvær eller vægttab</label>
+    </fieldset>
+
+    <div id="kontrolFelter" hidden>
+      <h2>5. Opfølgning</h2>
+      <fieldset class="field">
+        <legend>Behandling</legend>
+        <label class="radio"><input type="radio" name="beh" value="ad" checked> Antidepressivum</label>
+        <label class="radio"><input type="radio" name="beh" value="terapi"> Samtaleterapi/psykolog</label>
+        <label class="radio"><input type="radio" name="beh" value="begge"> Begge</label>
+      </fieldset>
+      <div class="field">
+        <label for="uger">Uger siden start eller seneste dosisændring</label>
+        <input type="number" id="uger" min="0" max="520" placeholder="fx 6">
+      </div>
+      <div class="field">
+        <label for="mdiFoer">MDI ved start (0–50)</label>
+        <input type="number" id="mdiFoer" min="0" max="50" placeholder="fx 32">
+      </div>
+      <fieldset class="field">
+        <legend>Status</legend>
+        <label class="checkbox"><input type="checkbox" name="status" value="bivirk"> Generende bivirkninger</label>
+        <label class="checkbox"><input type="checkbox" name="status" value="forsoeg2"> Mindst to antidepressiva prøvet i tilstrækkelig dosis og tid</label>
+      </fieldset>
+    </div>
+  </form>
+
+  <section class="panel result-panel" aria-label="Vurdering" id="resultPanel">
+    <h2>Vurdering og plan</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld vurdering</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+    <p class="field-hint restordre-hint">Kan et præparat ikke skaffes? Tjek <a href="https://restordre.dk/" target="_blank" rel="noopener">restordre.dk</a> (dagligt opdateret status fra grossister og apoteker), og find alternativer med vejledende ækvivalente doser i <a href="../restordre/index.html">Restordre</a>.</p>
+  </section>
+</main>
+
+<div id="linkKort" hidden><a data-sti="../thyreoidea/hypothyreose.html" href="../thyreoidea/hypothyreose.html">Hypothyreose</a><a data-sti="demens.html" href="demens.html">Demens</a></div>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Bech m.fl. — Major Depression Inventory (MDI, WHO): 10 spørgsmål (8 og 10 med a/b, højeste tæller), score 0–5, total 0–50; ICD-10-algoritmen: kernesymptomer (spørgsmål 1–3) tæller ved 4–5, ledsagesymptomer (4–10) ved 3–5; let ≥ 2 kerne + ≥ 2 ledsage, moderat ≥ 2 kerne + ≥ 4 ledsage, svær 3 kerne + ≥ 5 ledsage. Sumscore 21–25 let, 26–30 moderat, ≥ 31 svær (Bech 2015, LEAD-validering)</li>
+    <li>DSAM — Unipolar depression (klinisk vejledning): samtaleterapi ved let depression (ingen evidens for medicin), samtaleterapi og evt. medicin ved moderat, medicin og støttesamtaler ved svær depression. Sundhedsstyrelsen — NKR for behandling af depression og vejledning om antidepressiva: SSRI førstevalg ved moderat og svær depression</li>
+    <li>pro.medicin.dk og regionernes basislister (fx Region Nordjylland): sertralin førstevalg (også ved graviditet), escitalopram/citalopram ligeværdige; 2. valg mirtazapin (søvnbesvær) eller SNRI. Produktresuméer: escitalopram højst 10 mg og citalopram højst 20 mg fra 65 år (QT); øget selvmordsrisiko i starten af behandlingen, især under 25 år</li>
+    <li>Lægehåndbogen — Selvmordsrisikovurdering: tidligere forsøg, aktuelle tanker og planer, og om patienten troværdigt kan tage afstand. Psykologordningen: tilskud (60 %) ved let til moderat depression fra 18 år; gratis for 18–24-årige</li>
+    <li>NICE NG222 og DSAM: fortsæt mindst 6 måneder efter remission, længere (ca. 2 år) ved tilbagevendende depression; aftrap over mindst 4 uger</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — erstatter ikke den kliniske vurdering. dsam.dk, sundhed.dk og sst.dk kunne ikke tilgås direkte ved udviklingen; algoritme og anbefalinger er kontrolleret via sekundære kilder (søgeresultater, valideringsstudier). Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="depression.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

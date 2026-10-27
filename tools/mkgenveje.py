@@ -25,6 +25,7 @@ APPS = [
     ("Infektioner", "infektion/", "infektion"),
     ("Nyrer", "nyre/", "nyre"),
     ("Svangreomsorg", "svangre/", "svangre"),
+    ("Psyke og hukommelse", "psyke/", "psyke"),
     ("Restordre", "restordre/", "restordre"),
 ]
 LAES = """Klinikværktøjer til almen praksis — genveje til skrivebordet
