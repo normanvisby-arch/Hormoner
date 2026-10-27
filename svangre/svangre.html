@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Svangreundersøgelser — tjekliste og risikovurdering</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#a83660">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Svangre">
+</head>
+<body class="theme-svangre">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🤰</span>
+      <div>
+        <h1>Svangreundersøgelser — tjekliste og risikovurdering</h1>
+        <p class="subtitle">De tre graviditetsundersøgelser i uge 6–10, 25 og 32 og efterundersøgelsen 8 uger efter fødslen: termin, tjekliste, risikovurdering, alarmfund og journalnotat</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <span aria-current="page">Svangreundersøgelser</span>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Følger Sundhedsstyrelsens Anbefalinger for svangreomsorgen (2022), Lægehåndbogen, DSOG's guidelines og SSI's vaccinationsprogram. Blodprøvetidspunkter, OGTT-kriterier, anti-D og henvisningsveje varierer mellem regionerne — følg altid regionens forløbsbeskrivelse og fødestedets instrukser. Intet gemmes eller sendes.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se tjekliste ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Konsultation og termin</h2>
+
+    <fieldset class="field">
+      <legend>Konsultation</legend>
+      <label class="radio"><input type="radio" name="kons" value="auto" checked> Vælg ud fra graviditetsugen</label>
+      <label class="radio"><input type="radio" name="kons" value="1"> 1. graviditetsundersøgelse (uge 6–10)</label>
+      <label class="radio"><input type="radio" name="kons" value="2"> 2. graviditetsundersøgelse (uge 25)</label>
+      <label class="radio"><input type="radio" name="kons" value="3"> 3. graviditetsundersøgelse (uge 32)</label>
+      <label class="radio"><input type="radio" name="kons" value="efter"> Efterundersøgelse 8 uger efter fødslen</label>
+    </fieldset>
+
+    <div class="field">
+      <label for="dato">Dato for konsultationen</label>
+      <input type="date" id="dato">
+    </div>
+    <div class="field">
+      <label for="sm">Første dag i sidste menstruation</label>
+      <input type="date" id="sm">
+      <label for="cyklus" class="field-sublabel">Cykluslængde (dage, standard 28)</label>
+      <input type="number" id="cyklus" min="21" max="45" placeholder="28">
+    </div>
+    <div class="field">
+      <label for="ultermin">Termin efter ultralyd (hvis kendt)</label>
+      <input type="date" id="ultermin">
+      <p class="field-hint">Ultralydstermin (nakkefoldsscanning) erstatter terminen efter sidste menstruation.</p>
+      <p class="field-hint" id="gaHint" aria-live="polite"></p>
+      <span class="input-warning" id="datoWarning" aria-live="polite"></span>
+    </div>
+
+    <h2>2. Den gravide</h2>
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="12" max="60" placeholder="fx 31">
+    </div>
+    <div class="field">
+      <label for="hoejde">Højde (cm)</label>
+      <input type="number" id="hoejde" min="120" max="210" placeholder="fx 168">
+      <label for="vaegtFoer" class="field-sublabel">Vægt før graviditeten (kg)</label>
+      <input type="number" id="vaegtFoer" min="30" max="250" step="0.1" placeholder="fx 64">
+      <label for="vaegtNu" class="field-sublabel">Vægt nu (kg, valgfrit)</label>
+      <input type="number" id="vaegtNu" min="30" max="260" step="0.1" placeholder="fx 70">
+      <p class="field-hint" id="bmiHint" aria-live="polite"></p>
+    </div>
+    <fieldset class="field">
+      <legend>Paritet og graviditet</legend>
+      <label class="radio"><input type="radio" name="paritet" value="0" checked> Har ikke født før</label>
+      <label class="radio"><input type="radio" name="paritet" value="1"> Har født før</label>
+      <label class="checkbox"><input type="checkbox" name="graviditet" value="interval10"> Mere end 10 år siden sidste fødsel</label>
+      <label class="checkbox"><input type="checkbox" name="graviditet" value="flerfold"> Flerfoldsgraviditet</label>
+      <label class="checkbox"><input type="checkbox" name="graviditet" value="aegdonation"> Graviditet efter ægdonation</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>RhD-type</legend>
+      <label class="radio"><input type="radio" name="rhd" value="ukendt" checked> Ikke kendt endnu</label>
+      <label class="radio"><input type="radio" name="rhd" value="pos"> RhD-positiv</label>
+      <label class="radio"><input type="radio" name="rhd" value="neg"> RhD-negativ</label>
+    </fieldset>
+
+    <h2>3. Anamnese og risikofaktorer</h2>
+    <fieldset class="field">
+      <legend>Diabetes</legend>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="tidlGDM"> Tidligere graviditetsdiabetes (GDM)</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="famDM"> Diabetes hos forældre eller søskende</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="barn4500"> Tidligere barn med fødselsvægt ≥ 4.500 g</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="pcos"> PCOS</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="dm"> Kendt type 1- eller type 2-diabetes</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Præeklampsi og kredsløb</legend>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="tidlPEsvaer"> Tidligere præeklampsi med tegn på svær sygdom eller før uge 34, eller svær væksthæmning</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="tidlPE"> Tidligere præeklampsi uden tegn på svær sygdom</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="hypertension"> Kronisk hypertension</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="nyre"> Kronisk nyresygdom</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="sle"> SLE eller antifosfolipidsyndrom</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="vte"> Tidligere venøs tromboemboli eller kendt trombofili</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="hjerte"> Hjertesygdom</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Anden sygdom og medicin</legend>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="thyreoidea"> Kendt thyreoideasygdom</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="epilepsi"> Epilepsi</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="psykisk"> Aktuel eller tidligere psykisk sygdom (også fødselsdepression)</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="bariatri"> Tidligere fedmekirurgi</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="smitte"> Kendt hiv, hepatitis B eller C</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="medicin"> Fast medicin (gennemgås for fosterskadelig effekt)</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Tidligere graviditeter og arvelighed</legend>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="sectio"> Tidligere kejsersnit</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="praeterm"> Tidligere fødsel før uge 37</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="doedfoedsel"> Tidligere dødfødsel eller sen abort</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="pph"> Tidligere stor blødning efter fødslen</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="abort3"> 3 eller flere spontane aborter</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="ntd"> Tidligere graviditet med neuralrørsdefekt</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="arvelig"> Arvelig sygdom eller misdannelse i familien</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Livsstil og psykosocialt</legend>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="ryger"> Ryger (også snus, e-cigaretter eller nikotinprodukter)</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="alkohol"> Alkohol i graviditeten eller tidligere alkoholoverforbrug</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="stoffer"> Euforiserende stoffer</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="vold"> Vold i nære relationer</label>
+      <label class="checkbox"><input type="checkbox" name="risiko" value="saarbar"> Social sårbarhed (fx manglende netværk, økonomi, sprog)</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Præeklampsiscreening på fødestedet</legend>
+      <label class="radio"><input type="radio" name="prepred" value="ukendt" checked> Ved ikke</label>
+      <label class="radio"><input type="radio" name="prepred" value="ja"> Fødestedet screener ved nakkefoldsscanningen (PREPRED)</label>
+      <label class="radio"><input type="radio" name="prepred" value="nej"> Fødestedet bruger DSOG's risikofaktorer</label>
+    </fieldset>
+
+    <div id="fundFelter">
+      <h2>4. Fund ved undersøgelsen</h2>
+      <div class="field">
+        <label for="bts">Blodtryk, systolisk / diastolisk (mmHg)</label>
+        <input type="number" id="bts" min="60" max="260" placeholder="fx 118">
+        <input type="number" id="btd" min="30" max="160" placeholder="fx 74" aria-label="Diastolisk blodtryk">
+      </div>
+      <fieldset class="field">
+        <legend>Urinstix</legend>
+        <label for="protein" class="field-sublabel">Protein</label>
+        <select id="protein">
+          <option value="0">Negativ</option>
+          <option value="1">Spor eller 1+</option>
+          <option value="2">2+</option>
+          <option value="3">3+ eller mere</option>
+        </select>
+        <label class="checkbox"><input type="checkbox" name="urin" value="glukose"> Glukose i urinen</label>
+        <label class="checkbox"><input type="checkbox" name="urin" value="bakteriuri"> Nitrit eller leukocytter (mulig bakteriuri)</label>
+      </fieldset>
+      <div class="field" id="sfFelt">
+        <label for="sf">Symfyse-fundus-mål (cm)</label>
+        <input type="number" id="sf" min="10" max="50" step="0.5" placeholder="fx 25">
+      </div>
+      <fieldset class="field" id="hjertelydFelt">
+        <legend>Fosterets hjertelyd</legend>
+        <label class="radio"><input type="radio" name="hjertelyd" value="ukendt" checked> Ikke undersøgt</label>
+        <label class="radio"><input type="radio" name="hjertelyd" value="ja"> Hørt</label>
+        <label class="radio"><input type="radio" name="hjertelyd" value="nej"> Ikke hørt</label>
+      </fieldset>
+      <fieldset class="field">
+        <legend>Symptomer</legend>
+        <label class="checkbox"><input type="checkbox" name="sym" value="pe"> Hovedpine, synsforstyrrelser, smerter under højre ribben/i epigastriet eller kvalme sent i graviditeten</label>
+        <label class="checkbox"><input type="checkbox" name="sym" value="oedem"> Pludselige eller udtalte ødemer (ansigt, hænder)</label>
+        <label class="checkbox"><input type="checkbox" name="sym" value="bloedning"> Vaginal blødning</label>
+        <label class="checkbox"><input type="checkbox" name="sym" value="vand"> Vandafgang</label>
+        <label class="checkbox"><input type="checkbox" name="sym" value="veer"> Regelmæssige sammentrækninger eller menstruationslignende smerter før uge 37</label>
+        <label class="checkbox"><input type="checkbox" name="sym" value="fosterbev"> Nedsatte eller ændrede fosterbevægelser</label>
+        <label class="checkbox"><input type="checkbox" name="sym" value="kloe"> Kløe uden udslæt (især håndflader og fodsåler)</label>
+        <label class="checkbox"><input type="checkbox" name="sym" value="hyperemesis"> Svær kvalme og opkastning med vægttab eller dehydrering</label>
+      </fieldset>
+    </div>
+
+    <div id="efterFelter" hidden>
+      <h2>4. Forløbet og efter fødslen</h2>
+      <fieldset class="field">
+        <legend>I graviditeten og ved fødslen</legend>
+        <label class="checkbox"><input type="checkbox" name="forloeb" value="gdm"> Graviditetsdiabetes</label>
+        <label class="checkbox"><input type="checkbox" name="forloeb" value="pe"> Præeklampsi eller graviditetshypertension</label>
+        <label class="checkbox"><input type="checkbox" name="forloeb" value="sectio"> Kejsersnit</label>
+        <label class="checkbox"><input type="checkbox" name="forloeb" value="pph"> Stor blødning eller anæmi efter fødslen</label>
+        <label class="checkbox"><input type="checkbox" name="forloeb" value="bristning"> Større bristning (3. eller 4. grads sphincterruptur)</label>
+        <label class="checkbox"><input type="checkbox" name="forloeb" value="ammer"> Ammer</label>
+      </fieldset>
+      <div class="field">
+        <label for="btsE">Blodtryk, systolisk / diastolisk (mmHg)</label>
+        <input type="number" id="btsE" min="60" max="260" placeholder="fx 124">
+        <input type="number" id="btdE" min="30" max="160" placeholder="fx 80" aria-label="Diastolisk blodtryk">
+      </div>
+      <div class="field">
+        <label for="epds">EPDS-score (Edinburgh, 0–30, valgfrit)</label>
+        <input type="number" id="epds" min="0" max="30" placeholder="fx 7">
+        <label class="checkbox"><input type="checkbox" name="efterSym" value="selvskade"> Tanker om at skade sig selv (EPDS spørgsmål 10)</label>
+      </div>
+    </div>
+  </form>
+
+  <section class="panel result-panel" aria-label="Tjekliste og anbefaling" id="resultPanel">
+    <h2>Tjekliste og anbefaling</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld vurdering</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+    <p class="field-hint restordre-hint">Kan et præparat ikke skaffes? Tjek <a href="https://restordre.dk/" target="_blank" rel="noopener">restordre.dk</a> (dagligt opdateret status fra grossister og apoteker), og find alternativer med vejledende ækvivalente doser i <a href="../restordre/index.html">Restordre</a>.</p>
+  </section>
+</main>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Sundhedsstyrelsen — Anbefalinger for svangreomsorgen (2022): tre graviditetsundersøgelser hos egen læge (uge 6–10, 25 og 32) og efterundersøgelse 8 uger efter fødslen, omsorgsniveau 1–4, kosttilskud (folsyre 400 mikrog. til uge 12, D-vitamin 10 mikrog., jern 40–50 mg fra uge 10)</li>
+    <li>Lægehåndbogen (sundhed.dk) — Svangerskabskontrol: indhold af konsultationerne, blodtype og irregulære antistoffer samt screening for hepatitis B, hiv og syfilis, urin for asymptomatisk bakteriuri; Præeklampsi og eklampsi: henvisningsgrænser</li>
+    <li>DSOG — Hypertension og præeklampsi (revision 2024): hypertension ≥ 140/90, svær hypertension ≥ 160/110; HELLP kan optræde uden hypertension og proteinuri</li>
+    <li>DSOG — Acetylsalicylsyre i graviditeten (150 mg til natten fra GA 10–16, optimalt 10–12; høje og moderate risikofaktorer) og Opstart af screening for præeklampsi (PREPRED, udrulles på fødestederne fra 15. september 2025 og erstatter da risikofaktorerne)</li>
+    <li>Gestationel diabetes: regionernes forløbsbeskrivelser (risikofaktorer; OGTT uge 10–20 og/eller 24–28; 2-timers værdi ≥ 9,0 mmol/l) og DSOG's screeningsguideline 2023 (HbA1c før uge 20; HbA1c ≥ 48 mmol/mol = manifest diabetes)</li>
+    <li>Statens Serum Institut — vaccination af gravide: kighoste i uge 25 (hele året), RSV (Abrysvo) i uge 32 ved termin juli–marts, mindst 2 uger efter kighoste; influenza i sæsonen</li>
+    <li>Dansk Selskab for Klinisk Immunologi og pro.medicin.dk — RhD-negative: irregulære antistoffer og fosterets RHD-type i uge 25, anti-D 250–300 mikrog. i uge 29 ved RhD-positivt foster og igen efter fødslen</li>
+    <li>Cox m.fl. (1987) — Edinburgh Postnatal Depression Scale (EPDS)</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra Sundhedsstyrelsen, DSOG eller regionerne. Primærkilderne (sst.dk, sundhed.dk, dsog.dk, ssi.dk) kunne ikke tilgås direkte ved udviklingen; anbefalingerne er kontrolleret via sekundære kilder (søgeresultater, regionale forløbsbeskrivelser og Ugeskrift for Læger) og skal verificeres i de gældende vejledninger. Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="svangre.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

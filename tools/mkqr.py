@@ -26,6 +26,7 @@ KODER = [
     ("diabetes", "diabetes/"),
     ("infektion", "infektion/"),
     ("nyre", "nyre/"),
+    ("svangre", "svangre/"),
     ("restordre", "restordre/"),
 ]
 

@@ -62,6 +62,10 @@ body.theme-restordre {
   --color-primary: #7c4a03;
   --color-primary-dark: #5c3602;
 }
+body.theme-svangre {
+  --color-primary: #a83660;
+  --color-primary-dark: #7d2647;
+}
 body.theme-notat {
   --color-primary: #334e68;
   --color-primary-dark: #243b53;
@@ -871,3 +875,19 @@ textarea.ekg-maskine { width: 100%; box-sizing: border-box; font: inherit; font-
 .ekg-citat { margin: 0 0 0.6rem; padding: 0.5rem 0.8rem; border-left: 3px solid var(--color-primary); background: var(--color-bg); font-style: italic; }
 .ekg-tabel td:nth-child(2) { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .ekg-qtc td:nth-child(2) { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* Svangreundersøgelser (svangre/) */
+.tjekliste { list-style: none; margin: 0.4rem 0 0; padding: 0; }
+.tjekliste li { margin: 0; }
+.tjekliste .checkbox { color: var(--color-text); margin: 0.2rem 0; }
+.tjekliste .checkbox:has(input:checked) { color: var(--color-muted); }
+.tjek-status { font-size: 0.85rem; font-weight: 600; }
+.tidslinje td:first-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tidslinje tr.passeret td { color: var(--color-muted); }
+.tidslinje tr.nu td { font-weight: 600; background: var(--color-green-bg); }
+.theme-svangre .field select { padding: 0.4rem 0.5rem; border: 1px solid var(--color-border); border-radius: 6px; font-size: 0.95rem; background: var(--color-panel); color: inherit; }
+.theme-svangre .field input[type="number"] + input[type="number"] { margin-top: 0.4rem; }
+.ga-badge { display: inline-block; font-weight: 700; font-variant-numeric: tabular-nums; }
+@media print {
+  .tjekliste input { accent-color: #000; }
+}

@@ -20,7 +20,7 @@ const PAGES = 'https://normanvisby-arch.github.io/Hormoner/';
     ikon: e.querySelector('.app-head img').getAttribute('src'),
     ny: e.querySelector('a.btn-open').getAttribute('target'),
   })));
-  check('A1 otte apps med Restordre (Notat-indgang er skjult)', kort.length === 8 && kort.some((k) => k.id === 'restordre') && !kort.some((k) => k.id === 'notat' || /^notat\//.test(k.href)), kort.map((k) => k.navn).join(', '));
+  check('A1 ni apps med Svangreomsorg og Restordre (Notat-indgang er skjult)', kort.length === 9 && kort.some((k) => k.id === 'svangre') && kort.some((k) => k.id === 'restordre') && !kort.some((k) => k.id === 'notat' || /^notat\//.test(k.href)), kort.map((k) => k.navn).join(', '));
   const dele = await p.locator('#delLink').innerText();
   check('A2 delbart link er GitHub Pages-adressen', dele === PAGES + 'apps.html', dele);
 
@@ -40,7 +40,7 @@ const PAGES = 'https://normanvisby-arch.github.io/Hormoner/';
       `${k.href} ${k.kopi} ${k.qr}`);
   }
   // Alle apps med eget manifest er med.
-  const manifester = ['manifest.webmanifest', 'hjerte/', 'lunge/', 'thyreoidea/', 'diabetes/', 'infektion/', 'nyre/', 'restordre/'];
+  const manifester = ['manifest.webmanifest', 'hjerte/', 'lunge/', 'thyreoidea/', 'diabetes/', 'infektion/', 'nyre/', 'svangre/', 'restordre/'];
   check('A5 alle apps med manifest er på siden (undtagen den skjulte Notat-indgang)', manifester.every((m) => kort.some((k) => (m === 'manifest.webmanifest' ? k.href.startsWith('oversigt.html') : k.href.startsWith(m)))));
 
   // Kopiér link
@@ -53,21 +53,25 @@ const PAGES = 'https://normanvisby-arch.github.io/Hormoner/';
   check('A7 rod-service-worker gemmer apps.html og alle QR-koder', sw.includes('"apps.html"') && kort.every((k) => sw.includes(`"${k.qr}"`)) && sw.includes('"qr/apps.svg"'));
 
   // Startsiderne linker til downloadsiden
-  for (const s of ['oversigt.html', 'hjerte/index.html', 'lunge/index.html', 'thyreoidea/index.html', 'diabetes/index.html', 'infektion/index.html', 'nyre/index.html']) {
+  for (const s of ['oversigt.html', 'hjerte/index.html', 'lunge/index.html', 'thyreoidea/index.html', 'diabetes/index.html', 'infektion/index.html', 'nyre/index.html', 'svangre/index.html']) {
     const html = await (await p.request.get(ROOT + s)).text();
     check(`A8 ${s} linker til apps.html (kun i appen)`, /href="(\.\.\/)?apps\.html"/.test(html) && /data-app-only[^]*?apps\.html/.test(html));
   }
 
   // Notat-indgang er skjult; Restordre er med i "Andre apps" på oversigt og startsider.
-  for (const s of ['apps.html', 'oversigt.html', 'hjerte/index.html', 'lunge/index.html', 'thyreoidea/index.html', 'diabetes/index.html', 'infektion/index.html', 'nyre/index.html']) {
+  for (const s of ['apps.html', 'oversigt.html', 'hjerte/index.html', 'lunge/index.html', 'thyreoidea/index.html', 'diabetes/index.html', 'infektion/index.html', 'nyre/index.html', 'svangre/index.html']) {
     const html = await (await p.request.get(ROOT + s)).text();
     check(`A9 ${s}: Notat-indgang er skjult, Restordre er med`, !/notat\/|notat-indgang/i.test(html) && /href="(\.\.\/)?restordre\/index\.html/.test(html));
+  }
+  for (const s of ['apps.html', 'oversigt.html', 'hjerte/index.html', 'lunge/index.html', 'thyreoidea/index.html', 'diabetes/index.html', 'infektion/index.html', 'nyre/index.html']) {
+    const html = await (await p.request.get(ROOT + s)).text();
+    check(`A12 ${s} linker til Svangreomsorg`, /href="(\.\.\/)?svangre\/index\.html/.test(html));
   }
   const rodSw = await (await p.request.get(ROOT + 'sw.js')).text();
   check('A10 rod-service-worker: QR til Restordre, ikke til Notat-indgang', !/qr\/notat\.svg/.test(rodSw) && /qr\/restordre\.svg/.test(rodSw));
 
   // Alle værktøjer med præparatvalg linker til restordre.dk og til Restordre (ikke i udskrift).
-  const VAERKTOEJ = ['index.html', 'praevention.html', 'osteoporose.html', 'hjerte/cvrisiko.html', 'hjerte/af.html', 'lunge/kol.html', 'lunge/astma.html', 'thyreoidea/hypothyreose.html', 'diabetes/behandling.html', 'infektion/luftveje.html', 'infektion/urinveje.html', 'infektion/hud.html', 'nyre/ckd.html', 'nyre/dosis.html'];
+  const VAERKTOEJ = ['index.html', 'praevention.html', 'osteoporose.html', 'hjerte/cvrisiko.html', 'hjerte/af.html', 'lunge/kol.html', 'lunge/astma.html', 'thyreoidea/hypothyreose.html', 'diabetes/behandling.html', 'infektion/luftveje.html', 'infektion/urinveje.html', 'infektion/hud.html', 'nyre/ckd.html', 'nyre/dosis.html', 'svangre/svangre.html'];
   for (const s of VAERKTOEJ) {
     await p.goto(ROOT + s); await p.waitForTimeout(80);
     const h = await p.evaluate(() => { const e = document.querySelector('#resultPanel .restordre-hint'); if (!e) return null; const a = [...e.querySelectorAll('a')]; return { dk: a[0].href, ny: a[0].target, app: a[1].href }; });

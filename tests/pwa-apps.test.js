@@ -1,5 +1,5 @@
 const { chromium } = require('playwright');
-// Kør via tests/run_all.sh. Tester lunge-, hypothyreose-, diabetes-, infektion- og nyre-appen som selvstændige apps:
+// Kør via tests/run_all.sh. Tester lunge-, hypothyreose-, diabetes-, infektion- og nyre- og svangre-appen som selvstændige apps:
 // manifest, ikoner, service worker, offline og installér-knap.
 const ROOT = process.env.BASE_URL || 'http://localhost:8795/';
 const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
@@ -9,6 +9,7 @@ const APPS = [
   { dir: 'diabetes', name: 'Type 2-diabetes i almen praksis', pages: ['behandling.html', 'aarskontrol.html', 'huskeskema.html'], nav: ['Oversigt', 'Behandling', 'Årskontrol', 'Huskeskema'], cards: 3 },
   { dir: 'infektion', name: 'Infektioner i almen praksis', pages: ['luftveje.html', 'urinveje.html', 'hud.html', 'huskeskema.html'], nav: ['Oversigt', 'Luftveje', 'Urinveje', 'Hud'], cards: 4 },
   { dir: 'nyre', name: 'Nyrer i almen praksis', pages: ['ckd.html', 'dosis.html', 'huskeskema.html'], nav: ['Oversigt', 'Kronisk nyresygdom', 'Dosis efter nyrefunktion'], cards: 3 },
+  { dir: 'svangre', name: 'Svangreomsorg i almen praksis', pages: ['svangre.html', 'huskeskema.html'], nav: ['Oversigt', 'Svangreundersøgelser', 'Huskeskema'], cards: 2 },
 ];
 (async () => {
   const b = await chromium.launch({ executablePath: CHROMIUM });

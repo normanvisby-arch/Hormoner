@@ -1,10 +1,10 @@
 # Klinikværktøjer til almen praksis — arbejdsgang
 
-Danske beslutningsstøtteværktøjer til en praktiserende læge i syv selvstændige apps:
+Danske beslutningsstøtteværktøjer til en praktiserende læge i otte selvstændige apps:
 **kvindesundhed** (klimakterie/MHT, prævention, MRS-scoring, osteoporose — repoets rod),
 **hjerte-kar** (`hjerte/`), **lunger** (`lunge/`: KOL og astma), **hypothyreose** (`thyreoidea/`),
-**type 2-diabetes** (`diabetes/`), **infektioner** (`infektion/`: antibiotika) og **nyrer**
-(`nyre/`: kronisk nyresygdom og dosis efter nyrefunktion) — plus **Notat-indgangen** (`notat/`),
+**type 2-diabetes** (`diabetes/`), **infektioner** (`infektion/`: antibiotika) **nyrer**
+(`nyre/`: kronisk nyresygdom og dosis efter nyrefunktion) og **svangreomsorg** (`svangre/`: graviditetsundersøgelser) — plus **Notat-indgangen** (`notat/`),
 der modtager et journalnotat og sender det til det rette værktøj. Brugeren er læge; al tekst i værktøjerne og svar til brugeren er på
 dansk. Klinisk indhold skal være korrekt, kildebelagt og ærligt om usikkerhed — hellere et interval
 eller "usikker" end et falsk præcist tal.
@@ -34,6 +34,11 @@ eller "usikker" end et falsk præcist tal.
   `huskeskema.html`) er bygget på samme måde (`body.theme-infektion`, `.theme-nyre`).
   KFRE-koefficienterne er kontrolleret mod Python-pakken kfre (se `tests/nyre.test.js`) — ret dem
   kun med en primærkilde.
+- `svangre/` (`svangre.html` + `svangre.js`, `huskeskema.html`): de tre graviditetsundersøgelser og
+  efterundersøgelsen — termin, tjekliste pr. konsultation (afkrydsning kun i sessionen, med i
+  journalnotatet), alarmfund, GDM/OGTT, præeklampsi/ASA (DSOG og PREPRED), RhD, henvisning,
+  omsorgsniveau, vaccinationer og tidslinje. Bygget som de øvrige apps (`body.theme-svangre`). Test:
+  `tests/svangre.test.js`.
 - `valg.js`: fælles "Vælg til journal"-knap i behandlingstabeller (klimakterie, prævention,
   osteoporose); journalnotatet bruger det valgte i stedet for førstevalget.
 - `udfyld.js`: fælles "Udfyld fra journaltekst" (indsæt diktat-/journaltekst → felter udfyldes
@@ -58,7 +63,7 @@ eller "usikker" end et falsk præcist tal.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
   **Hæv `VERSION` i `sw.js`** og i den berørte apps `*/sw.js` (hjerte, lunge, thyreoidea,
-  diabetes, infektion, nyre, notat, restordre), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
+  diabetes, infektion, nyre, svangre, notat, restordre), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
   `valg.js`, `udfyld.js`) caches af alle apps.
 - `README.md`: klinisk logik, datagrundlag og ændringslog (opdateres ved hver ændring).
 - `tests/`: Playwright-suiter. `tests/run_all.sh` kører dem alle mod en lokal server.
@@ -123,6 +128,11 @@ Tjek for nye eller reviderede anbefalinger og studier siden sidste gennemgang (s
 - **Nyrer (`nyre/`):** KDIGO (CKD og diabetes-CKD), Dansk Nefrologisk Selskab, regionernes
   forløbsbeskrivelser for kronisk nyresygdom, DSAM (evt. egen vejledning), Medicinrådet
   (SGLT-2-hæmmer, finerenon), KFRE-opdateringer og produktresuméer (dosis efter nyrefunktion).
+
+- **Svangreomsorg (`svangre/`):** Sundhedsstyrelsens Anbefalinger for svangreomsorgen, DSOG's
+  guidelines (hypertension/præeklampsi, acetylsalicylsyre og udrulningen af PREPRED, GDM-screening,
+  tromboseprofylakse), SSI's vaccinationsprogram for gravide (kighoste, RSV-sæson, influenza),
+  regionernes forløbsbeskrivelser (blodprøvetidspunkter, OGTT) og anbefalet vægtøgning.
 
 Ret kun ved reel ny evidens eller fejl, og beskriv hver ændring med kilde i PR og ændringslog.
 Findes intet nyt, så sig det — lav ikke ændringer for ændringernes skyld.
