@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Børneundersøgelser — tjekliste, udvikling og vaccinationer</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#c2511d">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Børn">
+</head>
+<body class="theme-boern">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🧸</span>
+      <div>
+        <h1>Børneundersøgelser — tjekliste, udvikling og vaccinationer</h1>
+        <p class="subtitle">De syv forebyggende børneundersøgelser fra 5 uger til 5 år: tjekliste, milepæle, alarmfund med handling, vaccinationskalender og journalnotat</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <span aria-current="page">Børneundersøgelser</span>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Følger Sundhedsstyrelsens vejledning og anbefalinger om forebyggende sundhedsydelser til børn og unge (2025) og Statens Serum Instituts børnevaccinationsprogram. Milepæle er vejledende — børn udvikler sig forskelligt; det er mønsteret og forløbet, der tæller. Intet gemmes eller sendes; CPR-nummer indtastes ikke.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se tjekliste ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Barnets data" onsubmit="return false;">
+    <h2>1. Barnet og undersøgelsen</h2>
+    <div class="field">
+      <label for="foedt">Fødselsdato</label>
+      <input type="date" id="foedt">
+    </div>
+    <div class="field">
+      <label for="dato">Dato for undersøgelsen</label>
+      <input type="date" id="dato">
+      <p class="field-hint" id="alderHint" aria-live="polite"></p>
+      <span class="input-warning" id="datoWarning" aria-live="polite"></span>
+    </div>
+    <fieldset class="field">
+      <legend>Undersøgelse</legend>
+      <label class="radio"><input type="radio" name="kons" value="auto" checked> Vælg ud fra alderen</label>
+      <label class="radio"><input type="radio" name="kons" value="5u"> 5 uger</label>
+      <label class="radio"><input type="radio" name="kons" value="5m"> 5 måneder</label>
+      <label class="radio"><input type="radio" name="kons" value="12m"> 12 måneder</label>
+      <label class="radio"><input type="radio" name="kons" value="2a"> 2 år</label>
+      <label class="radio"><input type="radio" name="kons" value="3a"> 3 år</label>
+      <label class="radio"><input type="radio" name="kons" value="4a"> 4 år</label>
+      <label class="radio"><input type="radio" name="kons" value="5a"> 5 år</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Køn</legend>
+      <label class="radio"><input type="radio" name="koen" value="dreng" checked> Dreng</label>
+      <label class="radio"><input type="radio" name="koen" value="pige"> Pige</label>
+    </fieldset>
+    <div class="field">
+      <label for="ga">Gestationsalder ved fødslen (uger, hvis født før uge 37)</label>
+      <input type="number" id="ga" min="22" max="36" placeholder="fx 33">
+      <p class="field-hint">Udviklingen vurderes efter korrigeret alder til 2 år; vaccinationer gives efter den faktiske alder.</p>
+    </div>
+    <fieldset class="field">
+      <legend>Vaccinationer og forhold</legend>
+      <label class="radio"><input type="radio" name="vacc" value="ok" checked> Følger børnevaccinationsprogrammet</label>
+      <label class="radio"><input type="radio" name="vacc" value="mangler"> Mangler vaccinationer</label>
+      <label class="radio"><input type="radio" name="vacc" value="fravalgt"> Forældrene har fravalgt vaccination</label>
+      <label class="checkbox"><input type="checkbox" name="forhold" value="hepb"> Mor er hepatitis B-positiv</label>
+    </fieldset>
+
+    <h2>2. Fund og bekymringer</h2>
+    <fieldset class="field">
+      <legend>Objektivt</legend>
+      <label class="checkbox"><input type="checkbox" name="fund" value="hofte"> Positiv Ortolani/Barlow, ustabil hofte eller abduktionsindskrænkning</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="refleks"> Manglende eller ujævn rød refleks / hvid pupil</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="skelen"> Skelen</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="mislyd"> Hjertemislyd</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="femoralis"> Svage eller manglende femoralispulse</label>
+      <label class="checkbox" id="testisFelt"><input type="checkbox" name="fund" value="testis"> Testikel ikke i scrotum</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="icterus"> Gulsot efter 2 ugers alder eller lys afføring</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="hovedomfang"> Hovedomfang krydser percentiler</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="vaekst"> Vægt eller længde krydser percentiler / trives dårligt</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="overvaegt"> Overvægt (iso-BMI ≥ 25)</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Udvikling</legend>
+      <label class="checkbox"><input type="checkbox" name="fund" value="motorik"> Forsinket motorik, asymmetri eller tidlig håndpræference</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="sprog"> Forsinket sprog eller reagerer ikke på lyd/navn</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="socialt"> Manglende øjenkontakt, pegen eller socialt samspil</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="tab"> Tab af færdigheder</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Familien</legend>
+      <label class="checkbox"><input type="checkbox" name="fund" value="foraeldre"> Forælder med tegn på fødselsdepression eller manglende overskud</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="omsorg"> Bekymring for barnets trivsel eller omsorg</label>
+      <label class="checkbox"><input type="checkbox" name="fund" value="roeg"> Rygning i hjemmet</label>
+    </fieldset>
+  </form>
+
+  <section class="panel result-panel" aria-label="Tjekliste og vurdering" id="resultPanel">
+    <h2>Tjekliste og vurdering</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld vurdering</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+  </section>
+</main>
+
+<div id="linkKort" hidden><a data-sti="../psyke/depression.html" href="../psyke/depression.html">Depression</a></div>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Sundhedsstyrelsen — Vejledning om forebyggende sundhedsydelser til børn og unge og Anbefalinger om forebyggende sundhedsydelser til børn, unge og deres forældre (maj 2025): syv undersøgelser i almen praksis ved 5 uger, 5 og 12 måneder og 2, 3, 4 og 5 år med samtale om trivsel, udvikling og sygdom, undersøgelse, vejledning og vaccination</li>
+    <li>Statens Serum Institut — børnevaccinationsprogrammet: DiTeKiPol/Hib og pneumokok ved 3, 5 og 12 måneder (fra 1. november 2025 Vaxneuvance; påbegyndt Prevenar 13 gøres færdig med samme), MFR ved 15 måneder og 4 år, DiTeKiPol ved 5 år, HPV fra 12 år; hepatitis B til børn af HBsAg-positive mødre (ved fødslen med immunglobulin, 1, 2 og 12 måneder); influenza (næsespray) til 2–6-årige i sæsonen efter Sundhedsstyrelsens program</li>
+    <li>Lægehåndbogen — Forebyggende børneundersøgelse: kranie, rød refleks, hofter (Ortolani, Barlow, Galeazzi, abduktion), tonus, symmetri og motorik; Patienthåndbogen — milepæle (smil ca. 6 uger, sidder selv ca. 9 måneder, går selv ca. 18 måneder — ikke gående ved 18 måneder ses af børnelæge)</li>
+    <li>Dansk Pædiatrisk Selskab — Testis retention (2025): henvisning ved 3 måneder efter termin eller hurtigst muligt ved fund derefter; operation ved 6–12 måneder. Sundhedsstyrelsen — D-vitamin 10 mikrog. dagligt fra 2 uger til 4 år</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — erstatter ikke den kliniske vurdering eller Sundhedsstyrelsens vejledning. sst.dk og sundhed.dk kunne ikke tilgås direkte ved udviklingen; indholdet er kontrolleret via sekundære kilder (søgeresultater, Lægehåndbogens og SSI's sider). Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="boern.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

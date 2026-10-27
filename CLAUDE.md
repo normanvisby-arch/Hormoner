@@ -1,10 +1,12 @@
 # Klinikværktøjer til almen praksis — arbejdsgang
 
-Danske beslutningsstøtteværktøjer til en praktiserende læge i otte selvstændige apps:
+Danske beslutningsstøtteværktøjer til en praktiserende læge i ti selvstændige apps:
 **kvindesundhed** (klimakterie/MHT, prævention, MRS-scoring, osteoporose — repoets rod),
 **hjerte-kar** (`hjerte/`), **lunger** (`lunge/`: KOL og astma), **hypothyreose** (`thyreoidea/`),
 **type 2-diabetes** (`diabetes/`), **infektioner** (`infektion/`: antibiotika) **nyrer**
-(`nyre/`: kronisk nyresygdom og dosis efter nyrefunktion) og **svangreomsorg** (`svangre/`: graviditetsundersøgelser) — plus **Notat-indgangen** (`notat/`),
+(`nyre/`: kronisk nyresygdom og dosis efter nyrefunktion), **svangreomsorg** (`svangre/`: graviditetsundersøgelser),
+**psyke og hukommelse** (`psyke/`: depression og demensudredning) og **børneundersøgelser** (`boern/`) — plus
+**Restordre** (`restordre/`) og **Notat-indgangen** (`notat/`),
 der modtager et journalnotat og sender det til det rette værktøj. Brugeren er læge; al tekst i værktøjerne og svar til brugeren er på
 dansk. Klinisk indhold skal være korrekt, kildebelagt og ærligt om usikkerhed — hellere et interval
 eller "usikker" end et falsk præcist tal.
@@ -35,6 +37,9 @@ eller "usikker" end et falsk præcist tal.
   `huskeskema.html`) er bygget på samme måde (`body.theme-infektion`, `.theme-nyre`).
   KFRE-koefficienterne er kontrolleret mod Python-pakken kfre (se `tests/nyre.test.js`) — ret dem
   kun med en primærkilde.
+- `boern/` (Børneundersøgelser: `boern.html` + `boern.js` med de syv forebyggende børneundersøgelser —
+  tjekliste, milepæle, alarmfund og vaccinationskalender; `huskeskema.html`). Bygget som de øvrige apps
+  (`body.theme-boern`). Test: `tests/boern.test.js`.
 - `psyke/` (Psyke og hukommelse: `depression.html` + `.js` med MDI/ICD-10-algoritmen, behandling og
   opfølgning; `demens.html` + `.js` med tjekliste til basisudredningen; `huskeskema.html`). Bygget som de
   øvrige apps (`body.theme-psyke`). Test: `tests/psyke.test.js`.
@@ -74,7 +79,7 @@ eller "usikker" end et falsk præcist tal.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
   **Hæv `VERSION` i `sw.js`** og i den berørte apps `*/sw.js` (hjerte, lunge, thyreoidea,
-  diabetes, infektion, nyre, svangre, psyke, notat, restordre, alle), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
+  diabetes, infektion, nyre, svangre, psyke, boern, notat, restordre, alle), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
   `valg.js`, `udfyld.js`) caches af alle apps.
 - `README.md`: klinisk logik, datagrundlag og ændringslog (opdateres ved hver ændring).
 - `tests/`: Playwright-suiter. `tests/run_all.sh` kører dem alle mod en lokal server.
@@ -140,6 +145,9 @@ Tjek for nye eller reviderede anbefalinger og studier siden sidste gennemgang (s
   forløbsbeskrivelser for kronisk nyresygdom, DSAM (evt. egen vejledning), Medicinrådet
   (SGLT-2-hæmmer, finerenon), KFRE-opdateringer og produktresuméer (dosis efter nyrefunktion).
 
+- **Børneundersøgelser (`boern/`):** Sundhedsstyrelsens vejledning og anbefalinger om forebyggende
+  sundhedsydelser til børn og unge, SSI's børnevaccinationsprogram (vacciner, skift af præparater,
+  influenza til børn), DPS' retningslinjer (fx testis retention, hofter, icterus) og D-vitaminanbefalinger.
 - **Psyke og hukommelse (`psyke/`):** DSAM's vejledninger (depression; ny vejledning om stress, angst
   og depression; demens), Sundhedsstyrelsens NKR (depression, MCI/demens, demenshandlingsplan),
   Medicinrådet/basislister (antidepressiva), produktresuméer (QT, dosis hos ældre),

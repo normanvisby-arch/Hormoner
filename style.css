@@ -70,6 +70,10 @@ body.theme-psyke {
   --color-primary: #0f6e73;
   --color-primary-dark: #0a5256;
 }
+body.theme-boern {
+  --color-primary: #c2511d;
+  --color-primary-dark: #94390f;
+}
 body.theme-notat {
   --color-primary: #334e68;
   --color-primary-dark: #243b53;

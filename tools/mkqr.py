@@ -28,6 +28,7 @@ KODER = [
     ("nyre", "nyre/"),
     ("svangre", "svangre/"),
     ("psyke", "psyke/"),
+    ("boern", "boern/"),
     ("restordre", "restordre/"),
 ]
 

@@ -696,6 +696,35 @@ Selvstændig app med eget manifest, ikon og service worker (installeres fra
 prøvepanel er kontrolleret via sekundære kilder (søgeresultater, valideringsstudier, regionernes
 forløbsbeskrivelser).
 
+## Børneundersøgelser (`boern/`) — logik og datagrundlag
+
+Selvstændig app (installeres fra `https://normanvisby-arch.github.io/Hormoner/boern/`), tema
+`body.theme-boern` (#c2511d).
+
+- **`boern.html`** (`boern.js`): de syv forebyggende børneundersøgelser (Sundhedsstyrelsen 2025).
+  - **Valg efter alder** (fødselsdato og undersøgelsesdato): under 3 mdr. → 5 uger, 3–8,5 → 5 mdr.,
+    8,5–18 → 12 mdr., 18–30 → 2 år, 30–42 → 3 år, 42–54 → 4 år, derefter 5 år; manuelt valg langt
+    fra den planlagte alder giver en bemærkning; over 7 år en advarsel. **Korrigeret alder** ved
+    fødsel før uge 37 (til 2 år) bruges til udvikling; vaccinationer følger den faktiske alder.
+  - **Tjekliste** pr. undersøgelse (afkrydsning kun i sessionen, med i journalnotatet): 5 uger med
+    forældrenes trivsel, ernæring/gulsot, kranie, rød refleks, hjerte og femoralispulse, hofter,
+    genitalia (testikler hos drenge), hud, tonus; 5 og 12 mdr. med rød refleks/skelen, hofter,
+    testikler, motorik; fra 2 år iso-BMI, skelen (synsprøve ved 4 og 5 år), hørelse/sprog, tænder,
+    socialt samspil (2 år) og skoleparathed (5 år); vaccination og vejledning pr. alder.
+  - **Milepæle** pr. alder (vejledende; tab af færdigheder altid alarmtegn).
+  - **Alarmfund med handling:** hvid pupil/manglende rød refleks, svage femoralispulse, gulsot efter 2
+    uger/lys afføring (konjugeret bilirubin samme dag), ustabil hofte, tab af færdigheder (rød);
+    mislyd, skelen, testikel ikke i scrotum (henvisning ved 3 måneder efter termin, DPS 2025),
+    hovedomfang, trivsel, overvægt, motorik, sprog/hørelse, socialt samspil (autisme), fødselsdepression
+    (link til Depression), omsorgssvigt (skærpet underretningspligt), rygning (gul).
+  - **Vaccinationer** (SSI): kalender med datoer (3, 5, 12 mdr. DiTeKiPol/Hib + pneumokok; 15 mdr. og
+    4 år MFR; 5 år DiTeKiPol; 12 år HPV), Vaxneuvance fra 1. november 2025, influenza 2–6 år i
+    sæsonen, hepatitis B til børn af HBsAg-positive mødre, manglende og fravalgte vaccinationer.
+- **`huskeskema.html`**: de syv undersøgelser, vaccinationsprogrammet og alarmtegn med handling.
+
+**Forbehold:** sst.dk og sundhed.dk kunne ikke tilgås direkte; indholdet er kontrolleret via sekundære
+kilder (søgeresultater fra Sundhedsstyrelsen, SSI, Lægehåndbogen og DPS).
+
 ## Installér som app
 
 **Downloadside til kolleger:** `https://normanvisby-arch.github.io/Hormoner/apps.html`
@@ -1015,6 +1044,16 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**27. oktober 2026 — Ny app: Børneundersøgelser (`boern/`):**
+- De syv forebyggende børneundersøgelser: valg efter alder (korrigeret ved for tidlig fødsel),
+  tjekliste til afkrydsning, milepæle, alarmfund med handling, vaccinationskalender med datoer og
+  journalnotat; huskeskema, startside, manifest, service worker og ikoner; kort og QR på
+  downloadsiden, flise i den samlede app, genvej i zip-filen, "Andre apps" på alle startsider; artifacts.
+- Kilder: Sundhedsstyrelsen (Vejledning og Anbefalinger om forebyggende sundhedsydelser til børn og
+  unge, 2025), SSI (børnevaccinationsprogrammet; pneumokokskift 1. november 2025), Lægehåndbogen og
+  Patienthåndbogen (børneundersøgelse, milepæle), DPS (Testis retention 2025) — kontrolleret via
+  sekundære kilder. Test: `tests/boern.test.js`; apps, alle, pwa-apps og smoke opdateret.
 
 **27. oktober 2026 — Ny app: Psyke og hukommelse (`psyke/`):**
 - Depression: MDI med ICD-10-algoritmen og sumscore, selvmordsrisiko, henvisning til psykiatrien,

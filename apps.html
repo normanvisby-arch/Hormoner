@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Hent klinikværktøjerne</title>
-<meta name="description" content="Ti gratis klinikværktøjer til almen praksis — installér dem som apps på computer, iPhone og Android. Virker uden internet.">
+<meta name="description" content="Elleve gratis klinikværktøjer til almen praksis — installér dem som apps på computer, iPhone og Android. Virker uden internet.">
 <meta name="theme-color" content="#0b6e5f">
 <link rel="manifest" href="alle/manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
@@ -139,7 +139,7 @@
   <header>
     <p class="eyebrow">Almen praksis · danske forhold</p>
     <h1>Hent klinikværktøjerne</h1>
-    <p class="lede">Ti små, gratis apps til konsultationen. De installeres fra browseren — uden App Store — og virker uden internet, når de har været åbnet én gang. Intet sendes nogen steder hen.</p>
+    <p class="lede">Elleve små, gratis apps til konsultationen. De installeres fra browseren — uden App Store — og virker uden internet, når de har været åbnet én gang. Intet sendes nogen steder hen.</p>
   </header>
 
   <section class="card alle note-print-skjul" aria-labelledby="alleTitel">
@@ -283,6 +283,17 @@
       <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/psyke.svg" alt="QR-kode til Psyke og hukommelse" width="132" height="132" loading="lazy"></details>
       <img class="print-qr" src="qr/psyke.svg" alt="" width="90" height="90">
     </article>
+    <article class="card app" style="--farve:#c2511d" data-app="boern">
+      <div class="app-head"><img src="boern/icons/icon.svg" alt="" width="44" height="44"><h2>Børneundersøgelser</h2></div>
+      <p class="indhold">De syv forebyggende børneundersøgelser fra 5 uger til 5 år: tjekliste, milepæle, alarmfund, vaccinationskalender og huskeskema.</p>
+      <div class="actions">
+        <a class="btn btn-open" href="boern/index.html#installer" target="_blank" rel="noopener">Åbn og installér</a>
+        <button class="btn btn-copy" type="button" data-kopier="https://normanvisby-arch.github.io/Hormoner/boern/">Kopiér link</button>
+        <span class="status" aria-live="polite"></span>
+      </div>
+      <details><summary>QR-kode til mobilen</summary><img class="qr-lille" src="qr/boern.svg" alt="QR-kode til Børneundersøgelser" width="132" height="132" loading="lazy"></details>
+      <img class="print-qr" src="qr/boern.svg" alt="" width="90" height="90">
+    </article>
     <article class="card app" style="--farve:#7c4a03" data-app="restordre">
       <div class="app-head"><img src="restordre/icons/icon.svg" alt="" width="44" height="44"><h2>Restordre</h2></div>
       <p class="indhold">Når et præparat ikke kan skaffes: restordre.dk, samme indholdsstof og alternativer med vejledende ækvivalente doser.</p>
@@ -323,7 +334,7 @@
     if (navigator.share) {
       del.hidden = false;
       del.addEventListener("click", function () {
-        navigator.share({ title: "Klinikværktøjer til almen praksis", text: "Ti gratis apps til konsultationen — installeres fra browseren og virker uden internet.", url: url }).catch(function () {});
+        navigator.share({ title: "Klinikværktøjer til almen praksis", text: "Elleve gratis apps til konsultationen — installeres fra browseren og virker uden internet.", url: url }).catch(function () {});
       });
     }
     document.getElementById("printBtn").addEventListener("click", function () { window.print(); });

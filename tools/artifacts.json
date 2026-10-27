@@ -43,6 +43,9 @@
   "psyke/depression.html": { "url": "https://claude.ai/artifact/8odFMwiTSYjYn4MkSid4Ax", "mode": "tool", "title": "Depression — MDI og behandling" },
   "psyke/demens.html": { "url": "https://claude.ai/artifact/SA4XNm53HijWJGpvUbdgJ6", "mode": "tool", "title": "Demensudredning" },
   "psyke/huskeskema.html": { "url": "https://claude.ai/artifact/ND5im2qzijfCgqpgSFEjKw", "mode": "standalone", "title": "Psyke-huskeskema" },
+  "boern/index.html": { "url": "https://claude.ai/artifact/3yaJjkPZZu1gDLA4P7KJ8S", "mode": "standalone", "title": "Børneundersøgelser i almen praksis" },
+  "boern/boern.html": { "url": "https://claude.ai/artifact/G4ebJY6ZnCpn9aobQii8uF", "mode": "tool", "title": "Børneundersøgelser" },
+  "boern/huskeskema.html": { "url": "https://claude.ai/artifact/6R5LStMHdVaajj29dxGY4r", "mode": "standalone", "title": "Børne-huskeskema" },
   "notat/index.html": { "url": "https://claude.ai/artifact/9iTFaYJb7WSQCHP8ttAQQF", "mode": "tool", "title": "Notat-indgang" },
   "restordre/index.html": { "url": "https://claude.ai/artifact/CVGjrxq9iQ78RHRSp7kQwn", "mode": "tool", "title": "Restordre — alternativer" }
 }
