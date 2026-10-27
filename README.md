@@ -169,6 +169,31 @@ Selvstændig app med eget manifest, ikon og service worker (installeres fra
   - **Resultat:** sammenfatning (handling nu / afvigende / bemærk / normal), tabel, QTc-tabel,
     forslag til handling, hvad værktøjet ikke kan (selve kurven), og et journalnotat med en linje
     til lægens egen gennemsyn af kurven.
+- **`hypertension.html`** (`hypertension.js`): forhøjet blodtryk.
+  - **Klassifikation** ud fra døgn- (dagtid) > hjemme- > klinikblodtryk: hypertension ≥ 135/85
+    uden for klinikken; let forhøjet 130–134/80–84; hvidkittel (klinik ≥ 140/90, hjemme < 135/85,
+    ingen medicin); maskeret (klinik < 140/90, hjemme ≥ 135/85). Kun klinik ≥ 140/90 → bekræft.
+    Klinik ≥ 180/110 med symptomer → hypertensivt nødstilfælde (akut indlæggelse); uden symptomer
+    → behandling samme dag og kontrol inden for 1 uge.
+  - **Beslutning (DCS, samme grænser som `cvrisiko.html`):** medicin nu ved ≥ 155/95 uden for
+    klinikken, høj SCORE2, kendt hjerte-kar-sygdom, diabetes, kronisk nyresygdom eller albuminuri
+    (UACR ≥ 30); ellers kort forsøg med livsstil (fx 3 måneder). Let forhøjet: medicin kun ved høj
+    risiko. Mål 120–135/70–85 (18–80 år), systolisk 130–144 fra 80 år.
+  - **Behandlingstrin (Medicinrådets basisliste, ESC 2024):** ét præparat ved 80 år+/skrøbelig,
+    let forhøjet eller hjemme < 145/90; ellers to i lav dosis (ACE-hæmmer/ARB + calciumantagonist
+    eller thiazid). Ét → to → tre (ACE/ARB + CCB + thiazid) → resistent: tjek adherens, måling,
+    stoffer og sekundær årsag, spironolacton 12,5–25 mg ved kalium ≤ 4,5 og eGFR ≥ 45, ellers
+    betablokker/doxazosin/amilorid efter aftale og henvisning. Særhensyn: kan blive gravid (ingen
+    ACE/ARB, calciumantagonist; labetalol/nifedipin ved graviditetsønske), diabetes/CKD/hjertesvigt
+    (ACE/ARB først), urinsyregigt (ikke thiazid), afrikansk oprindelse (CCB/thiazid), astma.
+  - **Prøver ved debut** (tabel med hvorfor og hold øje med): hjemme-/døgnblodtryk, Na/K, kreatinin/
+    eGFR, UACR og urinstix, HbA1c, lipider, Hb og TSH (DCS), EKG, ekko ved hypertrofi; stående BT
+    fra 70 år. **Blodprøvefund:** K < 3,5 uden diuretikum → primær aldosteronisme; K > 5,0/5,5 på
+    RAS-hæmmer/spironolacton; Na < 130 på thiazid; eGFR < 60/< 30; UACR ≥ 30/≥ 300; HbA1c ≥ 48.
+  - **Sekundær hypertension:** debut < 40 år, hypokaliæmi, anfald (metanefriner), søvnapnø,
+    Cushing, pludselig forværring/kreatininstigning > 30 % (nyrearteriestenose), blodtryksøgende
+    stoffer, behandlingsresistens. **Kontrol:** K og kreatinin 1–2 uger efter opstart/øgning,
+    titrering hver 2.–4. uge, årskontrol.
 - **`huskeskema.html`**: tolv principper, effekt i tal (CTT, BPLTTC, Hart 2007, Ruff 2014) og
   henvisningskriterier.
 
@@ -951,6 +976,17 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**27. oktober 2026 — Hjerte-kar: Forhøjet blodtryk (`hjerte/hypertension.html`):**
+- Nyt værktøj: diagnose med hjemme-/døgnblodtryk (hvidkittel og maskeret hypertension),
+  hypertensivt nødstilfælde, beslutning om medicin, næste behandlingstrin ud fra den aktuelle
+  medicin, prøver ved debut med "hold øje med", blodprøvefund, sekundær hypertension, kontrol,
+  livsstil og journalnotat. Mål og grænser som i CV-risiko (DCS).
+- Kilder: DCS' NBV (arteriel hypertension, forebyggelse), Medicinrådets basisliste, ESC 2024,
+  Lægehåndbogen, DES' NBV om sekundær hypertension og NICE NG136 — kontrolleret via sekundære
+  kilder, da nbv.cardio.dk, medicinraadet.dk og endocrinology.dk ikke kunne hentes direkte.
+- Link "Blodtryk" i hjerte-appens navigation og kort på startsiden; `style.css` (`.bt-par`), alle
+  `sw.js` hævet. Test: `tests/hypertension.test.js`.
 
 **27. oktober 2026 — Svangreomsorg: prøver pr. konsultation og rhesus:**
 - Ny boks "Prøver og svar" i Svangreundersøgelser: hver konsultations prøver med tidspunkt og hvad

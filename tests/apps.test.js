@@ -71,7 +71,7 @@ const PAGES = 'https://normanvisby-arch.github.io/Hormoner/';
   check('A10 rod-service-worker: QR til Restordre, ikke til Notat-indgang', !/qr\/notat\.svg/.test(rodSw) && /qr\/restordre\.svg/.test(rodSw));
 
   // Alle værktøjer med præparatvalg linker til restordre.dk og til Restordre (ikke i udskrift).
-  const VAERKTOEJ = ['index.html', 'praevention.html', 'osteoporose.html', 'hjerte/cvrisiko.html', 'hjerte/af.html', 'lunge/kol.html', 'lunge/astma.html', 'thyreoidea/hypothyreose.html', 'diabetes/behandling.html', 'infektion/luftveje.html', 'infektion/urinveje.html', 'infektion/hud.html', 'nyre/ckd.html', 'nyre/dosis.html', 'svangre/svangre.html'];
+  const VAERKTOEJ = ['index.html', 'praevention.html', 'osteoporose.html', 'hjerte/cvrisiko.html', 'hjerte/hypertension.html', 'hjerte/af.html', 'lunge/kol.html', 'lunge/astma.html', 'thyreoidea/hypothyreose.html', 'diabetes/behandling.html', 'infektion/luftveje.html', 'infektion/urinveje.html', 'infektion/hud.html', 'nyre/ckd.html', 'nyre/dosis.html', 'svangre/svangre.html'];
   for (const s of VAERKTOEJ) {
     await p.goto(ROOT + s); await p.waitForTimeout(80);
     const h = await p.evaluate(() => { const e = document.querySelector('#resultPanel .restordre-hint'); if (!e) return null; const a = [...e.querySelectorAll('a')]; return { dk: a[0].href, ny: a[0].target, app: a[1].href }; });

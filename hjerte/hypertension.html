@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forhøjet blodtryk — diagnose, udredning og behandling</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#a3262f">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hjerte-kar">
+</head>
+<body class="theme-hjerte">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-icon" aria-hidden="true">🩺</span>
+      <div>
+        <h1>Forhøjet blodtryk — diagnose, udredning og behandling</h1>
+        <p class="subtitle">Bekræftelse med hjemme- eller døgnblodtryk, prøver ved debut og hvad man holder øje med, sekundær hypertension, næste behandlingstrin, mål og kontrol</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="printBtn" class="btn btn-ghost" type="button">Udskriv</button>
+      <button id="resetBtn" class="btn btn-ghost" type="button">Nulstil</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tool-nav">
+  <a href="index.html">Oversigt</a>
+  <a href="cvrisiko.html">CV-risiko</a>
+  <span aria-current="page">Blodtryk</span>
+  <a href="af.html">Atrieflimren</a>
+  <a href="ekg.html">EKG</a>
+  <a href="huskeskema.html">Huskeskema</a>
+</nav>
+
+<div class="disclaimer" role="note">
+  <strong>Vigtigt:</strong> Følger Dansk Cardiologisk Selskabs NBV (arteriel hypertension og forebyggelse), Medicinrådets basisliste og ESC 2024. Gælder voksne uden graviditet (gravide: se Svangreomsorg). Tjek altid dosis, kontraindikationer og interaktioner på pro.medicin.dk. Intet gemmes eller sendes.
+</div>
+
+<a href="#resultPanel" class="mobile-jump" id="mobileJump">Se vurdering ↓</a>
+
+<main class="layout">
+  <form class="panel form-panel" aria-label="Patientdata" onsubmit="return false;">
+    <h2>1. Patient og blodtryk</h2>
+
+    <div class="field">
+      <label for="alder">Alder (år)</label>
+      <input type="number" id="alder" min="18" max="110" placeholder="fx 58">
+    </div>
+    <fieldset class="field">
+      <legend>Køn</legend>
+      <label class="radio"><input type="radio" name="koen" value="k" checked> Kvinde</label>
+      <label class="radio"><input type="radio" name="koen" value="m"> Mand</label>
+    </fieldset>
+
+    <div class="field bt-par">
+      <label for="kliS">Klinikblodtryk, systolisk / diastolisk (mmHg)</label>
+      <input type="number" id="kliS" min="60" max="300" placeholder="fx 152">
+      <input type="number" id="kliD" min="30" max="180" placeholder="fx 94" aria-label="Diastolisk klinikblodtryk">
+      <p class="field-hint">Helst uobserveret automatisk måling (gennemsnit af 3 målinger efter 5 minutters hvile).</p>
+    </div>
+    <div class="field bt-par">
+      <label for="hjS">Hjemmeblodtryk, gennemsnit (mmHg)</label>
+      <input type="number" id="hjS" min="60" max="300" placeholder="fx 146">
+      <input type="number" id="hjD" min="30" max="180" placeholder="fx 90" aria-label="Diastolisk hjemmeblodtryk">
+      <p class="field-hint">2 målinger morgen og aften i 3–7 dage; første dag udelades.</p>
+    </div>
+    <div class="field bt-par">
+      <label for="dgS">Døgnblodtryk, dagtidsgennemsnit (mmHg)</label>
+      <input type="number" id="dgS" min="60" max="300" placeholder="fx 144">
+      <input type="number" id="dgD" min="30" max="180" placeholder="fx 88" aria-label="Diastolisk døgnblodtryk dagtid">
+    </div>
+
+    <h2>2. Risiko og samtidig sygdom</h2>
+    <fieldset class="field">
+      <legend>Hjerte-kar-risiko (SCORE2)</legend>
+      <label class="radio"><input type="radio" name="score" value="ukendt" checked> Ikke beregnet</label>
+      <label class="radio"><input type="radio" name="score" value="lav"> Lav–moderat</label>
+      <label class="radio"><input type="radio" name="score" value="hoej"> Høj eller meget høj</label>
+      <p class="field-hint">Beregn i <a href="cvrisiko.html">CV-risiko</a>.</p>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Sygdomme</legend>
+      <label class="checkbox"><input type="checkbox" name="syg" value="cvd"> Kendt hjerte-kar-sygdom (iskæmisk hjertesygdom, apopleksi/TCI, perifer arteriesygdom)</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="dm"> Diabetes</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="ckd"> Kronisk nyresygdom (eGFR &lt; 60 eller albuminuri)</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="hf"> Hjertesvigt med nedsat uddrivningsfraktion</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="af"> Atrieflimren</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="angina"> Angina pectoris eller tidligere AMI</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="gigt"> Urinsyregigt</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="astma"> Astma</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="graviditet"> Kan blive gravid / planlægger graviditet</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="skroebelig"> Skrøbelig eller ortostatisk hypotension</label>
+      <label class="checkbox"><input type="checkbox" name="syg" value="afrikansk"> Afrikansk eller afrocaribisk oprindelse</label>
+    </fieldset>
+
+    <h2>3. Symptomer og mistanke om sekundær hypertension</h2>
+    <fieldset class="field">
+      <legend>Akutte symptomer</legend>
+      <label class="checkbox"><input type="checkbox" name="akut" value="bryst"> Brystsmerter eller åndenød</label>
+      <label class="checkbox"><input type="checkbox" name="akut" value="neuro"> Neurologiske udfald, forvirring eller kramper</label>
+      <label class="checkbox"><input type="checkbox" name="akut" value="syn"> Synsforstyrrelser</label>
+      <label class="checkbox"><input type="checkbox" name="akut" value="hovedpine"> Svær, nytilkommen hovedpine</label>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Tegn på sekundær hypertension</legend>
+      <label class="checkbox"><input type="checkbox" name="sek" value="ung"> Debut før 40 år</label>
+      <label class="checkbox"><input type="checkbox" name="sek" value="hypok"> Hypokaliæmi (spontan eller udtalt på diuretikum)</label>
+      <label class="checkbox"><input type="checkbox" name="sek" value="anfald"> Anfald med hovedpine, sveden og hjertebanken</label>
+      <label class="checkbox"><input type="checkbox" name="sek" value="apnoe"> Snorken med vejrtrækningspauser eller udtalt dagtræthed</label>
+      <label class="checkbox"><input type="checkbox" name="sek" value="cushing"> Cushing-træk (måneansigt, striae, centralt fedt)</label>
+      <label class="checkbox"><input type="checkbox" name="sek" value="pludselig"> Pludselig forværring hos hidtil velreguleret</label>
+      <label class="checkbox"><input type="checkbox" name="sek" value="kreastig"> Kreatinin steget &gt; 30 % efter ACE-hæmmer/angiotensin II-receptorblokker</label>
+      <label class="checkbox"><input type="checkbox" name="sek" value="medicin"> Blodtryksøgende stoffer (NSAID, p-piller med østrogen, lakrids, næsespray med decongestant, glukokortikoid, venlafaxin, ciclosporin, alkohol)</label>
+    </fieldset>
+
+    <h2>4. Nuværende behandling</h2>
+    <fieldset class="field">
+      <legend>Blodtryksmedicin</legend>
+      <label class="checkbox"><input type="checkbox" name="med" value="raas"> ACE-hæmmer eller angiotensin II-receptorblokker</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="cca"> Calciumantagonist (amlodipin, lercanidipin)</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="thiazid"> Thiazid (bendroflumethiazid, hydrochlorthiazid) eller indapamid</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="spiro"> Spironolacton</label>
+      <label class="checkbox"><input type="checkbox" name="med" value="bb"> Betablokker</label>
+      <label class="checkbox"><input type="checkbox" name="medmax" value="max"> Præparaterne er i maksimal tolereret dosis</label>
+    </fieldset>
+
+    <h2>5. Blodprøver (valgfrit)</h2>
+    <div class="field">
+      <label for="k">P-kalium (mmol/l)</label>
+      <input type="number" id="k" min="1.5" max="8" step="0.1" placeholder="fx 4,1">
+    </div>
+    <div class="field">
+      <label for="na">P-natrium (mmol/l)</label>
+      <input type="number" id="na" min="100" max="170" placeholder="fx 140">
+    </div>
+    <div class="field">
+      <label for="egfr">eGFR (ml/min/1,73 m²)</label>
+      <input type="number" id="egfr" min="2" max="150" placeholder="fx 78">
+    </div>
+    <div class="field">
+      <label for="uacr">Urin-albumin/kreatinin-ratio (mg/g)</label>
+      <input type="number" id="uacr" min="0" max="10000" placeholder="fx 12">
+    </div>
+    <div class="field">
+      <label for="hba1c">HbA1c (mmol/mol)</label>
+      <input type="number" id="hba1c" min="15" max="200" placeholder="fx 38">
+    </div>
+  </form>
+
+  <section class="panel result-panel" aria-label="Vurdering" id="resultPanel">
+    <h2>6. Vurdering og plan</h2>
+    <p class="print-only-meta" id="printMeta"></p>
+    <div id="output"></div>
+    <div class="output-actions">
+      <button id="copyBtn" class="btn btn-primary" type="button">Kopiér journalnotat</button>
+      <button id="copyFullBtn" class="btn btn-outline" type="button">Kopiér fuld vurdering</button>
+      <span id="copyStatus" class="copy-status" aria-live="polite"></span>
+    </div>
+    <p class="field-hint restordre-hint">Kan et præparat ikke skaffes? Tjek <a href="https://restordre.dk/" target="_blank" rel="noopener">restordre.dk</a> (dagligt opdateret status fra grossister og apoteker), og find alternativer med vejledende ækvivalente doser i <a href="../restordre/index.html">Restordre</a>.</p>
+  </section>
+</main>
+
+<div id="linkKort" hidden><a data-sti="cvrisiko.html" href="cvrisiko.html">CV-risiko</a><a data-sti="../nyre/ckd.html" href="../nyre/ckd.html">Kronisk nyresygdom</a><a data-sti="../diabetes/behandling.html" href="../diabetes/behandling.html">Type 2-diabetes</a><a data-sti="../svangre/svangre.html" href="../svangre/svangre.html">Svangreundersøgelser</a></div>
+
+<footer class="sources">
+  <h2>Kilder &amp; grundlag</h2>
+  <ul>
+    <li>Dansk Cardiologisk Selskab — NBV Arteriel hypertension og Forebyggelse: hypertension ved hjemme-/dagtidsblodtryk ≥ 135/85 (klinik ≥ 140/90); medicin uanset beregnet risiko, ved lav risiko efter et kort forsøg med livsstil; mål 120–135/70–85 mmHg (18–80 år), systolisk 130–144 mmHg fra 80 år, så tæt på 120 (under 80 år) som muligt uden væsentlige bivirkninger; behandlingsresistent ved ≥ 135/85 trods ≥ 3 præparater inkl. diuretikum i maksimal dosis; hæmoglobin og TSH ved første udredning</li>
+    <li>Medicinrådet — basislisten for hypertension: ACE-hæmmer (enalapril, ramipril, lisinopril), angiotensin II-receptorblokker (losartan, candesartan, irbesartan), calciumantagonist (amlodipin, lercanidipin) og bendroflumethiazid med kaliumklorid; ACE-hæmmer/angiotensin II-receptorblokker førstevalg ved diabetes, hjertesvigt og kronisk nyresygdom; ved ankelødemer af amlodipin lavere dosis eller lercanidipin</li>
+    <li>ESC 2024 Guidelines for the management of elevated blood pressure and hypertension: start med to præparater i lav dosis (helst i én tablet) hos de fleste; monoterapi ved høj alder, skrøbelighed, ortostatisk hypotension og let forhøjet blodtryk; tredje præparat før maksimal dosis; spironolacton som 4. præparat ved resistent hypertension</li>
+    <li>Lægehåndbogen (sundhed.dk) — Hypertension og Højt blodtryk: udredning (elektrolytter, kreatinin, lipider, HbA1c, urin-albumin/kreatinin-ratio, EKG), indlæggelse ved hypertensivt nødstilfælde, ambulant henvisning ved mistanke om sekundær eller behandlingsresistent hypertension. Dansk Endokrinologisk Selskab — NBV Sekundær hypertension</li>
+    <li>NICE NG136 — calciumantagonist ved afrikansk/afrocaribisk oprindelse; kontrol af kalium og kreatinin efter opstart af ACE-hæmmer/angiotensin II-receptorblokker og diuretikum</li>
+  </ul>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra DCS, ESC eller Medicinrådet og erstatter ikke den kliniske vurdering. nbv.cardio.dk, medicinraadet.dk og endocrinology.dk kunne ikke tilgås direkte ved udviklingen; grænser og præparatvalg er kontrolleret via sekundære kilder (søgeresultater, Lægehåndbogen). Ingen patientdata gemmes eller sendes.</p>
+</footer>
+
+<script src="hypertension.js"></script>
+<script src="../pwa.js"></script>
+</body>
+</html>

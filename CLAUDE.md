@@ -20,7 +20,8 @@ eller "usikker" end et falsk præcist tal.
   EKG-måleværdier og maskinens tekst; udfyldes fra indsat EKG-udskrift via `udfyld.js`, ordlisten
   `UDSAGN` i `ekg.js`; sammenligning med tidligere EKG i `sammenlign()`; test `tests/ekg.test.js`), `huskeskema.html`; egen
   `manifest.webmanifest`, `sw.js` og `icons/`, men fælles `../style.css` (rød farve via
-  `body.theme-hjerte`) og `../pwa.js`. SCORE2-koefficienterne er kontrolleret mod R-pakken
+  `body.theme-hjerte`) og `../pwa.js`. `hypertension.html` (+ `.js`): forhøjet blodtryk — grænser og
+  mål skal stemme med `cvrisiko.js`; test `tests/hypertension.test.js`. SCORE2-koefficienterne er kontrolleret mod R-pakken
   RiskScorescvd og de publicerede regneeksempler (se `tests/cvrisiko.test.js`) — ret dem kun med
   en primærkilde.
 - `lunge/` (`kol.html`, `astma.html`, `huskeskema.html`), `thyreoidea/` (`hypothyreose.html`,
