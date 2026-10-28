@@ -3,7 +3,7 @@
  * internet. Netværket prøves først, så opdateringer slår igennem ved næste
  * åbning med forbindelse. Hæv VERSION, når filer tilføjes eller ændres.
  */
-const VERSION = "v20";
+const VERSION = "v21";
 const CACHE = `hjertekar-${VERSION}`;
 const FILES = [
   "./",

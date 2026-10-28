@@ -396,6 +396,7 @@
     egne = {};
   }
   const telLink = (t) => `<a href="tel:+45${t.replace(/\s/g, "")}">${esc(t)}</a>`;
+  const kontaktHtml = (c) => `${esc(c.sted)}: ${c.tlf ? telLink(c.tlf) : ""}${c.tid ? ` (${esc(c.tid)})` : ""}${c.lok ? `${c.tlf ? " · " : ""}lok.nr. <span class="lok">${esc(c.lok)}</span>` : ""}${c.note ? ` — ${esc(c.note)}` : ""}`;
   function regionInfo(id, region) {
     const r = REGIONER[region];
     if (!r) return null;
@@ -408,8 +409,8 @@
     const x = regionInfo(p.id, region);
     let h = "";
     if (x) {
-      const k = x.kontakter.map((c) => `${esc(c.sted)}: ${telLink(c.tlf)}${c.tid ? ` (${esc(c.tid)})` : ""}`);
-      h += `<p><strong>${esc(REGIONER[region].navn)}:</strong> ${esc(x.vej)}</p>${k.length ? ul(k) : ""}<p class="kilde">Kilde: ${esc(x.kilde)} — ${esc(REGIONER[region].kontrolleret)}.</p>`;
+      const k = x.kontakter.map(kontaktHtml);
+      h += `<p><strong>${esc(REGIONER[region].navn)}:</strong> ${esc(x.vej)}</p>${k.length ? ul(k) : ""}<p class="kilde">Kilde: ${esc(x.kilde)} — ${esc(REGIONER[region].kontrolleret)}. Numre og lokationsnumre er gengivet som på siden.</p>`;
     } else if (region) {
       h += `<p><strong>${esc(REGIONER[region].navn)}:</strong> elektronisk henvisning til afdelingens vanlige lokationsnummer — se hospitalernes hovednumre under "Sådan henviser du".</p>`;
     }
@@ -498,7 +499,7 @@
     ];
     const r = REGIONER[sidstRegion];
     let ekstra = "";
-    if (r) ekstra = `<p><strong>${esc(r.navn)}:</strong></p>${ul(r.generelt.map(esc))}<p><strong>Hovednumre:</strong></p>${ul(r.hospitaler.map((h) => `${esc(h.sted)}: ${telLink(h.tlf)}`))}<p class="kilde">Numrene er fundet via søgeresultater (${esc(r.kontrolleret)}). Ret eller tilføj egne numre under hver pakke.</p>`;
+    if (r) ekstra = `<p><strong>${esc(r.navn)}:</strong></p>${ul(r.generelt.map(esc))}<p><strong>Hovednumre:</strong></p>${ul(r.hospitaler.map((h) => `${esc(h.sted)}: ${telLink(h.tlf)}`))}<p class="kilde">Fra regionens forløbsbeskrivelser på sundhed.dk og hospitalernes fagpersonsider (${esc(r.kontrolleret)}). Ret eller tilføj egne numre under hver pakke.</p>`;
     return foldbar("box-blue", "Sådan henviser du", ul(l) + ekstra, !liste.length);
   }
 

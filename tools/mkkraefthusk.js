@@ -28,7 +28,7 @@ const tel = (t) => `<a href="tel:+45${t.replace(/\s/g, '')}">${esc(t)}</a>`;
 const rk = (x) => (x.gyn ? r.gyn : x.blod ? r.blod : x);
 const rows = KRAEFT_PAKKER.filter((p) => r.pakker[p.id]).map((p) => {
   const x = rk(r.pakker[p.id]);
-  const k = x.kontakter.map((c) => `${esc(c.sted)}: ${tel(c.tlf)}${c.tid ? ` (${esc(c.tid)})` : ''}`).join('<br>');
+  const k = x.kontakter.map((c) => `${esc(c.sted)}: ${c.tlf ? tel(c.tlf) : ''}${c.tid ? ` (${esc(c.tid)})` : ''}${c.lok ? `${c.tlf ? ' · ' : ''}lok.nr. ${esc(c.lok)}` : ''}${c.note ? ` — ${esc(c.note)}` : ''}`).join('<br>');
   return `<tr><td>${esc(p.navn)}</td><td>${esc(x.vej)}</td><td>${k || '—'}</td></tr>`;
 }).join('\n          ');
 html += `  <section class="panel section" aria-labelledby="rm" data-region="midt">
@@ -36,13 +36,13 @@ html += `  <section class="panel section" aria-labelledby="rm" data-region="midt
     <p class="table-note">${r.generelt.map(esc).join(' ')} Hovednumre: ${r.hospitaler.map((h) => `${esc(h.sted)} ${tel(h.tlf)}`).join(' · ')}.</p>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Pakke</th><th>Henvisningsvej</th><th>Telefon</th></tr></thead>
+        <thead><tr><th>Pakke</th><th>Henvisningsvej</th><th>Telefon og lokationsnummer</th></tr></thead>
         <tbody>
           ${rows}
         </tbody>
       </table>
     </div>
-    <p class="table-note">Kilder: regionens forløbsbeskrivelser på sundhed.dk og hospitalernes fagpersonsider. Kontrolleret ${esc(r.kontrolleret)}. Ret egne numre i værktøjet.</p>
+    <p class="table-note">Kilder: regionens forløbsbeskrivelser på sundhed.dk (information til praksis) og hospitalernes fagpersonsider — ${esc(r.kontrolleret)}. Flere af regionens sider er fra 2014–2019; numrene er gengivet som på siderne. Ret egne numre i værktøjet.</p>
   </section>
 `;
 const start = '<!-- PAKKER START -->';
