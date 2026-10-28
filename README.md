@@ -759,8 +759,16 @@ Selvstændig app (installeres fra `https://normanvisby-arch.github.io/Hormoner/k
     blaster/cytopeni; ellers begrundet mistanke) — voksenpakkerne udelades.
   - "Sådan henviser du", katalog over alle pakker (A–Å), journalnotat med valg pr. pakke (standard:
     udredning og derover) og information om begrundet mistanke eller sikkerhedsnet.
-- **`huskeskema.html`**: bygges fra `pakker.js` med `node tools/mkkraefthusk.js` (kør efter hver
-  ændring i vidensbasen; testen tjekker, at de stemmer).
+  - **Region** (standard Region Midtjylland, valget huskes i browseren): `region-midt.js` med
+    henvisningsvej og telefonnumre pr. pakke — diagnostiske klinikker (AUH, Gødstrup, Silkeborg,
+    Randers, Horsens), lunge via lokal billeddiagnostik ("Lungekræft OBS PRO"; Horsens-, Hedensted-,
+    Odder- og Skanderborg-området til AUH), hjerne til Neurologisk Klinik AUH, hoved-hals via
+    praktiserende øre-næse-halslæge og AUH's forløbskoordinator, forløbskoordinatorer for mave-tarm og
+    bryst (Hospitalsenhed Midt, Randers), gynækologisk kræft og hæmatologi (AUH) samt hospitalernes
+    hovednumre. Telefonnumre er `tel:`-links. **Egne numre/noter** pr. pakke gemmes kun i browseren
+    (`localStorage`), så lægen kan rette og supplere.
+- **`huskeskema.html`**: bygges fra `pakker.js` og `region-midt.js` med `node tools/mkkraefthusk.js`
+  (kør efter hver ændring i vidensbasen; testen tjekker, at de stemmer).
 
 **Forbehold:** sst.dk og sundhed.dk kunne ikke tilgås direkte; kriterierne er kontrolleret via
 sekundære kilder (søgeresultater fra Sundhedsstyrelsen, DMCG'er og regionernes forløbsbeskrivelser).
@@ -1085,6 +1093,16 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**28. oktober 2026 — Kræftpakker: lokale numre i Region Midtjylland:**
+- Regionsvalg (standard Region Midtjylland) med henvisningsvej og telefonnumre pr. pakke
+  (`kraeft/region-midt.js`), hospitalernes hovednumre under "Sådan henviser du", egne numre/noter pr.
+  pakke gemt i browseren og regionstabel i huskeskemaet.
+- Kilder: Region Midtjyllands forløbsbeskrivelser på sundhed.dk (Diagnostisk pakkeforløb, Lungekræft,
+  Hjernekræft, Brystkræft, Spiserørs- og mavekræft, Prostatakræft, Nyre-blærekræft), AUH's,
+  Hospitalsenhed Midts og Regionshospitalet Randers' fagperson-/afdelingssider — fundet via
+  søgeresultater, da siderne ikke kunne åbnes direkte. Numrene skal kontrolleres. Test:
+  `tests/kraeft.test.js` (L0–L10, H2).
 
 **28. oktober 2026 — Ny app: Kræftpakker (`kraeft/`):**
 - Find det rigtige pakkeforløb: fritekstsøgning og symptomer/fund → 26 pakkeforløb efter hast med

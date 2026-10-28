@@ -54,6 +54,14 @@
 
     <h2>2. Patienten</h2>
     <div class="field">
+      <label for="region">Region (lokale henvisningsveje og numre)</label>
+      <select id="region">
+        <option value="midt">Region Midtjylland</option>
+        <option value="">Ingen — kun nationale kriterier</option>
+      </select>
+      <p class="field-hint">Valget huskes i denne browser. Egne numre kan tilføjes under hver pakke.</p>
+    </div>
+    <div class="field">
       <label for="alder">Alder (år)</label>
       <input type="number" id="alder" min="0" max="110" placeholder="fx 64">
       <span class="input-warning" id="alderWarning" aria-live="polite"></span>
@@ -112,12 +120,14 @@
     <li>Sundhedsstyrelsen — Pakkeforløb for kræft (indgangskriterier, filterfunktion og forløbstider) for bl.a. lungekræft (2018, opdateret 2025), tyk- og endetarmskræft (2022), kræft i spiserør, mavemund og mavesæk (2023), bugspytkirtel, galdegange og lever (2021), brystkræft (2018), prostatakræft (2022), kræft i urinvejene (2019, opdateret 2024), kræft i livmoderhals, livmoder og æggestokke samt ydre kvindelige kønsorganer (2019), hoved-halskræft (2020), hjernekræft (2019), lymfeknudekræft og CLL (2023), myelomatose (2022), akut leukæmi og MDS, kroniske myeloide sygdomme, sarkomer, modermærkekræft, kræft i øje og øjenhule, testikel-, penis-, anal- og lungehindekræft samt kræft hos børn</li>
     <li>Sundhedsstyrelsen — Diagnostisk pakkeforløb for patienter med uspecifikke symptomer på alvorlig sygdom, der kan være kræft, og for metastaser uden kendt primærtumor (2023)</li>
     <li>DLCG, DaProCa og øvrige DMCG'er; Lægehåndbogen (sundhed.dk) og regionernes forløbsbeskrivelser (fx Region Sjællands alarmsymptomer for spiserør og mavesæk; Region Syddanmark for hoved-hals) — regionale forskelle i henvisningsvej og blodprøvepakker</li>
+    <li>Region Midtjylland — forløbsbeskrivelser for kræftpakker og Diagnostisk pakkeforløb (sundhed.dk, information til praksis), Aarhus Universitetshospital, Regionshospitalerne Gødstrup, Randers og Horsens samt Hospitalsenhed Midt (fagpersonsider): henvisningsveje, diagnostiske klinikker og forløbskoordinatorers telefonnumre — fundet via søgeresultater i oktober 2026, da siderne ikke kunne åbnes direkte; kontrollér numrene</li>
     <li>RMI (risk of malignancy index) = ultralydscore × menopausestatus × CA-125, grænse 200 (DGCG)</li>
   </ul>
   <p class="fineprint">Uafhængigt hjælpeværktøj — erstatter ikke den kliniske vurdering eller Sundhedsstyrelsens pakkeforløbsbeskrivelser. sst.dk og sundhed.dk kunne ikke tilgås direkte ved udviklingen; kriterierne er kontrolleret via sekundære kilder (søgeresultater, regionernes og DMCG'ernes sider). Ingen patientdata gemmes eller sendes.</p>
 </footer>
 
 <script src="pakker.js"></script>
+<script src="region-midt.js"></script>
 <script src="kraeft.js"></script>
 <script src="../pwa.js"></script>
 </body>

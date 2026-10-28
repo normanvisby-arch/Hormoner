@@ -162,12 +162,42 @@ const SIDE = process.env.BASE || ROOT + 'kraeft/kraeft.html';
   const fuld = await p.evaluate(() => navigator.clipboard.readText());
   check('J3 fuld vurdering uden katalog', fuld.includes('KRÆFT I BLÆRE OG NYRE') && fuld.includes('Hvorfor:') && !fuld.includes('ALLE PAKKEFORLØB'));
 
+  // Region Midtjylland: lokale veje og numre, egne numre i browseren
+  check('L0 Region Midtjylland er valgt som standard', (await p.inputValue('#region')) === 'midt');
+  await saet({ alder: 70, sym: ['vaegttab'] });
+  check('L1 diagnostisk pakkeforløb: diagnostiske klinikker med telefonlink', (await matchTekst('dpf')).includes('Region Midtjylland:') && (await matchTekst('dpf')).includes('Klinik for Medicinsk Udredning') && (await p.locator('.pakke-match[data-pakke="dpf"] a[href="tel:+4551449083"]').count()) === 1);
+  await saet({ alder: 60, sym: ['neuro'] });
+  check('L2 hjerne → Neurologisk Klinik, AUH, og bagvagt via hovednummer', (await matchTekst('hjerne')).includes('Neurologisk Klinik, Aarhus Universitetshospital') && (await matchTekst('hjerne')).includes('78 45 00 00'));
+  await saet({ koen: 'k', sym: ['pmb'] });
+  check('L3 gynækologisk kræft → AUH-forløbskoordinator', (await matchTekst('livmoder')).includes('78 45 37 23'));
+  await saet({ sym: ['blaster'] });
+  check('L4 hæmatologi → forløbskoordinator og bagvagt', (await matchTekst('leukaemi')).includes('78 45 58 43'));
+  await saet({ sym: ['halsglands'] });
+  check('L5 hoved-hals → praktiserende ØNH-læge og AUH-forløbskoordinator', (await matchTekst('hovedhals')).includes('78 45 40 20') && (await matchTekst('hovedhals')).includes('praktiserende øre-næse-halslæge'));
+  out = await saet({ sym: ['lungefund'] });
+  check('L6 lunge → billeddiagnostisk afdeling, "Lungekræft OBS PRO", Horsens-området til AUH', (await matchTekst('lunge')).includes('Lungekræft OBS PRO') && (await matchTekst('lunge')).includes('Skanderborg'));
+  const henv = await p.evaluate(() => [...document.querySelectorAll('#output .box h3')].find((h) => h.textContent === 'Sådan henviser du').closest('.box').textContent);
+  check('L7 "Sådan henviser du" har hospitalernes hovednumre', henv.includes('Regionshospitalet Gødstrup: 78 43 00 00') && henv.includes('Hospitalsenhed Midt (Viborg, Silkeborg, Skive): 78 44 00 00'));
+  await p.fill('input[data-egen="lunge"] >> nth=0', 'Røntgen direkte 1234 5678'); await p.waitForTimeout(40);
+  await p.reload(); await p.waitForTimeout(150);
+  await saet({ sym: ['lungefund'] });
+  check('L8 egne numre gemmes i browseren og vises igen (også i kataloget)', (await p.inputValue('.pakke-match[data-pakke="lunge"] input[data-egen="lunge"]')) === 'Røntgen direkte 1234 5678' && (await p.locator('.katalog input[data-egen="lunge"]').inputValue()) === 'Røntgen direkte 1234 5678');
+  await p.click('#copyFullBtn'); await p.waitForTimeout(80);
+  check('L9 fuld vurdering har regionens henvisningsvej', (await p.evaluate(() => navigator.clipboard.readText())).includes('Lungekræft OBS PRO'));
+  await p.selectOption('#region', ''); await p.waitForTimeout(40);
+  await saet({ sym: ['lungefund'] });
+  const l10 = await matchTekst('lunge');
+  check('L10 uden region: ingen lokale numre, men egne numre og valget bevares ved Nulstil', !l10.includes('Region Midtjylland:') && (await p.inputValue('#region')) === '' && (await p.locator('.pakke-match[data-pakke="lunge"] input[data-egen="lunge"]').count()) === 1);
+  await p.selectOption('#region', 'midt');
+  await p.evaluate(() => localStorage.clear());
+
   // Huskeskema har de samme pakker og kriterier som værktøjet
   const husk = await (await p.request.get(ROOT + 'kraeft/huskeskema.html')).text();
   const data = await p.evaluate(() => window.KRAEFT_PAKKER.map((x) => ({ navn: x.navn, k: (x.begrundet[0] || x.mistanke[0]) })));
   const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
   const mangler = data.filter((x) => !husk.includes(esc(x.navn)) || !husk.includes(esc(x.k)));
   check('H1 huskeskema svarer til pakker.js', !!husk && !mangler.length, mangler.map((x) => x.navn).join(', '));
+  check('H2 huskeskema har Region Midtjyllands henvisningsveje og numre', husk.includes('Region Midtjylland — henvisningsveje og numre') && husk.includes('href="tel:+4551449083"') && husk.includes('78 45 37 23'));
 
   const m = await ctx.newPage(); await m.setViewportSize({ width: 360, height: 800 });
   await m.goto(SIDE); await m.check('input[name="sym"][value="makrohaem"]'); await m.check('input[name="sym"][value="neuro"]'); await m.waitForTimeout(150);
