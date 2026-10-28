@@ -760,13 +760,14 @@ Selvstændig app (installeres fra `https://normanvisby-arch.github.io/Hormoner/k
   - "Sådan henviser du", katalog over alle pakker (A–Å), journalnotat med valg pr. pakke (standard:
     udredning og derover) og information om begrundet mistanke eller sikkerhedsnet.
   - **Region** (standard Region Midtjylland, valget huskes i browseren): `region-midt.js` med
-    henvisningsvej og telefonnumre pr. pakke — diagnostiske klinikker (AUH, Gødstrup, Silkeborg,
-    Randers, Horsens), lunge via lokal billeddiagnostik ("Lungekræft OBS PRO"; Horsens-, Hedensted-,
-    Odder- og Skanderborg-området til AUH), hjerne til Neurologisk Klinik AUH, hoved-hals via
-    praktiserende øre-næse-halslæge og AUH's forløbskoordinator, forløbskoordinatorer for mave-tarm og
-    bryst (Hospitalsenhed Midt, Randers), gynækologisk kræft og hæmatologi (AUH) samt hospitalernes
-    hovednumre. Telefonnumre er `tel:`-links. **Egne numre/noter** pr. pakke gemmes kun i browseren
-    (`localStorage`), så lægen kan rette og supplere.
+    henvisningsvej, kræftnumre og lokationsnumre for alle 26 pakker, gengivet fra regionens
+    forløbsbeskrivelser på sundhed.dk (sider opdateret 2014–2025) og AUH's og Hospitalsenhed Midts
+    fagpersonsider — fx diagnostiske klinikker, lunge via lokal Røntgen og Skanning ("Lungekræft OBS
+    PRO"; Horsens, Hedensted, Odder og Skanderborg til AUH), hjerne til neurologi på AUH, Gødstrup eller
+    Viborg, hoved-hals via praktiserende øre-næse-halslæge, tarm og spiserør fra Aarhus og Samsø via
+    endoskopi i Horsens, Fælles gynækologisk visitation, testikel via Røntgen og Skanning, børn via
+    vagthavende på børneafdelingen. Telefonnumre er `tel:`-links. **Egne numre/noter** pr. pakke gemmes
+    kun i browseren (`localStorage`), så lægen kan rette og supplere.
 - **`huskeskema.html`**: bygges fra `pakker.js` og `region-midt.js` med `node tools/mkkraefthusk.js`
   (kør efter hver ændring i vidensbasen; testen tjekker, at de stemmer).
 
@@ -1093,6 +1094,19 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**28. oktober 2026 — Kræftpakker: Region Midtjyllands numre kontrolleret mod regionens sider:**
+- Alle 26 af regionens forløbsbeskrivelser for kræftpakker på sundhed.dk og hospitalernes
+  fagpersonsider er hentet direkte. `region-midt.js` er skrevet om med henvisningsvej, kræftnumre og
+  lokationsnumre for alle pakker; alle 151 numre og 63 par af telefon- og lokationsnummer er
+  maskinelt tjekket mod siderne.
+- Rettelser i forhold til den søgebaserede version: hjernekræft henvises også til neurologi i Viborg
+  og Gødstrup (ikke kun AUH); gynækologisk kræft via Fælles gynækologisk visitation (78 42 64 13);
+  forløbskoordinatorens telefontid på AUH er man. 10–14 og tirs.–fre. 9–14; Gødstrups diagnostiske
+  klinik hedder Klinik for Lungesygdomme og Medicinsk Diagnostik; testikelkræft henvises til Røntgen og
+  Skanning; sarkom via lokal ortopædkirurgi til Sarkomcenteret, AUH; Horsens' hovednummer bekræftet.
+- Nye: lokationsnumre og numre for lungehinde-, anal-, testikel-, penis-, øjen-, modermærke- og
+  børnekræft samt primær leverkræft. Test: `tests/kraeft.test.js` (L1–L12).
 
 **28. oktober 2026 — Kræftpakker: lokale numre i Region Midtjylland:**
 - Regionsvalg (standard Region Midtjylland) med henvisningsvej og telefonnumre pr. pakke

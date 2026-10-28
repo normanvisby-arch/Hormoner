@@ -43,7 +43,8 @@ eller "usikker" end et falsk præcist tal.
   (`body.theme-boern`). Test: `tests/boern.test.js`.
 - `kraeft/` (Kræftpakker: `kraeft.html` + `kraeft.js` med symptomer/fund → pakkeforløb efter hast, søgning,
   PSA-grænser, RMI, børn og journalnotat; vidensbasen `pakker.js` med de 26 pakkeforløb; `region-midt.js` med
-  Region Midtjyllands henvisningsveje og telefonnumre (kilde pr. kontakt; egne numre gemmes kun i browseren);
+  Region Midtjyllands henvisningsveje, telefon- og lokationsnumre fra regionens forløbsbeskrivelser på sundhed.dk
+  (kilde og sidens dato pr. pakke; egne numre gemmes kun i browseren);
   `huskeskema.html` bygges fra begge med `node tools/mkkraefthusk.js`). Bygget som de øvrige apps (`body.theme-kraeft`).
   Test: `tests/kraeft.test.js`.
 - `psyke/` (Psyke og hukommelse: `depression.html` + `.js` med MDI/ICD-10-algoritmen, behandling og
