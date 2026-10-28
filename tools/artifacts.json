@@ -46,6 +46,9 @@
   "boern/index.html": { "url": "https://claude.ai/artifact/3yaJjkPZZu1gDLA4P7KJ8S", "mode": "standalone", "title": "Børneundersøgelser i almen praksis" },
   "boern/boern.html": { "url": "https://claude.ai/artifact/G4ebJY6ZnCpn9aobQii8uF", "mode": "tool", "title": "Børneundersøgelser" },
   "boern/huskeskema.html": { "url": "https://claude.ai/artifact/6R5LStMHdVaajj29dxGY4r", "mode": "standalone", "title": "Børne-huskeskema" },
+  "kraeft/index.html": { "url": "https://claude.ai/artifact/84ZL33jSFZtLy23apJN2AH", "mode": "standalone", "title": "Kræftpakker i almen praksis" },
+  "kraeft/kraeft.html": { "url": "https://claude.ai/artifact/3YwyuDFmk6vA9WVeJgNyEs", "mode": "tool", "title": "Find kræftpakke" },
+  "kraeft/huskeskema.html": { "url": "https://claude.ai/artifact/NAS9fneMU65KC77p7CVFmw", "mode": "standalone", "title": "Kræftpakke-huskeskema" },
   "notat/index.html": { "url": "https://claude.ai/artifact/9iTFaYJb7WSQCHP8ttAQQF", "mode": "tool", "title": "Notat-indgang" },
   "restordre/index.html": { "url": "https://claude.ai/artifact/CVGjrxq9iQ78RHRSp7kQwn", "mode": "tool", "title": "Restordre — alternativer" }
 }

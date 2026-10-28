@@ -29,6 +29,7 @@ KODER = [
     ("svangre", "svangre/"),
     ("psyke", "psyke/"),
     ("boern", "boern/"),
+    ("kraeft", "kraeft/"),
     ("restordre", "restordre/"),
 ]
 
@@ -56,6 +57,12 @@ def main():
         url = BASE + sti
         qr = segno.make(url, error="m")
         ok = tjek(qr, url)
+        # Enkelte koder afkodes ikke af OpenCV med den automatisk valgte maske — prøv de andre.
+        for maske in range(8):
+            if ok is not False:
+                break
+            qr = segno.make(url, error="m", mask=maske)
+            ok = tjek(qr, url)
         if ok is False:
             print(f"FEJL: {navn} kunne ikke afkodes til {url}")
             fejl += 1

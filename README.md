@@ -725,6 +725,47 @@ Selvstændig app (installeres fra `https://normanvisby-arch.github.io/Hormoner/b
 **Forbehold:** sst.dk og sundhed.dk kunne ikke tilgås direkte; indholdet er kontrolleret via sekundære
 kilder (søgeresultater fra Sundhedsstyrelsen, SSI, Lægehåndbogen og DPS).
 
+## Kræftpakker (`kraeft/`) — logik og datagrundlag
+
+Selvstændig app (installeres fra `https://normanvisby-arch.github.io/Hormoner/kraeft/`), tema
+`body.theme-kraeft` (#3d3a9e).
+
+- **`pakker.js`**: vidensbase med Sundhedsstyrelsens 26 pakkeforløb set fra almen praksis — pr. pakke
+  begrundet mistanke (pakkeforløb), mistanke (udredning eller filterfunktion først), hvad der gøres i
+  almen praksis, hvortil der henvises, og forbehold. Organpakker for lunge, lungehinde, tyk- og
+  endetarm, anus, spiserør/mavesæk, bugspytkirtel/galdeveje/lever, prostata, urinveje, testikel,
+  penis, bryst, livmoderhals, livmoder, æggestokke, vulva, hoved-hals (inkl. skjoldbruskkirtel),
+  hjerne, øje/øjenhule, melanom, sarkom, lymfom/CLL, myelomatose, akut leukæmi/MDS og kroniske
+  myeloide sygdomme samt diagnostisk pakkeforløb og kræft hos børn.
+- **`kraeft.html`** (`kraeft.js`): fritekstsøgning (pakker og symptomer; klik tilføjer symptomet),
+  alder, køn, rygning, menopause og ca. 70 symptomer/fund i otte grupper (kønsspecifikke skjules)
+  samt PSA og CA-125/ultralyd.
+  - **Niveauer:** akut — ring nu (hjerne: progredierende fokale udfald, første epileptiske anfald hos
+    voksen, progredierende personligheds-/kognitiv ændring, proces på CT/MR; leukæmi: blaster,
+    bi-/pancytopeni), begrundet mistanke → pakkeforløb, udredning eller filterfunktion først (fx
+    CT ved lungesymptomer, øre-næse-halslæge, gynækolog, dermatolog, sarkomcenter), overvej, og ikke
+    indgangskriterium alene. Pakkerne sorteres efter niveau; øverst et forslag.
+  - **Alders- og kønsregler:** hoste/åndenød/brystsmerter → CT kun hos ryger over 40 år; hæmoptyse
+    → CT uanset alder og rygning; mikroskopisk hæmaturi kun over 60 år med smerter, irritative
+    vandladningsgener eller udfyldning (asymptomatisk → ingen kræftudredning, link til Kronisk
+    nyresygdom); PSA over 3,0 (under 60 år), 4,0 (60–70) og 5,0 ng/ml (over 70) — to målinger →
+    begrundet, én måling → gentag; LUTS alene ikke kriterium; dyspepsi under 45 år uden alarm → H.
+    pylori; lymfeknude i armhulen → bryst hos kvinder, lymfom hos mænd; M-komponent kun med
+    organpåvirkning (ellers MGUS); isoleret lymfocytose → hæmatolog, ikke pakke.
+  - **RMI** = ultralydscore (0/1/3) × menopause (1/3) × CA-125; 200 eller derover → pakkeforløb.
+  - **Diagnostisk pakkeforløb** ved uspecifikke symptomer; nedprioriteres til "overvej", når en
+    organpakke matcher. Metastaser uden kendt primærtumor → DPF med fordeling (lunge, bryst, hjerne).
+  - **Under 18 år:** kun børnepakken (akut ved udfyldning i maven, hvid pupil, neurologiske fund,
+    blaster/cytopeni; ellers begrundet mistanke) — voksenpakkerne udelades.
+  - "Sådan henviser du", katalog over alle pakker (A–Å), journalnotat med valg pr. pakke (standard:
+    udredning og derover) og information om begrundet mistanke eller sikkerhedsnet.
+- **`huskeskema.html`**: bygges fra `pakker.js` med `node tools/mkkraefthusk.js` (kør efter hver
+  ændring i vidensbasen; testen tjekker, at de stemmer).
+
+**Forbehold:** sst.dk og sundhed.dk kunne ikke tilgås direkte; kriterierne er kontrolleret via
+sekundære kilder (søgeresultater fra Sundhedsstyrelsen, DMCG'er og regionernes forløbsbeskrivelser).
+Henvisningsveje og blodprøvepakker er regionale, og kriterierne er ikke udtømmende.
+
 ## Installér som app
 
 **Downloadside til kolleger:** `https://normanvisby-arch.github.io/Hormoner/apps.html`
@@ -1044,6 +1085,17 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**28. oktober 2026 — Ny app: Kræftpakker (`kraeft/`):**
+- Find det rigtige pakkeforløb: fritekstsøgning og symptomer/fund → 26 pakkeforløb efter hast med
+  indgangskriterier, hvad der gøres i almen praksis, hvortil der henvises, PSA-aldersgrænser, RMI,
+  børn under 18 år, diagnostisk pakkeforløb og journalnotat; huskeskema bygget fra samme data
+  (`tools/mkkraefthusk.js`); startside, manifest, service worker og ikoner; kort og QR på
+  downloadsiden (`tools/mkqr.py` prøver nu andre masker, hvis OpenCV ikke kan afkode koden), flise i
+  den samlede app, genvej i zip-filen, "Andre apps" på alle startsider; artifacts.
+- Kilder: Sundhedsstyrelsens pakkeforløb for kræft og Diagnostisk pakkeforløb (2023), DMCG'er og
+  regionernes forløbsbeskrivelser — kontrolleret via sekundære kilder. Test: `tests/kraeft.test.js`;
+  apps, alle, pwa-apps og smoke opdateret.
 
 **27. oktober 2026 — Ny app: Børneundersøgelser (`boern/`):**
 - De syv forebyggende børneundersøgelser: valg efter alder (korrigeret ved for tidlig fødsel),
