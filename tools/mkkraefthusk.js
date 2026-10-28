@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const root = path.join(__dirname, '..');
 const KRAEFT_PAKKER = new Function(fs.readFileSync(path.join(root, 'kraeft/pakker.js'), 'utf8') + '; return KRAEFT_PAKKER;')();
+const KRAEFT_REGION = new Function(fs.readFileSync(path.join(root, 'kraeft/region-midt.js'), 'utf8') + '; return KRAEFT_REGION;')();
 const tpl = fs.readFileSync(path.join(root, 'kraeft/huskeskema.html'), 'utf8');
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const grupper = [...new Set(KRAEFT_PAKKER.map((p) => p.gruppe))];
@@ -21,6 +22,29 @@ for (const g of grupper) {
   }
   html += '  </div>\n';
 }
+// Region Midtjylland: henvisningsvej og numre pr. pakke.
+const r = KRAEFT_REGION.midt;
+const tel = (t) => `<a href="tel:+45${t.replace(/\s/g, '')}">${esc(t)}</a>`;
+const rk = (x) => (x.gyn ? r.gyn : x.blod ? r.blod : x);
+const rows = KRAEFT_PAKKER.filter((p) => r.pakker[p.id]).map((p) => {
+  const x = rk(r.pakker[p.id]);
+  const k = x.kontakter.map((c) => `${esc(c.sted)}: ${tel(c.tlf)}${c.tid ? ` (${esc(c.tid)})` : ''}`).join('<br>');
+  return `<tr><td>${esc(p.navn)}</td><td>${esc(x.vej)}</td><td>${k || '—'}</td></tr>`;
+}).join('\n          ');
+html += `  <section class="panel section" aria-labelledby="rm" data-region="midt">
+    <div class="panel-head"><h2 id="rm">${esc(r.navn)} — henvisningsveje og numre</h2><span class="phase">Kontrollér numrene</span></div>
+    <p class="table-note">${r.generelt.map(esc).join(' ')} Hovednumre: ${r.hospitaler.map((h) => `${esc(h.sted)} ${tel(h.tlf)}`).join(' · ')}.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Pakke</th><th>Henvisningsvej</th><th>Telefon</th></tr></thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note">Kilder: regionens forløbsbeskrivelser på sundhed.dk og hospitalernes fagpersonsider. Kontrolleret ${esc(r.kontrolleret)}. Ret egne numre i værktøjet.</p>
+  </section>
+`;
 const start = '<!-- PAKKER START -->';
 const slut = '<!-- PAKKER SLUT -->';
 const ud = tpl.slice(0, tpl.indexOf(start) + start.length) + '\n' + html + '  ' + tpl.slice(tpl.indexOf(slut));

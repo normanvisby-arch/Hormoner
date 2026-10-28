@@ -15,6 +15,7 @@
   const printMeta = $("printMeta");
   const PAKKER = window.KRAEFT_PAKKER || KRAEFT_PAKKER;
   const P = Object.fromEntries(PAKKER.map((p) => [p.id, p]));
+  const REGIONER = window.KRAEFT_REGION || {};
 
   const num = (id) => parseFloat(String($(id).value).replace(",", "."));
   const radio = (name) => (document.querySelector(`input[name="${name}"]:checked`) || {}).value || "";
@@ -145,6 +146,7 @@
       ca125: koen === "m" ? NaN : num("ca125"),
       ul: ulv === "" ? null : parseInt(ulv, 10),
       soeg: norm($("soeg").value),
+      region: REGIONER[$("region").value] ? $("region").value : "",
     };
   }
 
@@ -369,12 +371,59 @@
   // Visning
   // ---------------------------------------------------------------------
 
-  function pakkeIndhold(p) {
+  // Lokale numre: regionens data og lægens egne numre (gemmes kun i browseren).
+  const lager = {
+    hent(k, std) {
+      try {
+        const v = localStorage.getItem(k);
+        return v === null ? std : v;
+      } catch (e) {
+        return std;
+      }
+    },
+    gem(k, v) {
+      try {
+        localStorage.setItem(k, v);
+      } catch (e) {
+        /* privat vindue o.l. — virker blot uden at huske */
+      }
+    },
+  };
+  let egne = {};
+  try {
+    egne = JSON.parse(lager.hent("kraeft-egne-numre", "{}")) || {};
+  } catch (e) {
+    egne = {};
+  }
+  const telLink = (t) => `<a href="tel:+45${t.replace(/\s/g, "")}">${esc(t)}</a>`;
+  function regionInfo(id, region) {
+    const r = REGIONER[region];
+    if (!r) return null;
+    const x = r.pakker[id];
+    if (!x) return null;
+    return x.gyn ? r.gyn : x.blod ? r.blod : x;
+  }
+  function regionHtml(p) {
+    const region = sidstRegion;
+    const x = regionInfo(p.id, region);
+    let h = "";
+    if (x) {
+      const k = x.kontakter.map((c) => `${esc(c.sted)}: ${telLink(c.tlf)}${c.tid ? ` (${esc(c.tid)})` : ""}`);
+      h += `<p><strong>${esc(REGIONER[region].navn)}:</strong> ${esc(x.vej)}</p>${k.length ? ul(k) : ""}<p class="kilde">Kilde: ${esc(x.kilde)} — ${esc(REGIONER[region].kontrolleret)}.</p>`;
+    } else if (region) {
+      h += `<p><strong>${esc(REGIONER[region].navn)}:</strong> elektronisk henvisning til afdelingens vanlige lokationsnummer — se hospitalernes hovednumre under "Sådan henviser du".</p>`;
+    }
+    h += `<label class="egne">Egne numre/noter (gemmes kun i denne browser)<input type="text" data-egen="${p.id}" value="${esc(egne[p.id] || "")}" placeholder="fx direkte nummer, lokationsnummer"></label>`;
+    return `<div class="region-kontakt">${h}</div>`;
+  }
+
+  function pakkeIndhold(p, medRegion = true) {
     let h = "";
     if (p.begrundet.length) h += `<p><strong>${p.akut ? "Akut henvisning ved" : "Begrundet mistanke (pakkeforløb)"}:</strong></p>${ul(p.begrundet.map(esc))}`;
     if (p.mistanke.length) h += `<p><strong>Mistanke — udredning eller filterfunktion først:</strong></p>${ul(p.mistanke.map(esc))}`;
     h += `<p><strong>I almen praksis:</strong></p>${ul(p.gp.map(esc))}`;
     h += `<p><strong>Henvis:</strong> ${esc(p.henvis)}.</p>`;
+    if (medRegion) h += regionHtml(p);
     if (p.obs.length) h += `<p><strong>Bemærk:</strong></p>${ul(p.obs.map(esc))}`;
     return h;
   }
@@ -384,6 +433,18 @@
   output.addEventListener("change", (e) => {
     const id = e.target.dataset && e.target.dataset.journal;
     if (id) journalValg[id] = e.target.checked;
+  });
+  output.addEventListener("input", (e) => {
+    const id = e.target.dataset && e.target.dataset.egen;
+    if (!id) return;
+    const v = e.target.value.trim();
+    if (v) egne[id] = v;
+    else delete egne[id];
+    lager.gem("kraeft-egne-numre", JSON.stringify(egne));
+    // Samme pakke kan stå flere steder (forslag og katalog) — hold felterne ens.
+    output.querySelectorAll(`input[data-egen="${id}"]`).forEach((el) => {
+      if (el !== e.target) el.value = e.target.value;
+    });
   });
   output.addEventListener("click", (e) => {
     const id = e.target.dataset && e.target.dataset.vaelg;
@@ -401,8 +462,8 @@
     const n = NIVEAU[x.niv];
     const titel = `${esc(p.navn)} <span class="chip ${n.chip}">${n.label}</span>`;
     let body = `<p><strong>Hvorfor:</strong></p>${ul(x.grunde)}`;
-    if (x.niv >= 1) body += `<p><strong>Gør nu:</strong></p>${ul(p.gp.map(esc))}<p><strong>Henvis:</strong> ${esc(p.henvis)}.</p>`;
-    body += `<details class="pakke-kort"><summary>Alle indgangskriterier for pakken</summary>${pakkeIndhold(p)}</details>`;
+    if (x.niv >= 1) body += `<p><strong>Gør nu:</strong></p>${ul(p.gp.map(esc))}<p><strong>Henvis:</strong> ${esc(p.henvis)}.</p>${regionHtml(p)}`;
+    body += `<details class="pakke-kort"><summary>Alle indgangskriterier for pakken</summary>${pakkeIndhold(p, x.niv < 1)}</details>`;
     body += `<label class="checkbox journal-valg"><input type="checkbox" data-journal="${x.id}"${iJournal(x) ? " checked" : ""}> Med i journalnotatet</label>`;
     return `<div class="box ${n.cls} pakke-match" data-pakke="${x.id}"><h3>${titel}</h3>${body}</div>`;
   }
@@ -432,13 +493,17 @@
       "<strong>Informér patienten</strong> om, at der er begrundet mistanke om kræft, hvad der skal ske, og hvornår.",
       "Pakkeforløbene har faste forløbstider; første fremmøde er typisk inden for ca. en uge. Blodprøver og billeddiagnostik må ikke forsinke henvisningen.",
       "<strong>Kriterierne er ikke udtømmende:</strong> lægens kliniske mistanke kan begrunde henvisning. Uspecifikke symptomer → diagnostisk pakkeforløb.",
-      "Henvisningsadresser og blodprøvepakker er regionale — følg regionens forløbsbeskrivelse (sundhed.dk).",
+      "Henvisningsadresser og blodprøvepakker er regionale — følg regionens forløbsbeskrivelse (sundhed.dk). Vælg region i venstre side for at se lokale veje og numre.",
       "<strong>Sikkerhedsnet:</strong> aftal opfølgning, hvis symptomerne fortsætter efter negativ udredning.",
     ];
-    return foldbar("box-blue", "Sådan henviser du", ul(l), !liste.length);
+    const r = REGIONER[sidstRegion];
+    let ekstra = "";
+    if (r) ekstra = `<p><strong>${esc(r.navn)}:</strong></p>${ul(r.generelt.map(esc))}<p><strong>Hovednumre:</strong></p>${ul(r.hospitaler.map((h) => `${esc(h.sted)}: ${telLink(h.tlf)}`))}<p class="kilde">Numrene er fundet via søgeresultater (${esc(r.kontrolleret)}). Ret eller tilføj egne numre under hver pakke.</p>`;
+    return foldbar("box-blue", "Sådan henviser du", ul(l) + ekstra, !liste.length);
   }
 
   let sidst = null;
+  let sidstRegion = "";
 
   function update() {
     const s = getState();
@@ -448,6 +513,8 @@
     $("caFelt").hidden = koen === "m";
     $("postFelt").hidden = koen === "m";
     $("alderWarning").textContent = !isNaN(s.alder) && s.alder < 18 ? "Under 18 år: børnepakken (akut børneafdeling) bruges i stedet for voksenpakkerne." : "";
+    if ($("region").value !== lager.hent("kraeft-region", "midt")) lager.gem("kraeft-region", $("region").value);
+    sidstRegion = s.region;
     const v = vurder(s);
     sidst = { s, v };
     let html = soegning(s.soeg);
@@ -505,7 +572,7 @@
       if (b.closest(".katalog")) return;
       const h3 = b.querySelector("h3");
       if (h3) L.push(h3.textContent.replace(/\s+/g, " ").trim().toUpperCase());
-      b.querySelectorAll(":scope > p, :scope > ul, :scope > details > p, :scope > details > ul").forEach((el) => {
+      b.querySelectorAll(":scope > p, :scope > ul, :scope > .region-kontakt > p, :scope > .region-kontakt > ul, :scope > details > p, :scope > details > ul").forEach((el) => {
         if (el.tagName === "P") L.push(el.textContent.replace(/\s+/g, " ").trim());
         else el.querySelectorAll(":scope > li").forEach((li) => L.push(`- ${li.textContent.replace(/\s+/g, " ").trim()}`));
       });
@@ -532,8 +599,15 @@
   form.addEventListener("change", (e) => e.target.id !== "soeg" && update());
   $("copyBtn").addEventListener("click", () => copyText(buildJournalNote()));
   $("copyFullBtn").addEventListener("click", () => copyText(buildFullText()));
+  // Regionen er en indstilling, ikke patientdata: huskes og bevares ved Nulstil.
+  const valgtRegion = () => {
+    const v = lager.hent("kraeft-region", "midt");
+    $("region").value = v === "" || REGIONER[v] ? v : "midt";
+  };
+  valgtRegion();
   $("resetBtn").addEventListener("click", () => {
     form.reset();
+    valgtRegion();
     Object.keys(journalValg).forEach((k) => delete journalValg[k]);
     update();
   });
