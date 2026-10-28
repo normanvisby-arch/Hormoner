@@ -39,7 +39,7 @@
 </nav>
 
 <div class="disclaimer" role="note">
-  <strong>Tjek altid restordre.dk først.</strong> Siden drives af regionerne og viser dagligt — ud fra grossisternes og apotekernes lagre — hvad der kan skaffes, og hvilke alternativer apoteket vurderer. Forslagene her er generelle, tager ikke højde for lagerstatus, og ækvivalensdoserne er vejledende.
+  <strong>Tjek altid restordre.dk først.</strong> Siden drives af Region Syddanmark på vegne af Danske Regioner og viser de hyppigste eller klinisk vanskeligste restordrer — udvalgt ud fra grossistens og apotekernes daglige lagerdata — med alternativer vurderet af apotek og klinisk farmakolog. Listen opdateres typisk mandag og torsdag; et præparat kan være i restordre uden at stå der. Appen viser en kopi af listen (med dato), og forslagene her tager ikke højde for lagerstatus; ækvivalensdoserne er vejledende.
 </div>
 
 <a href="#resultPanel" class="mobile-jump" id="mobileJump">Se alternativer ↓</a>
@@ -83,19 +83,20 @@
 <footer class="sources">
   <h2>Kilder &amp; grundlag</h2>
   <ul>
-    <li>Restordre.dk — drives af Region Syddanmark på vegne af Danske Regioner sammen med Klinisk Farmakologi, OUH, og Københavns Sønderbro Apotek; bygger på daglige data fra grossister og apotekers lagre (Region Syddanmark, oktober 2024)</li>
+    <li>Restordre.dk — drives af Region Syddanmark på vegne af Danske Regioner sammen med København Sønderbro Apotek og Farmakologi, OUH; bygger på daglige data fra medicingrossist sammenholdt med apotekernes lagre; kun de hyppigste eller klinisk vanskeligste restordrer udvælges, og listen opdateres typisk mandag og torsdag. Appens kopi af listen ("Produkt i restordre", "Foreslået alternativ", "Forventet levering" og "tilbage på apoteket") hentes med <code>tools/hentrestordre.py</code> — datoen vises ved listen</li>
     <li>Lægemiddelstyrelsen: substitution og substitutionsgrupper; Mangel på medicin; udleveringstilladelser (national udleveringstilladelse efter lægemiddellovens § 29, stk. 2, eller efter lægens ansøgning)</li>
     <li>Folketinget, SUU alm. del bilag 53 (2019–20) og Danmarks Apotekerforening 2024: anden styrke, pakningsstørrelse eller lægemiddelform kræver som udgangspunkt ny recept</li>
     <li>Regionernes sider om restordre på sundhed.dk (Hovedstaden, Sjælland, Nordjylland, Syddanmark)</li>
     <li>Registeret over indholdsstoffer er grupperet efter WHO's ATC-klassifikation (niveau 4); stoffer i samme gruppe vises som mulige alternativer uden ækvivalente doser</li>
     <li>Ækvivalenstabellerne: se kilderne under hver lægemiddelgruppe (bl.a. NICE CG181 og CG184, GINA 2024, BMS, EHRA 2021, FSRH og regionernes antibiotikavejledninger)</li>
   </ul>
-  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra regionerne, Lægemiddelstyrelsen eller de nævnte kilder. Restordre.dk, sundhed.dk, pro.medicin.dk og Lægemiddelstyrelsen kunne ikke tilgås direkte ved udviklingen; oplysninger og ækvivalensdoser er kontrolleret via sekundære kilder og skal verificeres i produktresuméet på pro.medicin.dk før ordination. Ingen patientdata gemmes eller sendes.</p>
+  <p class="fineprint">Uafhængigt hjælpeværktøj — ikke en officiel publikation fra regionerne, Lægemiddelstyrelsen eller de nævnte kilder. Restordre.dk er hentet direkte (oktober 2026); sundhed.dk, pro.medicin.dk og Lægemiddelstyrelsen kunne ikke tilgås direkte ved udviklingen; oplysninger og ækvivalensdoser er kontrolleret via sekundære kilder og skal verificeres i produktresuméet på pro.medicin.dk før ordination. Ingen patientdata gemmes eller sendes.</p>
 </footer>
 
 <script src="../udfyld.js"></script>
 <script src="data.js"></script>
 <script src="register.js"></script>
+<script src="aktuelle.js"></script>
 <script src="restordre.js"></script>
 <script src="../pwa.js"></script>
 </body>

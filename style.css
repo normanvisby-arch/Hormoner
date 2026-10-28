@@ -875,6 +875,12 @@ label.udfyldt { background: var(--color-amber-bg); border-radius: 4px; box-shado
 .field-label { font-weight: 600; margin: 0 0 0.3rem; }
 .rest-note { background: var(--color-panel); border-left: 3px solid var(--color-amber-border); padding: 0.4rem 0.6rem; border-radius: 4px; }
 .rest-liste li { margin-bottom: 0.35rem; }
+.rest-aktuel { border-bottom: 1px solid color-mix(in srgb, currentColor 25%, transparent); padding-bottom: 0.4rem; margin-bottom: 0.4rem; }
+.rest-aktuel p { margin: 0.2rem 0; }
+.rest-aktuel a, .rest-tilbage a { color: inherit; font-weight: 600; }
+.rest-tilbage { font-size: 0.86rem; }
+.btn-link { background: none; border: none; padding: 0; font: inherit; color: var(--color-accent); font-weight: 600; text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.btn-link:hover { color: var(--color-primary-dark); }
 .rest-liste .valg-radio { display: inline-flex; margin: 0; font-size: 0.9rem; color: var(--color-text); }
 
 /* EKG-tolkning (hjerte/ekg.html) */

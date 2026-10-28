@@ -505,11 +505,18 @@ Når et præparat ikke kan skaffes. Lægen skriver præparatet (handelsnavn elle
 det udfyldes fra en journaltekst eller fra Notat-indgangen, når der står "restordre", "kan ikke
 skaffes" o.l. Værktøjet viser tre trin:
 
-1. **Tjek restordre.dk først.** Siden drives af Region Syddanmark på vegne af Danske Regioner. Den
-   viser dagligt, ud fra grossisternes og apotekernes lagre, hvad der kan skaffes, og apotekets
-   vurderede alternativer.
-   - restordre.dk har ingen kendt søgeadresse eller åben datakilde, så "Åbn restordre.dk" åbner
-     siden og kopierer samtidig søgeordet (ét klik); lægen sætter det ind i søgefeltet.
+1. **Tjek restordre.dk først.** Siden drives af Region Syddanmark på vegne af Danske Regioner med
+   København Sønderbro Apotek og Farmakologi, OUH. Den viser de hyppigste eller klinisk vanskeligste
+   restordrer (udvalgt ud fra grossistens og apotekernes daglige lagerdata) med alternativer vurderet
+   af apotek og klinisk farmakolog, opdateres typisk mandag og torsdag og er ikke udtømmende.
+   - **Kopi af listen i appen** (`aktuelle.js`, genereret af `python3 tools/hentrestordre.py`, da
+     restordre.dk ikke sender CORS-headere): startsiden viser alle præparater på listen (klik søger)
+     og "tilbage på apoteket"; en søgning, der rammer et præparat på listen (indholdsstof eller
+     handelsnavn), viser restordre.dk's foreslåede alternativ og forventede levering øverst, og
+     journalnotatet nævner det. Rammer søgningen ikke listen, står der det (med listens dato). Er
+     listen over 7 dage gammel, vises en advarsel. Kør scriptet, når listen er opdateret, og hæv
+     `VERSION` i `restordre/sw.js`.
+   - "Åbn restordre.dk" åbner siden og kopierer samtidig søgeordet (ét klik).
    - Alle værktøjer med præparatvalg (klimakterie, prævention, osteoporose, CV-risiko,
      atrieflimren, KOL, astma, hypothyreose, type 2-diabetes, de tre infektionssider, kronisk
      nyresygdom og dosis efter nyrefunktion) har under resultatet linjen "Kan et præparat ikke
@@ -1094,6 +1101,16 @@ en server. Konsekvenser af det valg:
 - Ingen patientdata gemmes eller sendes — al beregning sker lokalt i browseren.
 
 ## Ændringslog
+
+**28. oktober 2026 — Restordre: restordre.dk's aktuelle liste i appen:**
+- `tools/hentrestordre.py` henter restordre.dk (produkt, handelsnavn, foreslået alternativ, forventet
+  levering, "ny" og "tilbage på apoteket") til `restordre/aktuelle.js` (liste opdateret 26.10.2026: 16
+  præparater). Startsiden viser listen; søgninger, der rammer listen, viser restordre.dk's alternativ og
+  levering øverst og i journalnotatet; advarsel, når listen er over 7 dage gammel.
+- Beskrivelsen af restordre.dk rettet efter sidens "Bag om": kun de hyppigste eller klinisk vanskeligste
+  restordrer, opdateres typisk mandag og torsdag — et præparat kan være i restordre uden at stå der.
+- Fejlrettelse: ved flere træf (fx budesonid) gik klikket på et valg tabt, fordi søgefeltets
+  change-hændelse tegnede knapperne om. Test: L0–L8 og R6b i `tests/restordre.test.js`.
 
 **28. oktober 2026 — Kræftpakker: Region Midtjyllands numre kontrolleret mod regionens sider:**
 - Alle 26 af regionens forløbsbeskrivelser for kræftpakker på sundhed.dk og hospitalernes
