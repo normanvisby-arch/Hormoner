@@ -3,7 +3,7 @@
  * internet. Netværket prøves først, så opdateringer slår igennem ved næste
  * åbning med forbindelse. Hæv VERSION, når filer tilføjes eller ændres.
  */
-const VERSION = "v4";
+const VERSION = "v5";
 const CACHE = `alle-${VERSION}`;
 const FILES = [
   "./",
@@ -26,6 +26,7 @@ const FILES = [
   "../svangre/icons/icon.svg",
   "../psyke/icons/icon.svg",
   "../boern/icons/icon.svg",
+  "../kraeft/icons/icon.svg",
   "../restordre/icons/icon.svg",
 ];
 

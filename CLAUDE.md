@@ -1,11 +1,12 @@
 # Klinikværktøjer til almen praksis — arbejdsgang
 
-Danske beslutningsstøtteværktøjer til en praktiserende læge i ti selvstændige apps:
+Danske beslutningsstøtteværktøjer til en praktiserende læge i elleve selvstændige apps:
 **kvindesundhed** (klimakterie/MHT, prævention, MRS-scoring, osteoporose — repoets rod),
 **hjerte-kar** (`hjerte/`), **lunger** (`lunge/`: KOL og astma), **hypothyreose** (`thyreoidea/`),
 **type 2-diabetes** (`diabetes/`), **infektioner** (`infektion/`: antibiotika) **nyrer**
 (`nyre/`: kronisk nyresygdom og dosis efter nyrefunktion), **svangreomsorg** (`svangre/`: graviditetsundersøgelser),
-**psyke og hukommelse** (`psyke/`: depression og demensudredning) og **børneundersøgelser** (`boern/`) — plus
+**psyke og hukommelse** (`psyke/`: depression og demensudredning), **børneundersøgelser** (`boern/`) og
+**kræftpakker** (`kraeft/`: find det rigtige pakkeforløb) — plus
 **Restordre** (`restordre/`) og **Notat-indgangen** (`notat/`),
 der modtager et journalnotat og sender det til det rette værktøj. Brugeren er læge; al tekst i værktøjerne og svar til brugeren er på
 dansk. Klinisk indhold skal være korrekt, kildebelagt og ærligt om usikkerhed — hellere et interval
@@ -40,6 +41,10 @@ eller "usikker" end et falsk præcist tal.
 - `boern/` (Børneundersøgelser: `boern.html` + `boern.js` med de syv forebyggende børneundersøgelser —
   tjekliste, milepæle, alarmfund og vaccinationskalender; `huskeskema.html`). Bygget som de øvrige apps
   (`body.theme-boern`). Test: `tests/boern.test.js`.
+- `kraeft/` (Kræftpakker: `kraeft.html` + `kraeft.js` med symptomer/fund → pakkeforløb efter hast, søgning,
+  PSA-grænser, RMI, børn og journalnotat; vidensbasen `pakker.js` med de 26 pakkeforløb; `huskeskema.html`
+  bygges fra `pakker.js` med `node tools/mkkraefthusk.js`). Bygget som de øvrige apps (`body.theme-kraeft`).
+  Test: `tests/kraeft.test.js`.
 - `psyke/` (Psyke og hukommelse: `depression.html` + `.js` med MDI/ICD-10-algoritmen, behandling og
   opfølgning; `demens.html` + `.js` med tjekliste til basisudredningen; `huskeskema.html`). Bygget som de
   øvrige apps (`body.theme-psyke`). Test: `tests/psyke.test.js`.
@@ -79,7 +84,7 @@ eller "usikker" end et falsk præcist tal.
 - Logik i den tilhørende `.js`-fil; fælles stil i `style.css` (huskeskemaer og oversigt har egen `<style>`).
 - App (PWA) på GitHub Pages: `manifest.webmanifest`, `sw.js`, `pwa.js`, `icons/`.
   **Hæv `VERSION` i `sw.js`** og i den berørte apps `*/sw.js` (hjerte, lunge, thyreoidea,
-  diabetes, infektion, nyre, svangre, psyke, boern, notat, restordre, alle), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
+  diabetes, infektion, nyre, svangre, psyke, boern, kraeft, notat, restordre, alle), når filer tilføjes, fjernes eller ændres — også fælles filer (`style.css`, `pwa.js`,
   `valg.js`, `udfyld.js`) caches af alle apps.
 - `README.md`: klinisk logik, datagrundlag og ændringslog (opdateres ved hver ændring).
 - `tests/`: Playwright-suiter. `tests/run_all.sh` kører dem alle mod en lokal server.
@@ -156,6 +161,11 @@ Tjek for nye eller reviderede anbefalinger og studier siden sidste gennemgang (s
   guidelines (hypertension/præeklampsi, acetylsalicylsyre og udrulningen af PREPRED, GDM-screening,
   tromboseprofylakse), SSI's vaccinationsprogram for gravide (kighoste, RSV-sæson, influenza),
   regionernes forløbsbeskrivelser (blodprøvetidspunkter, OGTT) og anbefalet vægtøgning.
+
+- **Kræftpakker (`kraeft/`):** Sundhedsstyrelsens pakkeforløb for kræft og Diagnostisk pakkeforløb
+  (reviderede indgangskriterier, nye eller sammenlagte pakker, fx lungekræft og NET), DMCG'ernes
+  henvisningskriterier (fx PSA-grænser, RMI), regionernes forløbsbeskrivelser og blodprøvepakker.
+  Ret `pakker.js`, og byg huskeskemaet igen.
 
 Ret kun ved reel ny evidens eller fejl, og beskriv hver ændring med kilde i PR og ændringslog.
 Findes intet nyt, så sig det — lav ikke ændringer for ændringernes skyld.

@@ -43,7 +43,7 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
   // ---------------- Den samlede app ----------------
   await p.goto(ROOT + 'alle/index.html'); await p.waitForTimeout(300);
   const tiles = await p.evaluate(() => [...document.querySelectorAll('.tile')].map((a) => ({ href: a.getAttribute('href'), img: a.querySelector('img').getAttribute('src'), navn: a.querySelector('strong').textContent })));
-  check('S1 elleve apps i den samlede app', tiles.length === 11, tiles.map((t) => t.navn).join(', '));
+  check('S1 tolv apps i den samlede app', tiles.length === 12, tiles.map((t) => t.navn).join(', '));
   let alleOk = true;
   for (const t of tiles) alleOk = alleOk && (await p.request.get(ROOT + 'alle/' + t.href)).ok() && (await p.request.get(ROOT + 'alle/' + t.img)).ok();
   check('S2 alle links og ikoner virker', alleOk);
@@ -52,11 +52,11 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
   // Service workers for alle apps registreres, og filerne gemmes.
   await p.waitForFunction(() => document.documentElement.dataset.offlineKlar, null, { timeout: 30000 }).catch(() => {});
   const regs = await p.evaluate(async () => (await navigator.serviceWorker.getRegistrations()).map((r) => new URL(r.scope).pathname));
-  const mapper = ['/', '/hjerte/', '/lunge/', '/thyreoidea/', '/diabetes/', '/infektion/', '/nyre/', '/svangre/', '/psyke/', '/boern/', '/restordre/', '/alle/'];
+  const mapper = ['/', '/hjerte/', '/lunge/', '/thyreoidea/', '/diabetes/', '/infektion/', '/nyre/', '/svangre/', '/psyke/', '/boern/', '/kraeft/', '/restordre/', '/alle/'];
   check('S4 service worker for hver app', mapper.every((m) => regs.includes(m)), regs.join(' '));
   check('S5 status: alle apps klar uden internet', (await p.locator('#offlineStatus').innerText()).includes('Alle apps virker nu også uden internet'));
   await ctx.setOffline(true);
-  const offline = ['alle/index.html', 'oversigt.html', 'index.html', 'hjerte/index.html', 'hjerte/af.html', 'lunge/kol.html', 'thyreoidea/hypothyreose.html', 'diabetes/behandling.html', 'infektion/urinveje.html', 'nyre/dosis.html', 'svangre/svangre.html', 'psyke/depression.html', 'psyke/demens.html', 'boern/boern.html', 'restordre/index.html'];
+  const offline = ['alle/index.html', 'oversigt.html', 'index.html', 'hjerte/index.html', 'hjerte/af.html', 'lunge/kol.html', 'thyreoidea/hypothyreose.html', 'diabetes/behandling.html', 'infektion/urinveje.html', 'nyre/dosis.html', 'svangre/svangre.html', 'psyke/depression.html', 'psyke/demens.html', 'boern/boern.html', 'kraeft/kraeft.html', 'restordre/index.html'];
   const fejl = [];
   for (const s of offline) {
     const r = await p.goto(ROOT + s).catch(() => null);

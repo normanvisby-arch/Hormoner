@@ -27,6 +27,7 @@ APPS = [
     ("Svangreomsorg", "svangre/", "svangre"),
     ("Psyke og hukommelse", "psyke/", "psyke"),
     ("Boerneundersoegelser", "boern/", "boern"),
+    ("Kraeftpakker", "kraeft/", "kraeft"),
     ("Restordre", "restordre/", "restordre"),
 ]
 LAES = """Klinikværktøjer til almen praksis — genveje til skrivebordet
