@@ -3,13 +3,14 @@
  * internet. Netværket prøves først, så opdateringer slår igennem ved næste
  * åbning med forbindelse. Hæv VERSION, når filer tilføjes eller ændres.
  */
-const VERSION = "v14";
+const VERSION = "v15";
 const CACHE = `restordre-${VERSION}`;
 const FILES = [
   "./",
   "index.html",
   "data.js",
   "register.js",
+  "aktuelle.js",
   "restordre.js",
   "manifest.webmanifest",
   "icons/icon.svg",

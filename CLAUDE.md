@@ -69,7 +69,8 @@ eller "usikker" end et falsk præcist tal.
 - `restordre/` (Restordre — alternativer): `index.html`, `restordre.js`, vidensbasen `data.js`
   (grupper med stoffer, ækvivalensrækker, råd om samme stof, skift og kilder) og `register.js`
   (ca. 450 indholdsstoffer med ATC-gruppe og handelsnavne, gruppenavne og `RESTORDRE_ATC_NOTE` for
-  brede/specialiststyrede grupper). Handelsnavne kun, når de sikkert findes i Danmark. Egen manifest,
+  brede/specialiststyrede grupper) samt `aktuelle.js` (kopi af restordre.dk's liste — genereres med
+  `python3 tools/hentrestordre.py`; ret ikke i hånden). Handelsnavne kun, når de sikkert findes i Danmark. Egen manifest,
   `sw.js` og `icons/`. Doser skal stemme med de øvrige værktøjer (DOAK = `hjerte/af.js`, østrogen =
   `app.js`, cystitis = `infektion/urinveje.js`, DPP-4 = `nyre/dosis.js`). Test:
   `tests/restordre.test.js`.
@@ -129,6 +130,8 @@ Tjek for nye eller reviderede anbefalinger og studier siden sidste gennemgang (s
   Medicinrådets basisliste, tilskudsregler, nye præparater/biosimilærer.
 - **Præparater:** navne, styrker, udbud og tilskud i Danmark (pro.medicin.dk / Medicinpriser) —
   udgåede eller nye præparater skal rettes.
+- **Restordre (`restordre/`):** kør `python3 tools/hentrestordre.py` (www.restordre.dk opdateres typisk
+  mandag og torsdag), hæv `VERSION` i `restordre/sw.js`, og genpublicér artifactet.
 - **MRS:** normalt ingen ændringer.
 - **Hjerte-kar (`hjerte/`):** Dansk Cardiologisk Selskabs NBV (forebyggelse, dyslipidæmi,
   hypertension, atrieflimren, antitrombotisk behandling), DSAM, ESC-guidelines og fokuserede

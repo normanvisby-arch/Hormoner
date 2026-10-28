@@ -3,7 +3,7 @@
  * internet. Netværket prøves først, så opdateringer slår igennem ved næste
  * åbning med forbindelse. Hæv VERSION, når filer tilføjes eller ændres.
  */
-const VERSION = "v16";
+const VERSION = "v17";
 const CACHE = `thyreoidea-${VERSION}`;
 const FILES = [
   "./",

@@ -73,6 +73,8 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
   check('R5 linket viser ACE-tabellen', (await p.locator('#output').innerText()).includes('3. Andet præparat i samme gruppe — ACE-hæmmere'));
   await soeg('budesonid');
   check('R6 budesonid: vælg mellem inhalation, tarm og næsespray', await p.locator('#valgFelt').isVisible() && (await p.locator('#valgListe button').count()) === 3);
+  await p.locator('#valgListe button', { hasText: 'næsespray' }).click(); await p.waitForTimeout(80);
+  check('R6b klik på et af valgene vælger præparatet (søgefeltets blur tegner ikke knapperne om)', (await p.locator('#output').innerText()).includes('Kortikosteroider til næsen') && await p.locator('#valgFelt').isHidden());
   r = await soeg('Entresto');
   check('R7 Entresto: 36 timer før ACE-hæmmer + link til ARB', r.includes('36 timer') && (await p.locator('[data-gruppe-vis="arb"]').count()) === 1);
   r = await soeg('formoterol');
@@ -139,6 +141,53 @@ const CHROMIUM = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
   check('T6 valg fra "Alle lægemiddelgrupper"', (await p.locator('#output').innerText()).includes('Statiner'));
   await p.click('#resetBtn'); await p.waitForTimeout(80);
   check('T7 Nulstil rydder', (await p.inputValue('#soeg')) === '' && (await p.locator('#dosisFelt').isHidden()) && (await p.locator('#output').innerText()).includes('Skriv navnet'));
+
+  // ---------------- restordre.dk's aktuelle liste (testene følger listens indhold) ----------------
+  const akt = await p.evaluate(() => window.RESTORDRE_AKTUELLE);
+  check('L0 aktuelle.js: dato og mindst 3 præparater med produkt, alternativ og levering', !!akt && /^\d{4}-\d{2}-\d{2}$/.test(akt.opdateret) && akt.liste.length >= 3 && akt.liste.every((x) => x.produkt && x.alternativ !== undefined), akt && akt.opdateret);
+  let o = await p.locator('#output').innerText();
+  check('L1 startside: oversigt over restordre.dk-listen med alle præparater og dato', o.includes(`Aktuelt på restordre.dk (${akt.liste.length} præparater)`) && (await p.locator('[data-aktuel]').count()) === akt.liste.length && o.includes('opdateret') && o.includes('Skriv navnet'));
+  const ikkeFundet = [];
+  for (const x of akt.liste) {
+    const stof = x.produkt.split(',')[0].replace(/\(.*?\)/g, '').trim();
+    await p.fill('#soeg', ''); await p.fill('#soeg', stof); await p.waitForTimeout(60);
+    const t = await p.locator('#output').innerText();
+    if (!t.includes("På restordre.dk's liste nu") || !t.includes(x.produkt)) ikkeFundet.push(stof);
+  }
+  check('L2 hvert præparat på listen findes ved søgning på indholdsstoffet, med alternativ og levering', !ikkeFundet.length, ikkeFundet.join(', '));
+  const hn = akt.liste.find((x) => /^[A-ZÆØÅ][a-zæøå]{4,}/.test(x.handelsnavn.replace(/^Fx\s+/, '')));
+  if (hn) {
+    const navn = hn.handelsnavn.replace(/^Fx\s+/, '').split(/[\s®']/)[0];
+    await p.fill('#soeg', ''); await p.fill('#soeg', navn); await p.waitForTimeout(60);
+    check(`L3 søgning på handelsnavn (${navn}) viser restordre.dk's oplysninger`, (await p.locator('#output').innerText()).includes(hn.produkt));
+  }
+  await p.fill('#soeg', ''); await p.waitForTimeout(60);
+  await p.click('[data-aktuel="0"]'); await p.waitForTimeout(80);
+  check('L4 klik i oversigten søger på præparatet', (await p.inputValue('#soeg')).length >= 3 && (await p.locator('#output').innerText()).includes(akt.liste[0].produkt));
+  const tilbage = await p.evaluate(() => { const ord = (window.RESTORDRE_AKTUELLE.tilbage || '').match(/[A-ZÆØÅ][a-zæøå]{5,}/); return ord ? ord[0] : null; });
+  if (tilbage) {
+    await p.fill('#soeg', ''); await p.fill('#soeg', tilbage); await p.waitForTimeout(60);
+    check(`L5 præparat tilbage på apoteket (${tilbage}) → kun det præparat vises`, (await p.locator('#output').innerText()).includes('Tilbage på apoteket igen: ' + tilbage));
+  }
+  const ikkeListet = ['ramipril', 'Eliquis', 'metformin'].find((x) => !akt.liste.some((y) => y.produkt.toLowerCase().includes(x.toLowerCase())));
+  await p.fill('#soeg', ''); await p.fill('#soeg', ikkeListet); await p.waitForTimeout(60);
+  check(`L6 præparat uden for listen (${ikkeListet}) → "står ikke på restordre.dk's liste"`, (await p.locator('#output').innerText()).includes("står ikke på restordre.dk's liste"));
+  const medTabel = akt.liste.map((x) => x.produkt.split(',')[0].trim()).find((st) => ['Furosemid', 'Estradiol', 'Budesonid', 'Prasugrel', 'Paracetamol'].includes(st));
+  if (medTabel) {
+    await p.fill('#soeg', ''); await p.fill('#soeg', medTabel); await p.waitForTimeout(80);
+    if (await p.locator('#valgFelt').isVisible()) { await p.locator('#valgListe button').first().click(); await p.waitForTimeout(80); }
+    const j = await p.locator('#journalTekst').innerText().catch(() => '');
+    check(`L7 journalnotat nævner restordre.dk-listen og forventet levering (${medTabel})`, j.includes('Restordre.dk (liste ') && j.includes('forventet levering'), j);
+  }
+  for (const [dage, forventet] of [[20, true], [1, false]]) {
+    const c2 = await b.newContext(); const p2 = await c2.newPage();
+    await p2.clock.setFixedTime(new Date(new Date(akt.opdateret + 'T12:00:00').getTime() + dage * 864e5));
+    await p2.goto(SIDE); await p2.waitForTimeout(150);
+    const t2 = await p2.locator('#output').innerText();
+    check(`L8 ${dage} dage efter listens dato: advarsel om gammel liste ${forventet ? 'vises' : 'vises ikke'}`, t2.includes(`Listen er ${dage} dage gammel`) === forventet);
+    await c2.close();
+  }
+  await p.click('#resetBtn'); await p.waitForTimeout(60);
 
   // ---------------- Udfyld fra journaltekst ----------------
   await p.evaluate(() => (document.querySelector('details.udfyld').open = true));

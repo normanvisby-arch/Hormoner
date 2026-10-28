@@ -45,6 +45,75 @@
     ["Nordjylland", "https://www.sundhed.dk/sundhedsfaglig/information-til-praksis/nordjylland/almen-praksis/patientbehandling/laegemidler/restordre/"],
   ];
 
+  // ---------------------------------------------------------------- restordre.dk's aktuelle liste
+  // aktuelle.js genereres af tools/hentrestordre.py (restordre.dk sender ingen CORS-headere).
+  const AKT = window.RESTORDRE_AKTUELLE || { liste: [], tilbage: "" };
+  const datoTekst = (iso) => (iso ? new Date(iso + "T12:00:00").toLocaleDateString("da-DK", { day: "numeric", month: "long", year: "numeric" }) : "");
+  const listeAlder = () => (AKT.opdateret ? Math.floor((Date.now() - new Date(AKT.opdateret + "T12:00:00")) / 864e5) : null);
+  const norm = (x) => x.toLowerCase().replace(/[®™]/g, "").replace(/\s+/g, " ").trim();
+  // Indholdsstoffet er det, der står før første komma ("Estradiol, depotplastre, …").
+  AKT.liste.forEach((x) => {
+    x.noegle = norm(x.produkt.split(",")[0].replace(/\(.*?\)/g, ""));
+    x.handelsOrd = norm(x.handelsnavn).replace(/^fx\s+/, "").split(/[\s']+/).filter((o) => o.length >= 4 && !/^\d/.test(o));
+  });
+  const stofOrd = (navne) => [...new Set(navne.map(norm).flatMap((n) => [n, n.split(/[\s(]/)[0]]).filter((n) => n.length >= 4))];
+  function aktuelleFor(navne, tekst) {
+    const n = stofOrd(navne);
+    const t = norm(tekst || "");
+    return AKT.liste.filter((x) => n.some((o) => o.includes(x.noegle) || x.noegle.includes(o)) || (t.length >= 4 && (t.includes(x.noegle) || x.handelsOrd.some((h) => t.includes(h)))));
+  }
+  // "Tilbage på apoteket" er én tekst — del den i præparater (nyt præparat starter med stort begyndelsesbogstav).
+  // Et led uden styrke (fx "Betamethason" i "Betamethason, Salicylsyre, …") hører til næste led.
+  const TILBAGE = (AKT.tilbage || "")
+    .split(/(?:,\s*|\s+)(?=[A-ZÆØÅ][a-zæøå]{3,})/)
+    .map((x) => x.replace(/[,\s]+$/, ""))
+    .filter(Boolean)
+    .reduce((acc, x) => {
+      const forrige = acc[acc.length - 1];
+      if (forrige !== undefined && !/\d/.test(forrige)) acc[acc.length - 1] = `${forrige}, ${x}`;
+      else acc.push(x);
+      return acc;
+    }, []);
+  const tilbageFor = (navne) => {
+    const o = stofOrd(navne);
+    return TILBAGE.filter((x) => o.some((n) => new RegExp(`${B}${reEsc(n)}`).test(norm(x))));
+  };
+  const navneFor = (h) => (h ? (h.type === "detalje" ? [h.s.navn, ...h.ord] : [h.stof, h.kerne, ...h.handels]) : []);
+
+  function alderNote() {
+    const a = listeAlder();
+    const d = `restordre.dk's liste, opdateret ${esc(datoTekst(AKT.opdateret))}`;
+    if (a === null) return "";
+    return a > 7
+      ? `<p class="rest-note"><strong>Listen er ${a} dage gammel</strong> — restordre.dk opdateres typisk mandag og torsdag. Tjek siden for den aktuelle status (${d}).</p>`
+      : `<p class="field-hint">Fra ${d}. Listen omfatter kun de hyppigste eller klinisk vanskeligste restordrer.</p>`;
+  }
+
+  function aktuelHtml(x) {
+    const links = (x.links || []).map((u) => `<a href="${esc(u)}" target="_blank" rel="noopener">${/laegemiddelstyrelsen/.test(u) ? "Lægemiddelstyrelsen" : /ssi\.dk/.test(u) ? "SSI" : "Link"}</a>`).join(" · ");
+    return `<div class="rest-aktuel"><p><strong>${esc(x.produkt)}</strong>${x.handelsnavn ? ` <span class="field-hint">(${esc(x.handelsnavn)})</span>` : ""}${x.ny ? ' <span class="tag tag-warn">Ny</span>' : ""}</p>
+      <p><strong>Foreslået alternativ:</strong> ${esc(x.alternativ)}${links ? ` ${links}` : ""}</p>
+      <p><strong>Forventet levering:</strong> ${esc(x.levering || "ikke angivet")}</p></div>`;
+  }
+
+  function aktuelBoks(navne, tekst) {
+    const fund = aktuelleFor(navne, tekst);
+    const tilbage = tilbageFor(navne);
+    if (!fund.length && !tilbage.length) return "";
+    let body = fund.map(aktuelHtml).join("");
+    if (tilbage.length) body += `<p class="rest-tilbage"><strong>Tilbage på apoteket igen:</strong> ${tilbage.map(esc).join("; ")}.</p>`;
+    return box(fund.length ? "box-red" : "box-green", fund.length ? "På restordre.dk's liste nu" : "Tilbage på apoteket ifølge restordre.dk", body + alderNote());
+  }
+
+  function oversigt() {
+    if (!AKT.liste.length) return `<p class="field-hint">Skriv navnet på præparatet i restordre.</p>`;
+    const knapper = AKT.liste
+      .map((x, i) => `<li><button type="button" class="btn-link" data-aktuel="${i}">${esc(x.produkt)}</button>${x.ny ? ' <span class="tag tag-warn">Ny</span>' : ""} <span class="field-hint">— ${esc(x.levering || "levering ikke angivet")}</span></li>`)
+      .join("");
+    return `<p class="field-hint">Skriv navnet på præparatet i restordre — eller vælg et af de præparater, restordre.dk aktuelt har på listen.</p>` +
+      box("box-blue rest-oversigt", `Aktuelt på restordre.dk (${AKT.liste.length} præparater)`, `<ul class="followup-list">${knapper}</ul>${TILBAGE.length ? `<p class="rest-tilbage"><strong>Tilbage på apoteket igen:</strong> ${TILBAGE.map(esc).join("; ")}.</p>` : ""}${alderNote()}`);
+  }
+
   // ATC-grupper med en detaljeret ækvivalenstabel i data.js.
   const DETALJE_ATC = { C09AA: "ace", C09CA: "arb", C08CA: "ccb", C07AB: "bb", C07AG: "bb", C03AA: "thiazid", C03BA: "thiazid", C03CA: "loop", C10AA: "statin", B01AF: "doak", B01AE: "doak", A10BJ: "glp1", A10BK: "sglt2", A10BH: "dpp4", A10BA: "metformin", A02BC: "ppi", R03AC: "saba", R03BA: "ics", R03BB: "lama", N06AB: "ssri", N02CC: "triptan", N02AA: "opioid", N02AX: "opioid", R05DA: "opioid", R06AE: "antihist", R06AX: "antihist", C01CA: "adrenalin", H02AB: "steroid", N03AX: "gabapentinoid", G03CA: ["oestrogen", "lokalOestrogen"], G03DA: "gestagen", G03AA: "ppiller", G03AC: "ppiller", H03AA: "levothyroxin", M05BA: "osteoporose", M05BX: "osteoporose", J01CE: "penicillin", J01CA: "uvi", J01XE: "uvi", J01EA: "uvi", J01EB: "uvi" };
 
@@ -120,7 +189,9 @@
     vis();
   }
 
+  let sidstLaest = null;
   function laes() {
+    sidstLaest = soeg.value;
     const hits = find(soeg.value);
     // Samme præparat som allerede valgt (fx når feltet mister fokus): gør intet — en ny tegning
     // ville fjerne det link eller den knap, lægen er ved at klikke på.
@@ -139,7 +210,7 @@
         const b = e.target.closest("[data-hit]");
         if (b) vaelg(hits[+b.dataset.hit]);
       };
-      output.innerHTML = `<p class="field-hint">Flere præparater passer til "${esc(soeg.value.trim())}" — vælg til venstre.</p>`;
+      output.innerHTML = `<p class="field-hint">Flere præparater passer til "${esc(soeg.value.trim())}" — vælg til venstre.</p>` + aktuelBoks([soeg.value], soeg.value);
       return;
     }
     valgFelt.hidden = true;
@@ -150,15 +221,19 @@
             "box-amber",
             "Præparatet findes ikke i værktøjets register",
             `<p>Registeret dækker de mest brugte indholdsstoffer og handelsnavne — ikke alle præparater. Skriv <strong>indholdsstoffet</strong> (det står på pakningen og recepten), eller slå navnet op på <a href="${PROMEDICIN(navn)}" target="_blank" rel="noopener">pro.medicin.dk</a>.</p>`
-          ) + restordreBoks(navn) + samme(null)
-        : `<p class="field-hint">Skriv navnet på præparatet i restordre.</p>`;
+          ) + aktuelBoks([navn], navn) + restordreBoks(navn, null) + samme(null)
+        : oversigt();
   }
 
-  function restordreBoks(navn) {
+  function restordreBoks(navn, hit) {
+    const paaListe = aktuelleFor(navneFor(hit).concat(navn), navn).length > 0;
+    const status = AKT.opdateret && !paaListe
+      ? `<p><strong>${esc(navn)}</strong> står ikke på restordre.dk's liste pr. ${esc(datoTekst(AKT.opdateret))}. Listen omfatter kun de hyppigste eller klinisk vanskeligste restordrer — spørg apoteket, og tjek siden, hvis listen er ældre end et par dage.</p>`
+      : "";
     return box(
       "box-blue",
       "1. Tjek restordre.dk først",
-      `<p>Restordre.dk viser, hvad der kan skaffes i dag, og apotekets vurderede alternativer.</p>
+      `${status}<p>Restordre.dk (Region Syddanmark for Danske Regioner) viser de væsentligste restordrer med alternativer vurderet af apotek og klinisk farmakolog.</p>
       <div class="output-actions">
         <a class="btn btn-primary" href="${RESTORDRE_DK}" target="_blank" rel="noopener" id="restordreLink">Åbn restordre.dk</a>
         <button type="button" class="btn btn-outline" id="kopierNavn">Kopiér "${esc(navn)}" til søgning</button>
@@ -239,11 +314,17 @@
   }
 
   // ---------------------------------------------------------------- Visning og notat
+  function aktuelLinje() {
+    const fund = aktuelleFor(navneFor(valgt), soeg.value);
+    return fund.length ? `Restordre.dk (liste ${new Date(AKT.opdateret + "T12:00:00").toLocaleDateString("da-DK")}): ${fund.map((x) => `${x.produkt} — forventet levering: ${x.levering || "ikke angivet"}`).join("; ")}.` : "";
+  }
+
   function notat() {
     const idag = new Date().toLocaleDateString("da-DK");
     if (valgt.type === "register") {
       const r = valgt;
       const linjer = [`${stor(r.stof)} i restordre (restordre.dk tjekket ${idag}).`];
+      if (aktuelLinje()) linjer.push(aktuelLinje());
       const skjul = ((window.RESTORDRE_ATC_NOTE || {})[r.atc] || {}).skjulListe;
       linjer.push(valgtAlt ? `Skiftet til ${stor(valgtAlt)} — dosis efter produktresumé.` : skjul ? "Alternativ: [skriv selv]." : "Alternativ: [vælg i listen eller skriv selv].");
       return linjer.join("\n");
@@ -252,6 +333,7 @@
     const rk = dosis.value === "" ? null : +dosis.value;
     const alt = valgtAlt && g.stoffer.find((c) => c.id === valgtAlt);
     const linjer = [`${s.navn}${rk !== null && g.raekker ? ` ${g.raekker[rk].doser[s.id]}` : ""} i restordre (restordre.dk tjekket ${idag}).`];
+    if (aktuelLinje()) linjer.push(aktuelLinje());
     const altDosis = alt && rk !== null && g.raekker ? g.raekker[rk].doser[alt.id] : "";
     if (alt && g.egneKriterier) linjer.push(`Skiftet til ${alt.navn} — dosis efter præparatets egne kriterier (alder, vægt, nyrefunktion, interaktioner; ved atrieflimren: se Atrieflimren-værktøjet).`);
     else if (alt && g.notatForm === "opioid") linjer.push(`Skiftet til ${alt.navn}${altDosis ? `: beregnet ækvivalent døgndosis ${altDosis} — startdosis 50–75 % heraf + p.n.-dosis` : " — dosis: start med 50–75 % af den beregnede ækvivalente døgndosis + p.n.-dosis"}.`);
@@ -279,7 +361,7 @@
     if (valgt.type === "register") {
       const r = valgt;
       const handels = r.handels.length ? `Kendte handelsnavne for ${esc(r.stof)}: ${esc(r.handels.join(", "))} (tjek udbud på <a href="${PROMEDICIN(r.kerne)}" target="_blank" rel="noopener">pro.medicin.dk</a>).` : `Se præparater med ${esc(r.stof)} på <a href="${PROMEDICIN(r.kerne)}" target="_blank" rel="noopener">pro.medicin.dk</a>.`;
-      output.innerHTML = restordreBoks(soegeord) + samme(handels) + registerAlternativer(r) + notatBoks();
+      output.innerHTML = aktuelBoks(navneFor(r), soeg.value) + restordreBoks(soegeord, r) + samme(handels) + registerAlternativer(r) + notatBoks();
       return;
     }
     const { g, s } = valgt;
@@ -288,7 +370,7 @@
     const kombi = /(?:^|[^a-zæøå])(?:comp|plus|duo|hct|forte comp)(?![a-zæøå])|\+|[a-zæøå]\s*\/\s*[a-zæøå]/i.test(soeg.value)
       ? box("box-red", "Kombinationspræparat?", `<p>Søgningen ligner et kombinationspræparat, men værktøjet fandt kun enkeltstoffet <strong>${esc(s.navn)}</strong>. Tabellen gælder kun dette stof — det andet indholdsstof (fx hydrochlorthiazid) skal fortsat gives, fx som separat tablet. Tjek indholdsstofferne på pakningen eller <a href="${PROMEDICIN(soeg.value.trim())}" target="_blank" rel="noopener">pro.medicin.dk</a>.</p>`)
       : "";
-    output.innerHTML = kombi + restordreBoks(soegeord) + samme(s.samme ? esc(s.samme) : null) + alternativer(g, s, rk) + skift(g) + notatBoks();
+    output.innerHTML = kombi + aktuelBoks(navneFor(valgt), soeg.value) + restordreBoks(soegeord, valgt) + samme(s.samme ? esc(s.samme) : null) + alternativer(g, s, rk) + skift(g) + notatBoks();
   }
 
   function kopier(tekst, status) {
@@ -312,6 +394,12 @@
     // "Åbn restordre.dk" kopierer også navnet — ét klik i stedet for to. Linket åbner som normalt.
     if (e.target.id === "kopierNavn" || e.target.id === "restordreLink") kopier(soeg.value.trim() || (valgt ? navnPaa(valgt) : ""), "navnStatus");
     if (e.target.id === "kopierNotat") kopier(document.getElementById("journalTekst").textContent, "notatStatus");
+    const ak = e.target.closest("[data-aktuel]");
+    if (ak) {
+      const x = AKT.liste[+ak.dataset.aktuel];
+      soeg.value = stor(x.noegle);
+      laes();
+    }
     const d = e.target.closest("[data-detalje]");
     if (d) {
       e.preventDefault();
@@ -335,6 +423,8 @@
   form.addEventListener("change", (e) => {
     if (e.target === dosis) vis();
     // Også når "Udfyld fra journaltekst" har sat navnet (hændelsen kommer da fra formularen).
+    // Søgefeltets "change" ved blur må ikke tegne knapperne om midt i et klik på "Vælg".
+    else if (e.target === soeg && soeg.value === sidstLaest) return;
     else if (e.target === soeg || e.target === form) laes();
   });
   document.getElementById("gruppeListe").addEventListener("click", (e) => {
@@ -351,8 +441,9 @@
     valgtAlt = null;
     dosisFelt.hidden = true;
     valgFelt.hidden = true;
-    output.innerHTML = `<p class="field-hint">Skriv navnet på præparatet i restordre.</p>`;
+    output.innerHTML = oversigt();
   });
+  output.innerHTML = oversigt();
   const printBtn = document.getElementById("printBtn");
   if (printBtn) printBtn.addEventListener("click", () => window.print());
 
